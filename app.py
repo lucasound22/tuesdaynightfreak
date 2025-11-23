@@ -14,72 +14,91 @@ st.set_page_config(
     initial_sidebar_state="collapsed"
 )
 
-# Custom CSS: Brutalist, Monochrome, Raw
+# Custom CSS: Brutalist, Monochrome, Raw + Neon Green Highlights
 st.markdown("""
 <style>
     /* 1. GLOBAL RESET & MONOCHROME THEME */
     .stApp {
-        background-color: #000000;
+        background-color: #050505;
         color: #e0e0e0;
         font-family: 'Courier New', Courier, monospace; /* Industrial/Terminal font */
     }
 
-    /* 2. TYPOGRAPHY */
+    /* 2. REMOVE STREAMLIT BRANDING & HEADER */
+    #MainMenu {visibility: hidden;}
+    footer {visibility: hidden;}
+    header {visibility: hidden;} /* Hides the top colored bar and hamburger menu */
+    
+    /* 3. FIX MENU CUT-OFF (Adjust Top Padding) */
+    .block-container {
+        padding-top: 1rem !important; /* Reduced to bring menu up, but ensures visibility */
+        padding-bottom: 5rem;
+        max-width: 1200px;
+    }
+
+    /* 4. TYPOGRAPHY & NEON HIGHLIGHTS */
     h1, h2, h3, h4, h5, h6 {
-        color: #ffffff !important;
+        color: #39ff14 !important; /* NEON GREEN RESTORED */
         font-family: 'Courier New', Courier, monospace;
         text-transform: uppercase;
         font-weight: 900;
-        letter-spacing: -1px;
+        letter-spacing: -1.5px;
     }
     
     p, div, label, span {
         font-family: 'Courier New', Courier, monospace;
+        letter-spacing: -0.5px;
+    }
+    
+    a {
+        color: #39ff14 !important;
+        text-decoration: none;
+    }
+    a:hover {
+        text-decoration: underline;
+        text-shadow: 0 0 10px #39ff14;
     }
 
-    /* 3. IMAGERY - FORCE B&W & HIGH CONTRAST */
+    /* 5. IMAGERY - FORCE B&W & HIGH CONTRAST */
     img {
-        filter: grayscale(100%) contrast(110%) brightness(90%);
-        transition: filter 0.3s ease;
+        filter: grayscale(100%) contrast(120%) brightness(85%);
+        transition: all 0.4s ease;
+        border: 1px solid #1a1a1a;
     }
     img:hover {
-        filter: grayscale(0%) contrast(100%); /* Slight reveal on hover */
+        filter: grayscale(0%) contrast(110%) brightness(100%); /* Color reveal on hover */
+        border: 1px solid #39ff14;
+        box-shadow: 0 0 15px rgba(57, 255, 20, 0.2);
     }
 
-    /* 4. UI ELEMENTS - BRUTALIST (NO ROUNDED CORNERS) */
+    /* 6. UI ELEMENTS - BRUTALIST (NO ROUNDED CORNERS) */
     .stButton>button {
-        color: #ffffff;
+        color: #39ff14;
         background-color: #000000;
-        border: 1px solid #ffffff;
+        border: 1px solid #39ff14;
         border-radius: 0px !important; /* Sharp edges */
         text-transform: uppercase;
-        padding: 10px 20px;
+        padding: 12px 24px;
+        font-weight: bold;
         transition: all 0.2s;
     }
     .stButton>button:hover {
-        background-color: #ffffff;
+        background-color: #39ff14;
         color: #000000;
-        border: 1px solid #ffffff;
+        box-shadow: 0 0 20px rgba(57, 255, 20, 0.6);
     }
 
-    /* 5. INPUTS */
+    /* 7. INPUTS */
     .stTextInput>div>div>input, .stTextArea>div>div>textarea, .stSelectbox>div>div>div {
-        background-color: #111111;
-        color: #ffffff;
+        background-color: #0a0a0a;
+        color: #39ff14;
         border: 1px solid #333;
         border-radius: 0px;
         font-family: 'Courier New', monospace;
     }
-
-    /* 6. CONTAINERS */
-    .block-container {
-        padding-top: 2rem;
-        max-width: 1200px;
+    .stTextInput>div>div>input:focus, .stTextArea>div>div>textarea:focus {
+        border-color: #39ff14;
     }
-    
-    /* Remove default streamlit branding if possible/desired visually */
-    #MainMenu {visibility: hidden;}
-    footer {visibility: hidden;}
     
     hr {
         border-top: 1px solid #333;
@@ -92,17 +111,18 @@ st.markdown("""
 # -----------------------------------------------------------------------------
 if 'songs' not in st.session_state:
     st.session_state.songs = [
-        {"title": "UNTITLED_SEQ_01", "url": "https://soundcloud.com/example/seq01", "platform": "SoundCloud"},
-        {"title": "MODULAR EXCURSION A", "url": "https://bandcamp.com", "platform": "Bandcamp"},
-        {"title": "LIVE AT TRESOR (EXCERPT)", "url": "https://youtube.com", "platform": "YouTube"},
+        {"title": "UNTITLED_SEQ_04 [LIVE REC]", "url": "#", "platform": "SoundCloud"},
+        {"title": "MODULAR EXCURSION B (RAW)", "url": "#", "platform": "Bandcamp"},
+        {"title": "RESIDENT ADVISOR PODCAST 892", "url": "#", "platform": "RA"},
     ]
 
 if 'gallery' not in st.session_state:
-    # Generic images will be forced B&W by CSS
+    # Updated to Modular/Hardware specific images
     st.session_state.gallery = [
-        {"caption": "HARDWARE SETUP 2024", "url": "https://images.unsplash.com/photo-1598488035139-bdbb2231ce04?auto=format&fit=crop&q=80&w=800"},
-        {"caption": "BERLIN", "url": "https://images.unsplash.com/photo-1558584673-c834fb1cc3ca?auto=format&fit=crop&q=80&w=800"},
-        {"caption": "LIVE IMPROVISATION", "url": "https://images.unsplash.com/photo-1514525253440-b393452e8d26?auto=format&fit=crop&q=80&w=800"},
+        {"caption": "EURORACK PATCH 01", "url": "https://images.unsplash.com/photo-1598488035139-bdbb2231ce04?q=80&w=800&auto=format&fit=crop"},
+        {"caption": "LIVE RIG CONFIGURATION", "url": "https://images.unsplash.com/photo-1550291652-6ea9114a47b1?q=80&w=800&auto=format&fit=crop"},
+        {"caption": "BERLIN WAREHOUSE", "url": "https://images.unsplash.com/photo-1566737236500-c8ac43014a67?q=80&w=800&auto=format&fit=crop"},
+        {"caption": "SIGNAL PATH", "url": "https://images.unsplash.com/photo-1519508234439-4f23643125c1?q=80&w=800&auto=format&fit=crop"},
     ]
 
 if 'bookings' not in st.session_state:
@@ -111,30 +131,35 @@ if 'bookings' not in st.session_state:
 # -----------------------------------------------------------------------------
 # 3. NAVIGATION
 # -----------------------------------------------------------------------------
-# Styling option_menu to be high contrast (White text on Black)
+# Styling option_menu to be high contrast with Neon Green
 selected = option_menu(
     menu_title=None,
-    options=["HOME", "MUSIC", "LABEL", "VISUALS", "CONTACT", "ADMIN"],
-    icons=["circle-fill", "circle", "circle", "circle", "circle", "square"],
+    options=["HOME", "TRANSMISSIONS", "LABEL", "VISUALS", "CONTACT", "SYSTEM"],
+    icons=["dot", "dot", "dot", "dot", "dot", "lock"],
     menu_icon="cast",
     default_index=0,
     orientation="horizontal",
     styles={
-        "container": {"padding": "0!important", "background-color": "#000000", "border-bottom": "1px solid #333"},
-        "icon": {"color": "#666", "font-size": "12px"}, 
+        "container": {
+            "padding": "0!important", 
+            "background-color": "#000000", 
+            "border-bottom": "1px solid #333",
+            "margin-bottom": "2rem"
+        },
+        "icon": {"color": "#333", "font-size": "10px"}, 
         "nav-link": {
             "font-size": "14px", 
             "text-align": "center", 
             "margin": "0px", 
-            "color": "#e0e0e0", 
+            "color": "#888", 
             "font-family": "Courier New",
-            "text-transform": "uppercase"
+            "text-transform": "uppercase",
+            "font-weight": "bold"
         },
         "nav-link-selected": {
             "background-color": "#000000", 
-            "color": "#ffffff", 
-            "font-weight": "bold",
-            "border-bottom": "2px solid #ffffff"
+            "color": "#39ff14", /* Neon Green Active Text */
+            "border-bottom": "2px solid #39ff14"
         },
     }
 )
@@ -146,85 +171,84 @@ selected = option_menu(
 # --- HOME / BIO ---
 if selected == "HOME":
     st.markdown("## TUESDAYNIGHTFREAK")
-    st.caption("LIVE ELECTRONIC // MELBOURNE -- BERLIN")
+    st.markdown("<h4 style='color: #666 !important;'>LIVE HARDWARE ELECTRONICS // MELBOURNE -- BERLIN</h4>", unsafe_allow_html=True)
     
     st.write("---")
     
-    col1, col2 = st.columns([1, 1])
+    col1, col2 = st.columns([1, 1], gap="large")
     
     with col1:
         st.markdown("""
         ### BIOGRAPHY
         
-        Operating on the fringes of Melbourne’s electronic underground, **Tuesdaynightfreak** rejects the polished predictability of modern club music. 
+        **Tuesdaynightfreak** operates in the void between mechanical precision and human error. Rejecting the safety of pre-recorded sets, the project is a study in live improvisation using a complex architecture of modular synthesis, drum machines, and feedback loops.
         
-        Rooted in the tradition of live hardware improvisation, the project explores the tension between mechanical precision and human error. There are no pre-recorded sets here. Using a complex architecture of drum machines, modular synthesis, and feedback loops, Tuesdaynightfreak constructs soundscapes in real-time.
+        Drawing from the austere industrialism of the Berlin school and the raw funk of Detroit's second wave, the sound is reductive and texture-heavy. It is music built for concrete rooms and high-pressure sound systems.
         
-        The sound is raw, reductive, and texture-heavy—blending the hypnotic repetition of Berlin techno with the dust and grit of lo-fi house. It is music for dark rooms and loud systems.
+        No laptops. No presets. Just voltage and rhythm.
         """)
         
         st.write("")
-        st.markdown("##### UPCOMING DATES")
-        st.code("NO PUBLIC DATES SCHEDULED.\nSTUDIO MODE ACTIVE.")
+        st.markdown("##### SCHEDULE")
+        st.code("04.11 // TRESOR [BERLIN]\n11.11 // FOLD [LONDON]\n18.11 // REVOLVER [MELBOURNE]\n25.11 // STUDIO LOCKDOWN")
 
     with col2:
-        # Image will be rendered B&W by CSS
-        st.image("https://images.unsplash.com/photo-1511671782779-c97d3d27a1d4?auto=format&fit=crop&q=80&w=800", 
+        # Image will be rendered B&W by CSS, revealing color on hover
+        st.image("https://images.unsplash.com/photo-1614613535308-eb5fbd3d2c17?q=80&w=800&auto=format&fit=crop", 
                  caption="LIVE PERFORMANCE // 2024", use_column_width=True)
 
     # Minimal Text Links for Socials
     st.write("---")
-    cols = st.columns(6)
-    cols[0].markdown("[INSTAGRAM](https://instagram.com)")
-    cols[1].markdown("[SOUNDCLOUD](https://soundcloud.com)")
-    cols[2].markdown("[SPOTIFY](https://spotify.com)")
-    cols[3].markdown("[RESIDENT ADVISOR](https://ra.co)")
+    cols = st.columns(4)
+    cols[0].markdown("[INSTAGRAM](#)")
+    cols[1].markdown("[SOUNDCLOUD](#)")
+    cols[2].markdown("[SPOTIFY](#)")
+    cols[3].markdown("[RESIDENT ADVISOR](#)")
 
-# --- MUSIC ---
-elif selected == "MUSIC":
-    st.markdown("### DISCOGRAPHY")
-    st.write("Explorations in rhythm and noise.")
+# --- TRANSMISSIONS (MUSIC) ---
+elif selected == "TRANSMISSIONS":
+    st.markdown("### SONIC ARCHIVE")
+    st.write("Live recordings and unreleased sketches.")
     
     st.write("---")
     
     # Text-based list layout (Brutalist style)
     for song in st.session_state.songs:
-        col1, col2, col3 = st.columns([4, 2, 2])
+        col1, col2, col3 = st.columns([5, 2, 2])
         with col1:
             st.markdown(f"**{song['title']}**")
         with col2:
             st.caption(f"[{song['platform']}]")
         with col3:
-            st.markdown(f"[LISTEN]({song['url']})")
-        st.markdown("<hr style='margin: 5px 0; border-top: 1px dashed #333;'>", unsafe_allow_html=True)
+            st.markdown(f"[>> LISTEN]({song['url']})")
+        st.markdown("<hr style='margin: 10px 0; border-top: 1px dashed #333;'>", unsafe_allow_html=True)
 
 # --- LABEL ---
 elif selected == "LABEL":
-    col1, col2 = st.columns([1, 1])
+    col1, col2 = st.columns([1, 1], gap="large")
     
     with col1:
         st.markdown("## HOUSE KEEPING RECORDS")
-        st.markdown("**EST. 2023**")
+        st.caption("EST. 2023 // PHYSICAL & DIGITAL")
         st.write("---")
         st.markdown("""
-        House Keeping Records exists to document the output of the local hardware community. 
+        **House Keeping Records** exists to document the output of the local hardware community. 
         
-        We are not interested in trends. We focus on the functional, the raw, and the deep. 
-        Vinyl only releases for select projects. Digital archives available via Bandcamp.
+        We focus on the functional, the raw, and the deep. We release tools for DJs and explorations for heads. Vinyl pressing for select projects. 
         
         **DEMO POLICY**
-        We listen. Send private streams only.
+        We listen. Private SoundCloud links only. Do not send WeTransfer files.
         """)
-        st.code("demo@housekeeping.com")
+        st.code("demo@housekeeping-rec.com")
     
     with col2:
-        # A placeholder image that looks like a white label vinyl or studio gear
-        st.image("https://images.unsplash.com/photo-1605218427306-022648d42d32?auto=format&fit=crop&q=80&w=800", caption="HKR CATALOGUE", use_column_width=True)
+        # Image: Vinyl / Studio aesthetic
+        st.image("https://images.unsplash.com/photo-1605218427306-022648d42d32?q=80&w=800&auto=format&fit=crop", caption="HKR CATALOGUE", use_column_width=True)
 
     st.write("---")
-    st.markdown("### RECENT OUTPUT")
-    st.text("HKR001 // TUESDAYNIGHTFREAK // STATIC INTERFERENCE EP")
-    st.text("HKR002 // VARIOUS ARTISTS // TOOLS FOR DJs VOL. 1")
+    st.markdown("### LATEST PRESSINGS")
+    st.text("HKR001 // TUESDAYNIGHTFREAK // STATIC INTERFERENCE EP [12\"]")
+    st.text("HKR002 // VARIOUS ARTISTS // TOOLS FOR DJs VOL. 1 [DIGITAL]")
 
 # --- VISUALS ---
 elif selected == "VISUALS":
@@ -241,32 +265,34 @@ elif selected == "VISUALS":
 
 # --- CONTACT ---
 elif selected == "CONTACT":
-    col1, col2 = st.columns([1, 1])
+    col1, col2 = st.columns([1, 1], gap="large")
     
     with col1:
         st.markdown("### BOOKING")
         st.write("Representation: Independent.")
         st.write("Region: Worldwide.")
         st.write("")
+        st.markdown("**MANAGEMENT**")
         st.code("tuesdaynightfreak@gmail.com")
         st.write("")
         st.markdown("""
-        **REQUIREMENTS**
-        * 2x meters table space
-        * 2x stereo DI boxes
-        * Quality monitoring system
+        **TECHNICAL RIDER**
+        * 2x Meters table space (vibration free)
+        * 2x Stereo DI boxes (Radial preferred)
+        * 1x Monitor wedge (controllable from booth)
+        * No smoke machines during performance
         """)
 
     with col2:
-        st.markdown("### INQUIRY")
+        st.markdown("### INQUIRY CHANNEL")
         with st.form("booking_form"):
             st.markdown("**DATE / VENUE / OFFER**")
-            name = st.text_input("PROMOTER", placeholder="Name or Organization")
-            email = st.text_input("EMAIL", placeholder="contact@domain.com")
+            name = st.text_input("PROMOTER / AGENT", placeholder="Name or Organization")
+            email = st.text_input("RETURN FREQUENCY (EMAIL)", placeholder="contact@domain.com")
             details = st.text_area("DETAILS", placeholder="Include date, venue, and fee offer.")
             
             # Custom styled button via CSS above
-            submitted = st.form_submit_button("TRANSMIT")
+            submitted = st.form_submit_button("TRANSMIT REQUEST")
             
             if submitted:
                 if name and email:
@@ -277,32 +303,32 @@ elif selected == "CONTACT":
                         "timestamp": str(datetime.now())
                     }
                     st.session_state.bookings.append(new_booking)
-                    st.success("TRANSMISSION RECEIVED.")
+                    st.success("TRANSMISSION RECEIVED. WE WILL RESPOND IF ALIGNED.")
                 else:
-                    st.error("MISSING DATA.")
+                    st.error("INCOMPLETE DATA.")
 
-# --- ADMIN ---
-elif selected == "ADMIN":
-    st.markdown("### SYSTEM ACCESS")
+# --- SYSTEM (ADMIN) ---
+elif selected == "SYSTEM":
+    st.markdown("### RESTRICTED ACCESS")
     
-    password = st.text_input("PASSWORD", type="password")
+    password = st.text_input("ACCESS CODE", type="password")
     
     if password == "admin123":
         st.success("AUTHENTICATED")
         
-        tab1, tab2, tab3 = st.tabs(["AUDIO", "VISUAL", "DATA"])
+        tab1, tab2, tab3 = st.tabs(["AUDIO", "VISUAL", "LOGS"])
         
         with tab1:
-            st.markdown("**ADD NEW AUDIO SOURCE**")
+            st.markdown("**ADD AUDIO SOURCE**")
             with st.form("add_song"):
                 new_title = st.text_input("TITLE")
                 new_url = st.text_input("URL")
-                new_platform = st.selectbox("PLATFORM", ["SoundCloud", "Bandcamp", "Spotify", "YouTube"])
+                new_platform = st.selectbox("PLATFORM", ["SoundCloud", "Bandcamp", "Spotify", "RA"])
                 if st.form_submit_button("UPLOAD"):
                     st.session_state.songs.append({"title": new_title, "url": new_url, "platform": new_platform})
                     st.rerun()
             
-            if st.button("CLEAR ALL SONGS"):
+            if st.button("PURGE ALL SONGS"):
                 st.session_state.songs = []
                 st.rerun()
 
