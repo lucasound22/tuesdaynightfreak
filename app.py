@@ -178,6 +178,7 @@ if 'songs' not in st.session_state:
     ]
 
 # --- UPDATED STOCK IMAGES (More industrial/hardware focused) ---
+# Note: These are the previously requested non-stock images, kept for branding.
 if 'gallery' not in st.session_state or 'updated_images' not in st.session_state:
     st.session_state.gallery = [
         {"caption": "ANALOG SYNTHESIS HARDWARE", "url": "https://images.unsplash.com/photo-1510915364890-a7d41f02c611?q=80&w=800&auto=format&fit=crop"}, # Modular synth closeup
@@ -185,43 +186,31 @@ if 'gallery' not in st.session_state or 'updated_images' not in st.session_state
         {"caption": "PATCH CABLE MATRIX", "url": "https://images.unsplash.com/photo-1598275529124-b1c4b786f1e2?q=80&w=800&auto=format&fit=crop"}, # Patch cables/close up connections
         {"caption": "HIGH-CONTRAST MIXER VIEW", "url": "https://images.unsplash.com/photo-1619967657960-983b6329c370?q=80&w=800&auto=format&fit=crop"}, # Controller/mixer close up
     ]
-    st.session_state.updated_images = True # Flag to avoid re-running image initialization
+    st.session_state.updated_images = True 
 
 if 'bookings' not in st.session_state:
     st.session_state.bookings = []
 
-# Initialize the time placeholder
-if 'time_placeholder' not in st.session_state:
-    st.session_state.time_placeholder = None
+# Removed 'time_placeholder' session state key for stability
 
 # -----------------------------------------------------------------------------
 # 3. UTILITY FUNCTIONS
 # -----------------------------------------------------------------------------
 
-# --- Enhancement 3: Temporal Display (Debugged) ---
+# --- Temporal Display (FIXED FOR STABILITY) ---
 def display_running_time():
     """
     Displays the current time, giving a system/terminal aesthetic.
-    Uses an initial placeholder and a safe rerun loop.
+    The time updates only on full page reload or user interaction to ensure stability
+    in hosted environments (no st.rerun() loop).
     """
-    if st.session_state.time_placeholder is None:
-        st.session_state.time_placeholder = st.empty()
-
     current_time_str = datetime.now().strftime('%Y-%m-%d %H:%M:%S')
     
-    st.session_state.time_placeholder.markdown(f"""
+    st.markdown(f"""
         <div style="text-align: right; color: #888; font-size: 0.8em; margin-bottom: 20px;">
             SYSTEM TIME: {current_time_str} UTC
         </div>
         """, unsafe_allow_html=True)
-        
-    # Schedule a rerun every second if on one of the main pages
-    if selected in ["HOME", "LABEL", "CONTACT"]:
-        # Time.sleep() is crucial to make the update feel real and not cause excessive reruns
-        time.sleep(1) 
-        # Safely trigger a rerun for the time to update
-        st.rerun() 
-    # If on TRANSMISSIONS, MEDIA, or SYSTEM, do not call st.rerun()
 
 # -----------------------------------------------------------------------------
 # 4. NAVIGATION
@@ -281,12 +270,11 @@ if selected in ["HOME", "LABEL", "CONTACT"]:
 
 # --- HOME / BIO ---
 if selected == "HOME":
-    # 3. New unique artist name/logo presentation
+    # New unique artist name/logo presentation (Branding kept)
     st.markdown(f"<span class='logo-text'>TUESDAYNIGHTFREAK</span>", unsafe_allow_html=True)
     st.markdown(f"<h4 style='color: #666 !important;'>LIVE HARDWARE ELECTRONICS // MELBOURNE -- BERLIN {TNF_LOGO_SVG}</h4>", unsafe_allow_html=True)
     
-    # --- Enhancement 2: Interactive Live Feed Status ---
-    # Randomly show a status for demonstration
+    # Interactive Live Feed Status
     status = random.choice(["LIVE: TONE TESTING", "STANDBY", "OFFLINE"])
     status_color = NEON_CYAN if status.startswith("LIVE") else "#888"
     st.markdown(f"""
@@ -306,7 +294,6 @@ if selected == "HOME":
             @keyframes blink {{ 0% {{ opacity: 1; }} 50% {{ opacity: 0; }} 100% {{ opacity: 1; }} }}
         </style>
         """, unsafe_allow_html=True)
-    # ----------------------------------------------------
     
     st.write("---")
     
@@ -328,13 +315,13 @@ if selected == "HOME":
         st.code("04.11 // TRESOR [BERLIN]\n11.11 // FOLD [LONDON]\n18.11 // REVOLVER [MELBOURNE]\n25.11 // STUDIO LOCKDOWN")
 
     with col2:
-        # New Stock Image 1: Industrial Warehouse / Live
+        # New Stock Image 1: Industrial Warehouse / Live (Kept)
         st.image("https://images.unsplash.com/photo-1543167156-f6d89262f270?q=80&w=800&auto=format&fit=crop", 
                  caption="LIVE PERFORMANCE // 2024", use_column_width=True)
         st.caption("Image Source: Unsplash (Alistair Green)")
         
     st.write("---")
-    # --- PROMOTIONAL FEATURE: FEATURED TRANSMISSION (EMBED) ---
+    # PROMOTIONAL FEATURE: FEATURED TRANSMISSION (EMBED)
     st.markdown("##### FEATURED TRANSMISSION (PROMINENT PLAYER)")
     st.html(f"""
     <iframe width="100%" height="166" scrolling="no" frameborder="no" src="https://w.soundcloud.com/player/?url=https%3A//api.soundcloud.com/tracks/1758580218&color=%23{'00f7ff'.lstrip('#')}&auto_play=false&hide_related=false&show_comments=false&show_user=true&show_reposts=false&show_teaser=true"></iframe>
@@ -407,7 +394,7 @@ elif selected == "LABEL":
         
     
     with col2:
-        # New Stock Image 2: Patch Cables
+        # New Stock Image 2: Patch Cables (Kept)
         st.image("https://images.unsplash.com/photo-1598275529124-b1c4b786f1e2?q=80&w=800&auto=format&fit=crop", caption="HKR CATALOGUE", use_column_width=True)
         st.caption("Image Source: Unsplash (Ryan Hoffman)")
         st.write("---")
