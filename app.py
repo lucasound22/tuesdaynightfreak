@@ -5,6 +5,10 @@ from datetime import datetime
 import random
 import time
 
+# --- CONFIGURATION ---
+NEON_CYAN = "#00f7ff" # New neon color: Cyan with a hint of blue
+NEON_CYAN_RGB_SHADOW = "0, 247, 255"
+
 # -----------------------------------------------------------------------------
 # 1. PAGE CONFIGURATION & BERLIN AESTHETIC CSS
 # -----------------------------------------------------------------------------
@@ -15,117 +19,139 @@ st.set_page_config(
     initial_sidebar_state="collapsed"
 )
 
-# Custom CSS: Brutalist, Monochrome, Raw + Neon Green Highlights
-st.markdown("""
+# Custom CSS: Brutalist, Monochrome, Raw + New Cyan Neon Highlights
+st.markdown(f"""
 <style>
     /* 1. GLOBAL RESET & MONOCHROME THEME */
-    .stApp {
+    @keyframes pulse-bg {{
+        0% {{ background-color: #050505; }}
+        50% {{ background-color: #080808; }}
+        100% {{ background-color: #050505; }}
+    }}
+
+    .stApp {{
         background-color: #050505;
         color: #e0e0e0;
-        font-family: 'Courier New', Courier, monospace; /* Industrial/Terminal font */
-    }
+        font-family: 'Courier New', Courier, monospace;
+        animation: pulse-bg 30s infinite alternate; /* Subtle background pulse flare */
+    }}
 
     /* 2. REMOVE STREAMLIT BRANDING & HEADER */
-    #MainMenu {visibility: hidden;}
-    footer {visibility: hidden;}
-    header {visibility: hidden;} /* Hides the top colored bar and hamburger menu */
+    #MainMenu {{visibility: hidden;}}
+    footer {{visibility: hidden;}}
+    header {{visibility: hidden;}}
     
     /* 3. FIX MENU CUT-OFF (Adjust Top Padding) */
-    .block-container {
-        padding-top: 1rem !important; /* Reduced to bring menu up, but ensures visibility */
+    .block-container {{
+        padding-top: 1rem !important;
         padding-bottom: 5rem;
         max-width: 1200px;
-    }
+    }}
 
     /* 4. TYPOGRAPHY & NEON HIGHLIGHTS */
     
     /* Custom Logo Style (New) */
-    .logo-text {
-        color: #39ff14 !important;
-        font-family: 'Arial Narrow', sans-serif; /* Simulating a condensed, industrial font */
-        font-size: 4.5rem; /* Large and imposing */
+    .logo-text {{
+        color: {NEON_CYAN} !important;
+        font-family: 'Arial Narrow', sans-serif;
+        font-size: 4.5rem;
         line-height: 0.8;
         text-transform: uppercase;
         font-weight: 900;
-        letter-spacing: -3px; /* Tightly packed */
+        letter-spacing: -3px;
         display: block;
         padding-top: 1rem;
         padding-bottom: 1rem;
-    }
+    }}
 
-    h1, h2, h3, h4, h5, h6 {
-        color: #39ff14 !important; /* NEON GREEN RESTORED */
+    h1, h2, h3, h4, h5, h6 {{
+        color: {NEON_CYAN} !important; /* NEW NEON CYAN */
         font-family: 'Courier New', Courier, monospace;
         text-transform: uppercase;
         font-weight: 900;
         letter-spacing: -1.5px;
-    }
+        transition: text-shadow 0.3s ease-in-out;
+    }}
     
-    p, div, label, span {
+    h1:hover, h2:hover, h3:hover {{
+        text-shadow: 0 0 10px rgba({NEON_CYAN_RGB_SHADOW}, 0.5); /* Heading hover glow flare */
+    }}
+    
+    p, div, label, span {{
         font-family: 'Courier New', Courier, monospace;
         letter-spacing: -0.5px;
-    }
+    }}
     
-    /* Lighter and Bigger Text for items like LATEST PRESSINGS (stText) - requested change */
-    div.stText p {
-        color: #ffffff !important; /* Lighter color */
-        font-size: 1.1em; /* Bigger size */
+    /* Lighter and Bigger Text for items like LATEST PRESSINGS (stText) */
+    div.stText p {{
+        color: #ffffff !important;
+        font-size: 1.1em;
         margin-bottom: 5px;
-    }
+    }}
 
-    a {
-        color: #39ff14 !important;
+    a {{
+        color: {NEON_CYAN} !important;
         text-decoration: none;
-    }
-    a:hover {
+        transition: text-shadow 0.3s;
+    }}
+    a:hover {{
         text-decoration: underline;
-        text-shadow: 0 0 10px #39ff14;
-    }
+        text-shadow: 0 0 10px {NEON_CYAN};
+    }}
 
     /* 5. IMAGERY - FORCE B&W & HIGH CONTRAST */
-    img {
+    img {{
         filter: grayscale(100%) contrast(120%) brightness(85%);
         transition: all 0.4s ease;
         border: 1px solid #1a1a1a;
-    }
-    img:hover {
+    }}
+    img:hover {{
         filter: grayscale(0%) contrast(110%) brightness(100%); /* Color reveal on hover */
-        border: 1px solid #39ff14;
-        box-shadow: 0 0 15px rgba(57, 255, 20, 0.2);
-    }
+        border: 1px solid {NEON_CYAN};
+        box-shadow: 0 0 15px rgba({NEON_CYAN_RGB_SHADOW}, 0.4);
+    }}
 
     /* 6. UI ELEMENTS - BRUTALIST (NO ROUNDED CORNERS) */
-    .stButton>button {
-        color: #39ff14;
+    .stButton>button {{
+        color: {NEON_CYAN};
         background-color: #000000;
-        border: 1px solid #39ff14;
-        border-radius: 0px !important; /* Sharp edges */
+        border: 1px solid {NEON_CYAN};
+        border-radius: 0px !important;
         text-transform: uppercase;
         padding: 12px 24px;
         font-weight: bold;
         transition: all 0.2s;
-    }
-    .stButton>button:hover {
-        background-color: #39ff14;
+    }}
+    .stButton>button:hover {{
+        background-color: {NEON_CYAN};
         color: #000000;
-        box-shadow: 0 0 20px rgba(57, 255, 20, 0.6);
-    }
+        box-shadow: 0 0 20px rgba({NEON_CYAN_RGB_SHADOW}, 0.8);
+    }}
 
-    /* 7. INPUTS */
-    .stTextInput>div>div>input, .stTextArea>div>div>textarea, .stSelectbox>div>div>div {
+    /* 7. INPUTS & FORMS - Added borders for flare */
+    .stTextInput>div>div>input, .stTextArea>div>div>textarea, .stSelectbox>div>div>div, .stForm {{
         background-color: #0a0a0a;
-        color: #39ff14;
+        color: {NEON_CYAN};
         border: 1px solid #333;
         border-radius: 0px;
         font-family: 'Courier New', monospace;
-    }
-    .stTextInput>div>div>input:focus, .stTextArea>div>div>textarea:focus {
-        border-color: #39ff14;
-    }
+    }}
+    .stTextInput>div>div>input:focus, .stTextArea>div>div>textarea:focus {{
+        border-color: {NEON_CYAN};
+        box-shadow: 0 0 5px {NEON_CYAN}; /* Input focus flare */
+    }}
     
-    hr {
+    /* Highlight form borders for better visual separation */
+    .stForm > div:first-child {{
+        border: 2px solid #1a1a1a;
+        padding: 20px;
+        margin-top: 10px;
+        border-left: 5px solid {NEON_CYAN}; /* Brutalist accent border flare */
+    }}
+
+    hr {{
         border-top: 1px solid #333;
-    }
+    }}
 </style>
 """, unsafe_allow_html=True)
 
@@ -140,26 +166,35 @@ if 'songs' not in st.session_state:
     ]
 
 if 'gallery' not in st.session_state:
-    # Updated images to reflect techno/industrial aesthetic, replacing guitars
+    # Updated images to reflect techno/industrial aesthetic
     st.session_state.gallery = [
-        {"caption": "DANCEFLOOR RITUAL / CROWD", "url": "https://images.unsplash.com/photo-1588975850980-8798e2850949?q=80&w=800&auto=format&fit=crop"}, # Crowd/Dancefloor
-        {"caption": "ANALOG CIRCUITRY / HARDWARE", "url": "https://images.unsplash.com/photo-1549414594-5552b75f85e3?q=80&w=800&auto=format&fit=crop"}, # Circuitry/Internal hardware
-        {"caption": "EURORACK & PATCH CABLES", "url": "https://images.unsplash.com/photo-1610427926868-685b5a26e828?q=80&w=800&auto=format&fit=crop"}, # Modular Synth
-        {"caption": "WAREHOUSE ATMOSPHERE / GIG", "url": "https://images.unsplash.com/photo-1628171092520-279611b7d52f?q=80&w=800&auto=format&fit=crop"}, # Gig/Atmosphere
+        {"caption": "INDUSTRIAL GEARS / RHYTHM MACHINE", "url": "https://images.unsplash.com/photo-1547372430-67a6e191630c?q=80&w=800&auto=format&fit=crop"}, # Industrial Gears (New)
+        {"caption": "ANALOG CIRCUITRY / HARDWARE", "url": "https://images.unsplash.com/photo-1549414594-5552b75f85e3?q=80&w=800&auto=format&fit=crop"}, # Circuitry/Internal hardware (Existing)
+        {"caption": "ABSTRACT CLUB LIGHTING / ATMOSPHERE", "url": "https://images.unsplash.com/photo-1517457375825-e578c799a74f?q=80&w=800&auto=format&fit=crop"}, # Abstract Lighting (New)
+        {"caption": "RAW WAREHOUSE / GIG", "url": "https://images.unsplash.com/photo-1628171092520-279611b7d52f?q=80&w=800&auto=format&fit=crop"}, # Gig/Atmosphere (Existing)
     ]
 
 if 'bookings' not in st.session_state:
     st.session_state.bookings = []
-
+    
+# --- Enhancement 3: Temporal Display ---
+def display_running_time():
+    """Displays the current time, giving a system/terminal aesthetic."""
+    st.markdown(f"""
+        <div style="text-align: right; color: #888; font-size: 0.8em;">
+            SYSTEM TIME: {datetime.now().strftime('%Y-%m-%d %H:%M:%S')} UTC
+        </div>
+        """, unsafe_allow_html=True)
+    time.sleep(1) # Rerun for the time to update every second
+    st.experimental_rerun()
+    
 # -----------------------------------------------------------------------------
 # 3. NAVIGATION
 # -----------------------------------------------------------------------------
-# Styling option_menu to be high contrast with Neon Green
+# Styling option_menu to be high contrast with Neon Cyan
 selected = option_menu(
     menu_title=None,
-    # Renamed VISUALS to MEDIA
     options=["HOME", "TRANSMISSIONS", "LABEL", "MEDIA", "CONTACT", "SYSTEM"],
-    # Changed "dot" to "circle-fill" because "dot" is not a valid Bootstrap icon
     icons=["circle-fill", "circle-fill", "circle-fill", "circle-fill", "circle-fill", "lock"],
     menu_icon="cast",
     default_index=0,
@@ -173,19 +208,29 @@ selected = option_menu(
         },
         "icon": {"color": "#333", "font-size": "10px"}, 
         "nav-link": {
-            "font-size": "16px",  # Increased size (requested change)
+            "font-size": "16px",
             "text-align": "center", 
             "margin": "0px", 
-            "color": "#fff",  # Lighter color (requested change)
+            "color": "#fff",
             "font-family": "Courier New",
             "text-transform": "uppercase",
-            "font-weight": "bold"
+            "font-weight": "bold",
+            "transition": "text-shadow 0.3s",
+            # FIX: Explicitly set height and flex properties for perfect vertical alignment
+            "line-height": "1.2", 
+            "min-height": "40px",
+            "display": "flex",
+            "align-items": "center",
+            "justify-content": "center",
+        },
+        "nav-link:hover": { # Added hover flare for navigation
+            "text-shadow": f"0 0 5px {NEON_CYAN}",
         },
         "nav-link-selected": {
             "background-color": "#000000", 
-            "color": "#39ff14", # Neon green selected text
-            "border-bottom": "2px solid #39ff14"
-        },
+            "color": NEON_CYAN, # Neon cyan selected text
+            "border-bottom": f"2px solid {NEON_CYAN}"
+        }, 
     }
 )
 
@@ -195,9 +240,31 @@ selected = option_menu(
 
 # --- HOME / BIO ---
 if selected == "HOME":
-    # Using the new CSS class for the logo title
     st.markdown("<span class='logo-text'>TUESDAYNIGHTFREAK</span>", unsafe_allow_html=True)
     st.markdown("<h4 style='color: #666 !important;'>LIVE HARDWARE ELECTRONICS // MELBOURNE -- BERLIN</h4>", unsafe_allow_html=True)
+    
+    # --- Enhancement 2: Interactive Live Feed Status ---
+    # Randomly show a status for demonstration
+    status = random.choice(["LIVE: TONE TESTING", "STANDBY", "OFFLINE"])
+    status_color = NEON_CYAN if status.startswith("LIVE") else "#888"
+    st.markdown(f"""
+        <div style="
+            display: inline-block; 
+            padding: 5px 10px; 
+            border: 1px solid {status_color}; 
+            color: {status_color}; 
+            font-size: 0.9em; 
+            font-weight: bold; 
+            margin-bottom: 20px;
+            animation: {'blink 1s steps(1, end) infinite' if status.startswith('LIVE') else 'none'};
+        ">
+            FEED STATUS: {status}
+        </div>
+        <style>
+            @keyframes blink {{ 0% {{ opacity: 1; }} 50% {{ opacity: 0; }} 100% {{ opacity: 1; }} }}
+        </style>
+        """, unsafe_allow_html=True)
+    # ----------------------------------------------------
     
     st.write("---")
     
@@ -221,15 +288,15 @@ if selected == "HOME":
     with col2:
         # Image will be rendered B&W by CSS, revealing color on hover
         st.image("https://images.unsplash.com/photo-1627993077678-759b662243d5?q=80&w=800&auto=format&fit=crop", 
-                 caption="LIVE PERFORMANCE // 2024", use_column_width=True) # Replaced image with a more industrial photo
+                 caption="LIVE PERFORMANCE // 2024", use_column_width=True)
         st.caption("Image Source: Unsplash (Jesper Brouwers)")
         
     st.write("---")
     # --- PROMOTIONAL FEATURE: FEATURED TRANSMISSION (EMBED) ---
     st.markdown("##### FEATURED TRANSMISSION (PROMINENT PLAYER)")
-    # Simulating a prominent music player embed
-    st.html("""
-    <iframe width="100%" height="166" scrolling="no" frameborder="no" src="https://w.soundcloud.com/player/?url=https%3A//api.soundcloud.com/tracks/1758580218&color=%2339ff14&auto_play=false&hide_related=false&show_comments=false&show_user=true&show_reposts=false&show_teaser=true"></iframe>
+    # Using the new NEON_CYAN in the SoundCloud embed color
+    st.html(f"""
+    <iframe width="100%" height="166" scrolling="no" frameborder="no" src="https://w.soundcloud.com/player/?url=https%3A//api.soundcloud.com/tracks/1758580218&color=%23{'00f7ff'.lstrip('#')}&auto_play=false&hide_related=false&show_comments=false&show_user=true&show_reposts=false&show_teaser=true"></iframe>
     """)
     st.write("---")
 
@@ -277,6 +344,19 @@ elif selected == "LABEL":
                 else:
                     st.error("INVALID FREQUENCY.")
         st.write("---")
+        
+        # --- Enhancement 1: Gated Download/Promo Section ---
+        st.markdown("##### PROMO ACCESS (BETA TRACKS)")
+        st.caption("ENTER PROMO KEY FOR UNRELEASED STEMS & DJ TOOLS")
+        with st.form("promo_access_form"):
+            promo_code = st.text_input("ENTER PROMO KEY", type="password", placeholder="e.g., HKR-BETA-003")
+            if st.form_submit_button("UNLOCK ASSETS"):
+                if promo_code == "HKR-BETA-003":
+                    st.success("ACCESS GRANTED. [DOWNLOAD STICKERS & STEMS HERE](#) (Note: In a real app, this would require a backend.)")
+                else:
+                    st.warning("KEY INVALID. REQUIRES ADMIN OR PROMOTER CLEARANCE.")
+        st.write("---")
+
 
         st.markdown("""
         **House Keeping Records** exists to document the output of the local hardware community. 
@@ -314,7 +394,7 @@ elif selected == "LABEL":
 
 # --- MEDIA (formerly VISUALS) ---
 elif selected == "MEDIA":
-    st.markdown("### MEDIA ARCHIVE (PHOTO / VIDEO)") # Updated Title
+    st.markdown("### MEDIA ARCHIVE (PHOTO / VIDEO)")
     
     # Strict 2-column grid for visuals
     cols = st.columns(2)
@@ -342,7 +422,6 @@ elif selected == "CONTACT":
         **PRESS KIT (HIGH-RES ASSETS)**
         Download high-resolution press photos, full biography, and logo files.
         """)
-        # Simulate a button for file download (cannot actually download, but shows the feature)
         st.button("DOWNLOAD PKG [28MB]") 
         
         st.write("")
@@ -365,7 +444,6 @@ elif selected == "CONTACT":
             email = st.text_input("RETURN FREQUENCY (EMAIL)", placeholder="contact@domain.com")
             details = st.text_area("DETAILS", placeholder="Include date, venue, and fee offer.")
             
-            # Custom styled button via CSS above
             submitted = st.form_submit_button("TRANSMIT REQUEST")
             
             if submitted:
@@ -421,3 +499,8 @@ elif selected == "SYSTEM":
                 st.table(pd.DataFrame(st.session_state.bookings))
             else:
                 st.write("NO DATA.")
+                
+# Run the running time display
+if selected in ["HOME", "LABEL", "CONTACT"]:
+    # The time display causes a constant rerun, only run it on main pages
+    display_running_time()
