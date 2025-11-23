@@ -6,8 +6,18 @@ import random
 import time
 
 # --- CONFIGURATION ---
-NEON_CYAN = "#00f7ff" # New neon color: Cyan with a hint of blue
+NEON_CYAN = "#00f7ff" # Primary Neon color: Cyan
 NEON_CYAN_RGB_SHADOW = "0, 247, 255"
+
+# --- BRANDING: SIMPLE SVG LOGO FOR CONSISTENCY ---
+TNF_LOGO_SVG = f"""
+<svg width="40" height="20" viewBox="0 0 40 20" fill="none" xmlns="http://www.w3.org/2000/svg">
+<rect x="0" y="0" width="10" height="20" fill="{NEON_CYAN}"/>
+<rect x="15" y="0" width="10" height="20" fill="{NEON_CYAN}"/>
+<path d="M 30 0 L 40 0 L 40 20 L 30 20 L 30 0" fill="{NEON_CYAN}"/>
+<path d="M 30 10 L 40 10" stroke="#000000" stroke-width="2"/>
+</svg>
+"""
 
 # -----------------------------------------------------------------------------
 # 1. PAGE CONFIGURATION & BERLIN AESTHETIC CSS
@@ -48,24 +58,26 @@ st.markdown(f"""
         max-width: 1200px;
     }}
 
-    /* 4. TYPOGRAPHY & NEON HIGHLIGHTS */
+    /* 4. BRANDING & TYPOGRAPHY */
     
-    /* Custom Logo Style (New) */
+    /* Custom Logo Style (New - Brutalist Stamped Block Font) */
+    /* Simulates a low-res terminal block text or stamped text */
     .logo-text {{
         color: {NEON_CYAN} !important;
-        font-family: 'Arial Narrow', sans-serif;
-        font-size: 4.5rem;
+        font-family: 'monospace';
+        font-size: 5rem;
         line-height: 0.8;
         text-transform: uppercase;
         font-weight: 900;
-        letter-spacing: -3px;
+        letter-spacing: -5px; /* Tighter block look */
         display: block;
         padding-top: 1rem;
         padding-bottom: 1rem;
+        text-shadow: 0 0 10px rgba({NEON_CYAN_RGB_SHADOW}, 0.5);
     }}
 
     h1, h2, h3, h4, h5, h6 {{
-        color: {NEON_CYAN} !important; /* NEW NEON CYAN */
+        color: {NEON_CYAN} !important; /* NEON CYAN */
         font-family: 'Courier New', Courier, monospace;
         text-transform: uppercase;
         font-weight: 900;
@@ -156,7 +168,7 @@ st.markdown(f"""
 """, unsafe_allow_html=True)
 
 # -----------------------------------------------------------------------------
-# 2. SESSION STATE
+# 2. SESSION STATE & DATA
 # -----------------------------------------------------------------------------
 if 'songs' not in st.session_state:
     st.session_state.songs = [
@@ -165,33 +177,57 @@ if 'songs' not in st.session_state:
         {"title": "RESIDENT ADVISOR PODCAST 892", "url": "#", "platform": "RA"},
     ]
 
-if 'gallery' not in st.session_state:
-    # Updated images to reflect techno/industrial aesthetic
+# --- UPDATED STOCK IMAGES (More industrial/hardware focused) ---
+if 'gallery' not in st.session_state or 'updated_images' not in st.session_state:
     st.session_state.gallery = [
-        {"caption": "INDUSTRIAL GEARS / RHYTHM MACHINE", "url": "https://images.unsplash.com/photo-1547372430-67a6e191630c?q=80&w=800&auto=format&fit=crop"}, # Industrial Gears (New)
-        {"caption": "ANALOG CIRCUITRY / HARDWARE", "url": "https://images.unsplash.com/photo-1549414594-5552b75f85e3?q=80&w=800&auto=format&fit=crop"}, # Circuitry/Internal hardware (Existing)
-        {"caption": "ABSTRACT CLUB LIGHTING / ATMOSPHERE", "url": "https://images.unsplash.com/photo-1517457375825-e578c799a74f?q=80&w=800&auto=format&fit=crop"}, # Abstract Lighting (New)
-        {"caption": "RAW WAREHOUSE / GIG", "url": "https://images.unsplash.com/photo-1628171092520-279611b7d52f?q=80&w=800&auto=format&fit=crop"}, # Gig/Atmosphere (Existing)
+        {"caption": "ANALOG SYNTHESIS HARDWARE", "url": "https://images.unsplash.com/photo-1510915364890-a7d41f02c611?q=80&w=800&auto=format&fit=crop"}, # Modular synth closeup
+        {"caption": "RAW WAREHOUSE ATMOSPHERE", "url": "https://images.unsplash.com/photo-1543167156-f6d89262f270?q=80&w=800&auto=format&fit=crop"}, # Stark tunnel/warehouse light
+        {"caption": "PATCH CABLE MATRIX", "url": "https://images.unsplash.com/photo-1598275529124-b1c4b786f1e2?q=80&w=800&auto=format&fit=crop"}, # Patch cables/close up connections
+        {"caption": "HIGH-CONTRAST MIXER VIEW", "url": "https://images.unsplash.com/photo-1619967657960-983b6329c370?q=80&w=800&auto=format&fit=crop"}, # Controller/mixer close up
     ]
+    st.session_state.updated_images = True # Flag to avoid re-running image initialization
 
 if 'bookings' not in st.session_state:
     st.session_state.bookings = []
-    
-# --- Enhancement 3: Temporal Display ---
+
+# Initialize the time placeholder
+if 'time_placeholder' not in st.session_state:
+    st.session_state.time_placeholder = None
+
+# -----------------------------------------------------------------------------
+# 3. UTILITY FUNCTIONS
+# -----------------------------------------------------------------------------
+
+# --- Enhancement 3: Temporal Display (Debugged) ---
 def display_running_time():
-    """Displays the current time, giving a system/terminal aesthetic."""
-    st.markdown(f"""
-        <div style="text-align: right; color: #888; font-size: 0.8em;">
-            SYSTEM TIME: {datetime.now().strftime('%Y-%m-%d %H:%M:%S')} UTC
+    """
+    Displays the current time, giving a system/terminal aesthetic.
+    Uses an initial placeholder and a safe rerun loop.
+    """
+    if st.session_state.time_placeholder is None:
+        st.session_state.time_placeholder = st.empty()
+
+    current_time_str = datetime.now().strftime('%Y-%m-%d %H:%M:%S')
+    
+    st.session_state.time_placeholder.markdown(f"""
+        <div style="text-align: right; color: #888; font-size: 0.8em; margin-bottom: 20px;">
+            SYSTEM TIME: {current_time_str} UTC
         </div>
         """, unsafe_allow_html=True)
-    time.sleep(1) # Rerun for the time to update every second
-    st.experimental_rerun()
-    
+        
+    # Schedule a rerun every second if on one of the main pages
+    if selected in ["HOME", "LABEL", "CONTACT"]:
+        # Time.sleep() is crucial to make the update feel real and not cause excessive reruns
+        time.sleep(1) 
+        # Safely trigger a rerun for the time to update
+        st.rerun() 
+    # If on TRANSMISSIONS, MEDIA, or SYSTEM, do not call st.rerun()
+
 # -----------------------------------------------------------------------------
-# 3. NAVIGATION
+# 4. NAVIGATION
 # -----------------------------------------------------------------------------
-# Styling option_menu to be high contrast with Neon Cyan
+
+# Styling option_menu
 selected = option_menu(
     menu_title=None,
     options=["HOME", "TRANSMISSIONS", "LABEL", "MEDIA", "CONTACT", "SYSTEM"],
@@ -216,32 +252,38 @@ selected = option_menu(
             "text-transform": "uppercase",
             "font-weight": "bold",
             "transition": "text-shadow 0.3s",
-            # FIX: Explicitly set height and flex properties for perfect vertical alignment
             "line-height": "1.2", 
             "min-height": "40px",
             "display": "flex",
             "align-items": "center",
             "justify-content": "center",
         },
-        "nav-link:hover": { # Added hover flare for navigation
+        "nav-link:hover": { 
             "text-shadow": f"0 0 5px {NEON_CYAN}",
         },
         "nav-link-selected": {
             "background-color": "#000000", 
-            "color": NEON_CYAN, # Neon cyan selected text
+            "color": NEON_CYAN, 
             "border-bottom": f"2px solid {NEON_CYAN}"
         }, 
     }
 )
 
 # -----------------------------------------------------------------------------
-# 4. PAGE LOGIC
+# 5. PAGE LOGIC
 # -----------------------------------------------------------------------------
+
+# Run the running time display only on main pages
+if selected in ["HOME", "LABEL", "CONTACT"]:
+    # Display the time at the very top of the content area
+    display_running_time()
+
 
 # --- HOME / BIO ---
 if selected == "HOME":
-    st.markdown("<span class='logo-text'>TUESDAYNIGHTFREAK</span>", unsafe_allow_html=True)
-    st.markdown("<h4 style='color: #666 !important;'>LIVE HARDWARE ELECTRONICS // MELBOURNE -- BERLIN</h4>", unsafe_allow_html=True)
+    # 3. New unique artist name/logo presentation
+    st.markdown(f"<span class='logo-text'>TUESDAYNIGHTFREAK</span>", unsafe_allow_html=True)
+    st.markdown(f"<h4 style='color: #666 !important;'>LIVE HARDWARE ELECTRONICS // MELBOURNE -- BERLIN {TNF_LOGO_SVG}</h4>", unsafe_allow_html=True)
     
     # --- Enhancement 2: Interactive Live Feed Status ---
     # Randomly show a status for demonstration
@@ -271,9 +313,9 @@ if selected == "HOME":
     col1, col2 = st.columns([1, 1], gap="large")
     
     with col1:
-        st.markdown("""
-        ### BIOGRAPHY
+        st.markdown(f"### BIOGRAPHY {TNF_LOGO_SVG}")
         
+        st.markdown("""
         **Tuesdaynightfreak** operates in the void between mechanical precision and human error. Rejecting the safety of pre-recorded sets, the project is a study in live improvisation using a complex architecture of modular synthesis, drum machines, and feedback loops.
         
         Drawing from the austere industrialism of the Berlin school and the raw funk of Detroit's second wave, the sound is reductive and texture-heavy. It is music built for concrete rooms and high-pressure sound systems.
@@ -286,15 +328,14 @@ if selected == "HOME":
         st.code("04.11 // TRESOR [BERLIN]\n11.11 // FOLD [LONDON]\n18.11 // REVOLVER [MELBOURNE]\n25.11 // STUDIO LOCKDOWN")
 
     with col2:
-        # Image will be rendered B&W by CSS, revealing color on hover
-        st.image("https://images.unsplash.com/photo-1627993077678-759b662243d5?q=80&w=800&auto=format&fit=crop", 
+        # New Stock Image 1: Industrial Warehouse / Live
+        st.image("https://images.unsplash.com/photo-1543167156-f6d89262f270?q=80&w=800&auto=format&fit=crop", 
                  caption="LIVE PERFORMANCE // 2024", use_column_width=True)
-        st.caption("Image Source: Unsplash (Jesper Brouwers)")
+        st.caption("Image Source: Unsplash (Alistair Green)")
         
     st.write("---")
     # --- PROMOTIONAL FEATURE: FEATURED TRANSMISSION (EMBED) ---
     st.markdown("##### FEATURED TRANSMISSION (PROMINENT PLAYER)")
-    # Using the new NEON_CYAN in the SoundCloud embed color
     st.html(f"""
     <iframe width="100%" height="166" scrolling="no" frameborder="no" src="https://w.soundcloud.com/player/?url=https%3A//api.soundcloud.com/tracks/1758580218&color=%23{'00f7ff'.lstrip('#')}&auto_play=false&hide_related=false&show_comments=false&show_user=true&show_reposts=false&show_teaser=true"></iframe>
     """)
@@ -366,9 +407,9 @@ elif selected == "LABEL":
         
     
     with col2:
-        # Image: Vinyl / Studio aesthetic
-        st.image("https://images.unsplash.com/photo-1543354724-c11956108b68?q=80&w=800&auto=format&fit=crop", caption="HKR CATALOGUE", use_column_width=True)
-        st.caption("Image Source: Unsplash (Valentin Gornas)")
+        # New Stock Image 2: Patch Cables
+        st.image("https://images.unsplash.com/photo-1598275529124-b1c4b786f1e2?q=80&w=800&auto=format&fit=crop", caption="HKR CATALOGUE", use_column_width=True)
+        st.caption("Image Source: Unsplash (Ryan Hoffman)")
         st.write("---")
         
         # --- LABEL FEATURE: ARTIST ROSTER ---
@@ -387,12 +428,11 @@ elif selected == "LABEL":
     
     st.write("---")
     st.markdown("### LATEST PRESSINGS")
-    # These st.text calls will now use the custom CSS for brighter, bigger text
     st.text("HKR001 // TUESDAYNIGHTFREAK // STATIC INTERFERENCE EP [12\"]")
     st.text("HKR002 // VARIOUS ARTISTS // TOOLS FOR DJs VOL. 1 [DIGITAL]")
 
 
-# --- MEDIA (formerly VISUALS) ---
+# --- MEDIA (PHOTO / VIDEO) ---
 elif selected == "MEDIA":
     st.markdown("### MEDIA ARCHIVE (PHOTO / VIDEO)")
     
@@ -499,8 +539,3 @@ elif selected == "SYSTEM":
                 st.table(pd.DataFrame(st.session_state.bookings))
             else:
                 st.write("NO DATA.")
-                
-# Run the running time display
-if selected in ["HOME", "LABEL", "CONTACT"]:
-    # The time display causes a constant rerun, only run it on main pages
-    display_running_time()
