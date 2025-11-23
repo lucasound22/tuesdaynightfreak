@@ -117,12 +117,12 @@ if 'songs' not in st.session_state:
     ]
 
 if 'gallery' not in st.session_state:
-    # Updated to Modular/Hardware specific images
+    # Updated to reflect modular, crowd, and gig aesthetics (as requested)
     st.session_state.gallery = [
-        {"caption": "EURORACK PATCH 01", "url": "https://images.unsplash.com/photo-1598488035139-bdbb2231ce04?q=80&w=800&auto=format&fit=crop"},
-        {"caption": "LIVE RIG CONFIGURATION", "url": "https://images.unsplash.com/photo-1550291652-6ea9114a47b1?q=80&w=800&auto=format&fit=crop"},
-        {"caption": "BERLIN WAREHOUSE", "url": "https://images.unsplash.com/photo-1566737236500-c8ac43014a67?q=80&w=800&auto=format&fit=crop"},
-        {"caption": "SIGNAL PATH", "url": "https://images.unsplash.com/photo-1519508234439-4f23643125c1?q=80&w=800&auto=format&fit=crop"},
+        {"caption": "LIVE RITUAL / DANCEFLOOR", "url": "https://images.unsplash.com/photo-1588975850980-8798e2850949?q=80&w=800&auto=format&fit=crop"}, # Crowd
+        {"caption": "EURORACK & PATCH CABLES", "url": "https://images.unsplash.com/photo-1610427926868-685b5a26e828?q=80&w=800&auto=format&fit=crop"}, # Modular Synth
+        {"caption": "BERLIN WAREHOUSE ATMOSPHERE", "url": "https://images.unsplash.com/photo-1628171092520-279611b7d52f?q=80&w=800&auto=format&fit=crop"}, # Gig/Atmosphere
+        {"caption": "ANALOG DRUM MACHINE", "url": "https://images.unsplash.com/photo-1616147413695-1f912257224f?q=80&w=800&auto=format&fit=crop"}, # Hardware
     ]
 
 if 'bookings' not in st.session_state:
@@ -134,7 +134,8 @@ if 'bookings' not in st.session_state:
 # Styling option_menu to be high contrast with Neon Green
 selected = option_menu(
     menu_title=None,
-    options=["HOME", "TRANSMISSIONS", "LABEL", "VISUALS", "CONTACT", "SYSTEM"],
+    # Renamed VISUALS to MEDIA
+    options=["HOME", "TRANSMISSIONS", "LABEL", "MEDIA", "CONTACT", "SYSTEM"],
     # Changed "dot" to "circle-fill" because "dot" is not a valid Bootstrap icon
     icons=["circle-fill", "circle-fill", "circle-fill", "circle-fill", "circle-fill", "lock"],
     menu_icon="cast",
@@ -198,8 +199,16 @@ if selected == "HOME":
         st.image("https://images.unsplash.com/photo-1614613535308-eb5fbd3d2c17?q=80&w=800&auto=format&fit=crop", 
                  caption="LIVE PERFORMANCE // 2024", use_column_width=True)
 
-    # Minimal Text Links for Socials
     st.write("---")
+    # --- PROMOTIONAL FEATURE: FEATURED TRANSMISSION (EMBED) ---
+    st.markdown("##### FEATURED TRANSMISSION (PROMINENT PLAYER)")
+    # Simulating a prominent music player embed
+    st.html("""
+    <iframe width="100%" height="166" scrolling="no" frameborder="no" src="https://w.soundcloud.com/player/?url=https%3A//api.soundcloud.com/tracks/1758580218&color=%2339ff14&auto_play=false&hide_related=false&show_comments=false&show_user=true&show_reposts=false&show_teaser=true"></iframe>
+    """)
+    st.write("---")
+
+    # Minimal Text Links for Socials
     cols = st.columns(4)
     cols[0].markdown("[INSTAGRAM](#)")
     cols[1].markdown("[SOUNDCLOUD](#)")
@@ -232,28 +241,53 @@ elif selected == "LABEL":
         st.markdown("## HOUSE KEEPING RECORDS")
         st.caption("EST. 2023 // PHYSICAL & DIGITAL")
         st.write("---")
+        
+        # --- LABEL FEATURE: MAILING LIST SIGNUP ---
+        st.markdown("##### ACCESS PROTOCOL (MAILING LIST)")
+        with st.form("mailing_list_form"):
+            email_ml = st.text_input("ENTER FREQUENCY", placeholder="user@domain.com")
+            if st.form_submit_button("SUBSCRIBE"):
+                if email_ml:
+                    st.success("FREQUENCY ACQUIRED. THANK YOU.")
+                else:
+                    st.error("INVALID FREQUENCY.")
+        st.write("---")
+
         st.markdown("""
         **House Keeping Records** exists to document the output of the local hardware community. 
         
         We focus on the functional, the raw, and the deep. We release tools for DJs and explorations for heads. Vinyl pressing for select projects. 
-        
-        **DEMO POLICY**
-        We listen. Private SoundCloud links only. Do not send WeTransfer files.
         """)
-        st.code("demo@housekeeping-rec.com")
+        
     
     with col2:
         # Image: Vinyl / Studio aesthetic
         st.image("https://images.unsplash.com/photo-1605218427306-022648d42d32?q=80&w=800&auto=format&fit=crop", caption="HKR CATALOGUE", use_column_width=True)
+        st.write("---")
+        
+        # --- LABEL FEATURE: ARTIST ROSTER ---
+        st.markdown("##### ARTIST ROSTER")
+        st.code("TUESDAYNIGHTFREAK\nSYSTEM NOISE\nFUTURA DYNAMICS")
+        
+        # --- LABEL FEATURE: STOCKISTS ---
+        st.markdown("##### PHYSICAL STOCKISTS (EUROPE)")
+        st.code("HARDWAX [BERLIN]\nTECHNO IMPORT [PARIS]\nPHONICA [LONDON]")
+        
 
+    st.write("---")
+    st.markdown("### DEMO SUBMISSION")
+    st.write("We listen. Private SoundCloud links only. Do not send WeTransfer files.")
+    st.code("demo@housekeeping-rec.com")
+    
     st.write("---")
     st.markdown("### LATEST PRESSINGS")
     st.text("HKR001 // TUESDAYNIGHTFREAK // STATIC INTERFERENCE EP [12\"]")
     st.text("HKR002 // VARIOUS ARTISTS // TOOLS FOR DJs VOL. 1 [DIGITAL]")
 
-# --- VISUALS ---
-elif selected == "VISUALS":
-    st.markdown("### VISUAL ARCHIVE")
+
+# --- MEDIA (formerly VISUALS) ---
+elif selected == "MEDIA":
+    st.markdown("### MEDIA ARCHIVE (PHOTO / VIDEO)") # Updated Title
     
     # Strict 2-column grid for visuals
     cols = st.columns(2)
@@ -272,6 +306,18 @@ elif selected == "CONTACT":
         st.markdown("### BOOKING")
         st.write("Representation: Independent.")
         st.write("Region: Worldwide.")
+        st.write("")
+        
+        st.write("---")
+        st.markdown("### MEDIA RELATIONS")
+        # --- PROMOTIONAL FEATURE: PRESS KIT ---
+        st.markdown("""
+        **PRESS KIT (HIGH-RES ASSETS)**
+        Download high-resolution press photos, full biography, and logo files.
+        """)
+        # Simulate a button for file download (cannot actually download, but shows the feature)
+        st.button("DOWNLOAD PKG [28MB]") 
+        
         st.write("")
         st.markdown("**MANAGEMENT**")
         st.code("tuesdaynightfreak@gmail.com")
