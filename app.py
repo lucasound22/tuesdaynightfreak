@@ -1,94 +1,108 @@
 import streamlit as st
 from streamlit_option_menu import option_menu
 import pandas as pd
-from datetime import datetime, time
+from datetime import datetime
 import random
 
 # -----------------------------------------------------------------------------
-# 1. PAGE CONFIGURATION & CUSTOM CSS
+# 1. PAGE CONFIGURATION & BERLIN AESTHETIC CSS
 # -----------------------------------------------------------------------------
 st.set_page_config(
-    page_title="Tuesdaynightfreak | Live Electronic",
-    page_icon="🎹",
+    page_title="TUESDAYNIGHTFREAK",
+    page_icon="⚫",
     layout="wide",
     initial_sidebar_state="collapsed"
 )
 
-# Custom CSS for that "Dark Techno" Aesthetic
+# Custom CSS: Brutalist, Monochrome, Raw
 st.markdown("""
 <style>
-    /* Main Background & Text */
+    /* 1. GLOBAL RESET & MONOCHROME THEME */
     .stApp {
-        background-color: #0e1117;
-        color: #fafafa;
+        background-color: #000000;
+        color: #e0e0e0;
+        font-family: 'Courier New', Courier, monospace; /* Industrial/Terminal font */
     }
-    
-    /* Headings */
-    h1, h2, h3 {
-        color: #00ffcc !important; /* Neon Cyan */
-        font-family: 'Helvetica Neue', sans-serif;
+
+    /* 2. TYPOGRAPHY */
+    h1, h2, h3, h4, h5, h6 {
+        color: #ffffff !important;
+        font-family: 'Courier New', Courier, monospace;
         text-transform: uppercase;
-        letter-spacing: 2px;
+        font-weight: 900;
+        letter-spacing: -1px;
     }
     
-    /* Buttons */
+    p, div, label, span {
+        font-family: 'Courier New', Courier, monospace;
+    }
+
+    /* 3. IMAGERY - FORCE B&W & HIGH CONTRAST */
+    img {
+        filter: grayscale(100%) contrast(110%) brightness(90%);
+        transition: filter 0.3s ease;
+    }
+    img:hover {
+        filter: grayscale(0%) contrast(100%); /* Slight reveal on hover */
+    }
+
+    /* 4. UI ELEMENTS - BRUTALIST (NO ROUNDED CORNERS) */
     .stButton>button {
-        color: #0e1117;
-        background-color: #00ffcc;
-        border-radius: 20px;
-        border: none;
-        font-weight: bold;
-        transition: all 0.3s ease;
+        color: #ffffff;
+        background-color: #000000;
+        border: 1px solid #ffffff;
+        border-radius: 0px !important; /* Sharp edges */
+        text-transform: uppercase;
+        padding: 10px 20px;
+        transition: all 0.2s;
     }
     .stButton>button:hover {
-        background-color: #ff00ff; /* Neon Pink on hover */
-        color: white;
-        transform: scale(1.05);
+        background-color: #ffffff;
+        color: #000000;
+        border: 1px solid #ffffff;
     }
 
-    /* Inputs */
-    .stTextInput>div>div>input, .stTextArea>div>div>textarea {
-        background-color: #262730;
-        color: white;
-        border-radius: 10px;
+    /* 5. INPUTS */
+    .stTextInput>div>div>input, .stTextArea>div>div>textarea, .stSelectbox>div>div>div {
+        background-color: #111111;
+        color: #ffffff;
+        border: 1px solid #333;
+        border-radius: 0px;
+        font-family: 'Courier New', monospace;
     }
 
-    /* Custom classes for layout */
-    .highlight {
-        color: #ff00ff;
-        font-weight: bold;
+    /* 6. CONTAINERS */
+    .block-container {
+        padding-top: 2rem;
+        max-width: 1200px;
     }
     
-    .album-card {
-        background-color: #1f1f1f;
-        padding: 20px;
-        border-radius: 15px;
-        border: 1px solid #333;
-        margin-bottom: 20px;
+    /* Remove default streamlit branding if possible/desired visually */
+    #MainMenu {visibility: hidden;}
+    footer {visibility: hidden;}
+    
+    hr {
+        border-top: 1px solid #333;
     }
 </style>
 """, unsafe_allow_html=True)
 
 # -----------------------------------------------------------------------------
-# 2. SESSION STATE (Simulated Database)
+# 2. SESSION STATE
 # -----------------------------------------------------------------------------
-# In a real app, you would use SQLite, Firestore, or a JSON file for persistence.
-# For this demo, we use session_state so the Admin panel updates the UI immediately.
-
 if 'songs' not in st.session_state:
     st.session_state.songs = [
-        {"title": "Midnight In Melbourne", "url": "https://soundcloud.com/example/midnight", "platform": "SoundCloud"},
-        {"title": "Deep Groove Theory", "url": "https://open.spotify.com/track/example", "platform": "Spotify"},
-        {"title": "Techno Slap (Live Edit)", "url": "https://youtube.com/watch?v=example", "platform": "YouTube"},
+        {"title": "UNTITLED_SEQ_01", "url": "https://soundcloud.com/example/seq01", "platform": "SoundCloud"},
+        {"title": "MODULAR EXCURSION A", "url": "https://bandcamp.com", "platform": "Bandcamp"},
+        {"title": "LIVE AT TRESOR (EXCERPT)", "url": "https://youtube.com", "platform": "YouTube"},
     ]
 
 if 'gallery' not in st.session_state:
-    # Using placeholder images for the demo
+    # Generic images will be forced B&W by CSS
     st.session_state.gallery = [
-        {"caption": "Live at The Warehouse", "url": "https://images.unsplash.com/photo-1571266028243-371695063ad6?auto=format&fit=crop&q=80&w=600"},
-        {"caption": "Studio Session", "url": "https://images.unsplash.com/photo-1598488035139-bdbb2231ce04?auto=format&fit=crop&q=80&w=600"},
-        {"caption": "Modular Synthesis", "url": "https://images.unsplash.com/photo-1558584673-c834fb1cc3ca?auto=format&fit=crop&q=80&w=600"},
-        {"caption": "Crowd Energy", "url": "https://images.unsplash.com/photo-1493225255756-d9584f8606e9?auto=format&fit=crop&q=80&w=600"},
+        {"caption": "HARDWARE SETUP 2024", "url": "https://images.unsplash.com/photo-1598488035139-bdbb2231ce04?auto=format&fit=crop&q=80&w=800"},
+        {"caption": "BERLIN", "url": "https://images.unsplash.com/photo-1558584673-c834fb1cc3ca?auto=format&fit=crop&q=80&w=800"},
+        {"caption": "LIVE IMPROVISATION", "url": "https://images.unsplash.com/photo-1514525253440-b393452e8d26?auto=format&fit=crop&q=80&w=800"},
     ]
 
 if 'bookings' not in st.session_state:
@@ -97,18 +111,31 @@ if 'bookings' not in st.session_state:
 # -----------------------------------------------------------------------------
 # 3. NAVIGATION
 # -----------------------------------------------------------------------------
+# Styling option_menu to be high contrast (White text on Black)
 selected = option_menu(
     menu_title=None,
-    options=["Home", "Music", "House Keeping Records", "Media", "Bookings", "Admin"],
-    icons=["house", "music-note-beamed", "vinyl", "images", "calendar-event", "gear"],
+    options=["HOME", "MUSIC", "LABEL", "VISUALS", "CONTACT", "ADMIN"],
+    icons=["circle-fill", "circle", "circle", "circle", "circle", "square"],
     menu_icon="cast",
     default_index=0,
     orientation="horizontal",
     styles={
-        "container": {"padding": "0!important", "background-color": "#0e1117"},
-        "icon": {"color": "orange", "font-size": "18px"}, 
-        "nav-link": {"font-size": "14px", "text-align": "center", "margin": "0px", "--hover-color": "#262730"},
-        "nav-link-selected": {"background-color": "#00ffcc", "color": "black"},
+        "container": {"padding": "0!important", "background-color": "#000000", "border-bottom": "1px solid #333"},
+        "icon": {"color": "#666", "font-size": "12px"}, 
+        "nav-link": {
+            "font-size": "14px", 
+            "text-align": "center", 
+            "margin": "0px", 
+            "color": "#e0e0e0", 
+            "font-family": "Courier New",
+            "text-transform": "uppercase"
+        },
+        "nav-link-selected": {
+            "background-color": "#000000", 
+            "color": "#ffffff", 
+            "font-weight": "bold",
+            "border-bottom": "2px solid #ffffff"
+        },
     }
 )
 
@@ -117,205 +144,180 @@ selected = option_menu(
 # -----------------------------------------------------------------------------
 
 # --- HOME / BIO ---
-if selected == "Home":
+if selected == "HOME":
+    st.markdown("## TUESDAYNIGHTFREAK")
+    st.caption("LIVE ELECTRONIC // MELBOURNE -- BERLIN")
+    
+    st.write("---")
+    
     col1, col2 = st.columns([1, 1])
     
     with col1:
-        st.markdown("# TUESDAYNIGHTFREAK")
-        st.markdown("### MELBOURNE // LIVE ELECTRONIC // PRODUCER")
-        st.write("---")
         st.markdown("""
-        **Tuesdaynightfreak** is a Melbourne-based electronic music force, bridging the gap between 
-        the raw, unpredictable energy of live hardware performance and the surgical precision of studio production.
+        ### BIOGRAPHY
         
-        Born from the underground warehouse scene, the sound is unmistakable: **Funky Techno grooves that slap**, 
-        layered with soulful, underground Deep House influences. 
+        Operating on the fringes of Melbourne’s electronic underground, **Tuesdaynightfreak** rejects the polished predictability of modern club music. 
         
-        Unlike the push-play DJs, Tuesdaynightfreak constructs the vibe in real-time, using drum machines, 
-        modular synths, and FX loops to create a unique sonic journey every single night.
+        Rooted in the tradition of live hardware improvisation, the project explores the tension between mechanical precision and human error. There are no pre-recorded sets here. Using a complex architecture of drum machines, modular synthesis, and feedback loops, Tuesdaynightfreak constructs soundscapes in real-time.
+        
+        The sound is raw, reductive, and texture-heavy—blending the hypnotic repetition of Berlin techno with the dust and grit of lo-fi house. It is music for dark rooms and loud systems.
         """)
         
-        st.write("---")
-        st.markdown("##### 📅 UPCOMING GIGS")
-        st.info("No public dates confirmed for next month. Check back soon.")
+        st.write("")
+        st.markdown("##### UPCOMING DATES")
+        st.code("NO PUBLIC DATES SCHEDULED.\nSTUDIO MODE ACTIVE.")
 
     with col2:
-        # Hero Image (Simulated)
-        st.image("https://images.unsplash.com/photo-1470225620780-dba8ba36b745?auto=format&fit=crop&q=80&w=800", 
-                 caption="Tuesdaynightfreak Live", use_column_width=True)
+        # Image will be rendered B&W by CSS
+        st.image("https://images.unsplash.com/photo-1511671782779-c97d3d27a1d4?auto=format&fit=crop&q=80&w=800", 
+                 caption="LIVE PERFORMANCE // 2024", use_column_width=True)
 
-    # Socials Bar
+    # Minimal Text Links for Socials
     st.write("---")
-    c1, c2, c3, c4 = st.columns(4)
-    c1.link_button("Instagram", "https://instagram.com")
-    c2.link_button("SoundCloud", "https://soundcloud.com")
-    c3.link_button("Spotify", "https://spotify.com")
-    c4.link_button("Resident Advisor", "https://ra.co")
+    cols = st.columns(6)
+    cols[0].markdown("[INSTAGRAM](https://instagram.com)")
+    cols[1].markdown("[SOUNDCLOUD](https://soundcloud.com)")
+    cols[2].markdown("[SPOTIFY](https://spotify.com)")
+    cols[3].markdown("[RESIDENT ADVISOR](https://ra.co)")
 
 # --- MUSIC ---
-elif selected == "Music":
-    st.title("The Sound")
-    st.write("Latest releases, live sets, and underground edits.")
-    
-    # Featured Track (Mock Embedded Player)
-    st.markdown("""
-    <div style="background-color:#1E1E1E; padding:20px; border-radius:10px; border-left: 5px solid #00ffcc;">
-        <h3>🔥 LATEST RELEASE: "Concrete Jungle"</h3>
-        <p>Out now on House Keeping Records.</p>
-    </div>
-    """, unsafe_allow_html=True)
-    st.audio("https://www.soundhelix.com/examples/mp3/SoundHelix-Song-1.mp3", format="audio/mp3") # Placeholder Audio
+elif selected == "MUSIC":
+    st.markdown("### DISCOGRAPHY")
+    st.write("Explorations in rhythm and noise.")
     
     st.write("---")
-    st.subheader("Discography & Links")
     
-    # Display links from Session State
+    # Text-based list layout (Brutalist style)
     for song in st.session_state.songs:
-        with st.container():
-            c1, c2 = st.columns([3, 1])
-            c1.markdown(f"**{song['title']}**")
-            c2.link_button(f"Listen on {song['platform']}", song['url'])
-            st.write("")
+        col1, col2, col3 = st.columns([4, 2, 2])
+        with col1:
+            st.markdown(f"**{song['title']}**")
+        with col2:
+            st.caption(f"[{song['platform']}]")
+        with col3:
+            st.markdown(f"[LISTEN]({song['url']})")
+        st.markdown("<hr style='margin: 5px 0; border-top: 1px dashed #333;'>", unsafe_allow_html=True)
 
-# --- HOUSE KEEPING RECORDS ---
-elif selected == "House Keeping Records":
-    st.markdown("<h1 style='text-align: center; color: #ff00ff !important;'>HOUSE KEEPING RECORDS</h1>", unsafe_allow_html=True)
-    st.markdown("<p style='text-align: center;'>THE HOME OF UNDERGROUND GROOVES</p>", unsafe_allow_html=True)
-    
-    st.image("https://images.unsplash.com/photo-1614613535308-eb5fbd3d2c17?auto=format&fit=crop&q=80&w=1200", caption="House Keeping HQ", use_column_width=True)
-    
-    st.write("---")
-    
-    col1, col2 = st.columns(2)
-    with col1:
-        st.markdown("""
-        ### ABOUT THE LABEL
-        House Keeping Records was established to provide a platform for the gritty, 
-        lo-fi, and funk-infused side of techno. We don't do polished pop; 
-        we do dusty drums and acid basslines.
-        
-        **Demo Policy:** We are currently accepting demos. 
-        Please send private SoundCloud links to demo@housekeeping.com
-        """)
-    
-    with col2:
-        st.markdown("### LATEST CATALOGUE")
-        st.info("HKR001 - Tuesdaynightfreak - The Beginning EP")
-        st.info("HKR002 - Unknown Artist - White Label Vol 1")
-        st.info("HKR003 - Tuesdaynightfreak - Acid Rain")
-
-# --- MEDIA ---
-elif selected == "Media":
-    st.title("Visuals")
-    st.write("Live moments and press shots.")
-    
-    # Responsive Grid Layout
-    cols = st.columns(3) # Grid of 3
-    
-    # Iterate through gallery and place in columns
-    for i, item in enumerate(st.session_state.gallery):
-        col_idx = i % 3
-        with cols[col_idx]:
-            st.image(item['url'], caption=item['caption'], use_column_width=True)
-
-# --- BOOKINGS ---
-elif selected == "Bookings":
-    st.title("Bookings")
-    
+# --- LABEL ---
+elif selected == "LABEL":
     col1, col2 = st.columns([1, 1])
     
     with col1:
+        st.markdown("## HOUSE KEEPING RECORDS")
+        st.markdown("**EST. 2023**")
+        st.write("---")
         st.markdown("""
-        ### GET IN TOUCH
-        Tuesdaynightfreak is available for:
-        * Live Club Sets (1-2 Hours)
-        * Festival Slots
-        * Remix Work
+        House Keeping Records exists to document the output of the local hardware community. 
         
-        **Management / Direct:** 📧 tuesdaynightfreak@gmail.com
+        We are not interested in trends. We focus on the functional, the raw, and the deep. 
+        Vinyl only releases for select projects. Digital archives available via Bandcamp.
+        
+        **DEMO POLICY**
+        We listen. Send private streams only.
         """)
-        
-        st.warning("Currently accepting bookings for Summer 2025.")
+        st.code("demo@housekeeping.com")
+    
+    with col2:
+        # A placeholder image that looks like a white label vinyl or studio gear
+        st.image("https://images.unsplash.com/photo-1605218427306-022648d42d32?auto=format&fit=crop&q=80&w=800", caption="HKR CATALOGUE", use_column_width=True)
+
+    st.write("---")
+    st.markdown("### RECENT OUTPUT")
+    st.text("HKR001 // TUESDAYNIGHTFREAK // STATIC INTERFERENCE EP")
+    st.text("HKR002 // VARIOUS ARTISTS // TOOLS FOR DJs VOL. 1")
+
+# --- VISUALS ---
+elif selected == "VISUALS":
+    st.markdown("### VISUAL ARCHIVE")
+    
+    # Strict 2-column grid for visuals
+    cols = st.columns(2)
+    for i, item in enumerate(st.session_state.gallery):
+        col_idx = i % 2
+        with cols[col_idx]:
+            st.image(item['url'], use_column_width=True)
+            st.caption(f"// {item['caption']}")
+            st.write("")
+
+# --- CONTACT ---
+elif selected == "CONTACT":
+    col1, col2 = st.columns([1, 1])
+    
+    with col1:
+        st.markdown("### BOOKING")
+        st.write("Representation: Independent.")
+        st.write("Region: Worldwide.")
+        st.write("")
+        st.code("tuesdaynightfreak@gmail.com")
+        st.write("")
+        st.markdown("""
+        **REQUIREMENTS**
+        * 2x meters table space
+        * 2x stereo DI boxes
+        * Quality monitoring system
+        """)
 
     with col2:
-        st.markdown("### INQUIRY FORM")
+        st.markdown("### INQUIRY")
         with st.form("booking_form"):
-            name = st.text_input("Promoter / Venue Name")
-            email = st.text_input("Contact Email")
-            date = st.date_input("Proposed Date", min_value=datetime.today())
-            offer_type = st.selectbox("Type", ["Club Night", "Festival", "Private Event", "Remix Request"])
-            details = st.text_area("Event Details / Offer")
+            st.markdown("**DATE / VENUE / OFFER**")
+            name = st.text_input("PROMOTER", placeholder="Name or Organization")
+            email = st.text_input("EMAIL", placeholder="contact@domain.com")
+            details = st.text_area("DETAILS", placeholder="Include date, venue, and fee offer.")
             
-            submitted = st.form_submit_button("SEND INQUIRY")
+            # Custom styled button via CSS above
+            submitted = st.form_submit_button("TRANSMIT")
             
             if submitted:
-                if name and email and details:
-                    # Logic to save mock booking and clear form (simulated email)
+                if name and email:
                     new_booking = {
                         "name": name, 
                         "email": email, 
-                        "date": str(date), 
                         "details": details,
                         "timestamp": str(datetime.now())
                     }
                     st.session_state.bookings.append(new_booking)
-                    st.success(f"Thanks {name}! Your inquiry for {date} has been sent to tuesdaynightfreak@gmail.com. We will be in touch shortly.")
-                    st.balloons()
+                    st.success("TRANSMISSION RECEIVED.")
                 else:
-                    st.error("Please fill in all required fields.")
+                    st.error("MISSING DATA.")
 
 # --- ADMIN ---
-elif selected == "Admin":
-    st.title("Backstage Area")
-    st.markdown("Please verify your identity to manage content.")
+elif selected == "ADMIN":
+    st.markdown("### SYSTEM ACCESS")
     
-    password = st.text_input("Enter Password", type="password")
+    password = st.text_input("PASSWORD", type="password")
     
-    if password == "admin123": # Simple hardcoded auth for demo
-        st.success("Access Granted")
+    if password == "admin123":
+        st.success("AUTHENTICATED")
         
-        tab1, tab2, tab3 = st.tabs(["Add Music", "Add Photos", "View Bookings"])
+        tab1, tab2, tab3 = st.tabs(["AUDIO", "VISUAL", "DATA"])
         
-        # TAB 1: ADD MUSIC
         with tab1:
-            st.subheader("Upload New Link")
+            st.markdown("**ADD NEW AUDIO SOURCE**")
             with st.form("add_song"):
-                new_title = st.text_input("Song Title")
-                new_url = st.text_input("URL (Spotify/SC/Mixcloud)")
-                new_platform = st.selectbox("Platform", ["SoundCloud", "Spotify", "YouTube", "Mixcloud", "Bandcamp"])
-                submit_song = st.form_submit_button("Add Song")
-                
-                if submit_song and new_title and new_url:
+                new_title = st.text_input("TITLE")
+                new_url = st.text_input("URL")
+                new_platform = st.selectbox("PLATFORM", ["SoundCloud", "Bandcamp", "Spotify", "YouTube"])
+                if st.form_submit_button("UPLOAD"):
                     st.session_state.songs.append({"title": new_title, "url": new_url, "platform": new_platform})
-                    st.success(f"Added {new_title}!")
+                    st.rerun()
             
-            st.write("### Current Links")
-            st.dataframe(pd.DataFrame(st.session_state.songs))
+            if st.button("CLEAR ALL SONGS"):
+                st.session_state.songs = []
+                st.rerun()
 
-        # TAB 2: ADD PHOTOS
         with tab2:
-            st.subheader("Add Gallery Image")
-            st.info("Paste a direct image URL (e.g., from Unsplash or hosted file)")
+            st.markdown("**ADD VISUAL ASSET**")
             with st.form("add_photo"):
-                new_caption = st.text_input("Caption")
-                new_img_url = st.text_input("Image URL")
-                submit_photo = st.form_submit_button("Add Photo")
-                
-                if submit_photo and new_img_url:
+                new_caption = st.text_input("CAPTION")
+                new_img_url = st.text_input("IMAGE URL")
+                if st.form_submit_button("UPLOAD"):
                     st.session_state.gallery.append({"caption": new_caption, "url": new_img_url})
-                    st.success("Image added to gallery!")
-            
-            st.write("### Current Images")
-            st.write(st.session_state.gallery)
+                    st.rerun()
 
-        # TAB 3: VIEW BOOKINGS
         with tab3:
-            st.subheader("Incoming Inquiries")
+            st.markdown("**INCOMING TRANSMISSIONS**")
             if len(st.session_state.bookings) > 0:
-                df = pd.DataFrame(st.session_state.bookings)
-                st.dataframe(df)
+                st.table(pd.DataFrame(st.session_state.bookings))
             else:
-                st.info("No new bookings yet.")
-                
-    elif password:
-        st.error("Incorrect Password")
+                st.write("NO DATA.")
