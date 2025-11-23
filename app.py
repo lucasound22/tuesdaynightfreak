@@ -3,6 +3,7 @@ from streamlit_option_menu import option_menu
 import pandas as pd
 from datetime import datetime
 import random
+import time
 
 # -----------------------------------------------------------------------------
 # 1. PAGE CONFIGURATION & BERLIN AESTHETIC CSS
@@ -37,6 +38,21 @@ st.markdown("""
     }
 
     /* 4. TYPOGRAPHY & NEON HIGHLIGHTS */
+    
+    /* Custom Logo Style (New) */
+    .logo-text {
+        color: #39ff14 !important;
+        font-family: 'Arial Narrow', sans-serif; /* Simulating a condensed, industrial font */
+        font-size: 4.5rem; /* Large and imposing */
+        line-height: 0.8;
+        text-transform: uppercase;
+        font-weight: 900;
+        letter-spacing: -3px; /* Tightly packed */
+        display: block;
+        padding-top: 1rem;
+        padding-bottom: 1rem;
+    }
+
     h1, h2, h3, h4, h5, h6 {
         color: #39ff14 !important; /* NEON GREEN RESTORED */
         font-family: 'Courier New', Courier, monospace;
@@ -50,6 +66,13 @@ st.markdown("""
         letter-spacing: -0.5px;
     }
     
+    /* Lighter and Bigger Text for items like LATEST PRESSINGS (stText) - requested change */
+    div.stText p {
+        color: #ffffff !important; /* Lighter color */
+        font-size: 1.1em; /* Bigger size */
+        margin-bottom: 5px;
+    }
+
     a {
         color: #39ff14 !important;
         text-decoration: none;
@@ -117,12 +140,12 @@ if 'songs' not in st.session_state:
     ]
 
 if 'gallery' not in st.session_state:
-    # Updated to reflect modular, crowd, and gig aesthetics (as requested)
+    # Updated images to reflect techno/industrial aesthetic, replacing guitars
     st.session_state.gallery = [
-        {"caption": "LIVE RITUAL / DANCEFLOOR", "url": "https://images.unsplash.com/photo-1588975850980-8798e2850949?q=80&w=800&auto=format&fit=crop"}, # Crowd
+        {"caption": "DANCEFLOOR RITUAL / CROWD", "url": "https://images.unsplash.com/photo-1588975850980-8798e2850949?q=80&w=800&auto=format&fit=crop"}, # Crowd/Dancefloor
+        {"caption": "ANALOG CIRCUITRY / HARDWARE", "url": "https://images.unsplash.com/photo-1549414594-5552b75f85e3?q=80&w=800&auto=format&fit=crop"}, # Circuitry/Internal hardware
         {"caption": "EURORACK & PATCH CABLES", "url": "https://images.unsplash.com/photo-1610427926868-685b5a26e828?q=80&w=800&auto=format&fit=crop"}, # Modular Synth
-        {"caption": "BERLIN WAREHOUSE ATMOSPHERE", "url": "https://images.unsplash.com/photo-1628171092520-279611b7d52f?q=80&w=800&auto=format&fit=crop"}, # Gig/Atmosphere
-        {"caption": "ANALOG DRUM MACHINE", "url": "https://images.unsplash.com/photo-1616147413695-1f912257224f?q=80&w=800&auto=format&fit=crop"}, # Hardware
+        {"caption": "WAREHOUSE ATMOSPHERE / GIG", "url": "https://images.unsplash.com/photo-1628171092520-279611b7d52f?q=80&w=800&auto=format&fit=crop"}, # Gig/Atmosphere
     ]
 
 if 'bookings' not in st.session_state:
@@ -150,17 +173,17 @@ selected = option_menu(
         },
         "icon": {"color": "#333", "font-size": "10px"}, 
         "nav-link": {
-            "font-size": "14px", 
+            "font-size": "16px",  # Increased size (requested change)
             "text-align": "center", 
             "margin": "0px", 
-            "color": "#888", 
+            "color": "#fff",  # Lighter color (requested change)
             "font-family": "Courier New",
             "text-transform": "uppercase",
             "font-weight": "bold"
         },
         "nav-link-selected": {
             "background-color": "#000000", 
-            "color": "#39ff14", # Fixed: Changed from CSS comment to Python comment
+            "color": "#39ff14", # Neon green selected text
             "border-bottom": "2px solid #39ff14"
         },
     }
@@ -172,7 +195,8 @@ selected = option_menu(
 
 # --- HOME / BIO ---
 if selected == "HOME":
-    st.markdown("## TUESDAYNIGHTFREAK")
+    # Using the new CSS class for the logo title
+    st.markdown("<span class='logo-text'>TUESDAYNIGHTFREAK</span>", unsafe_allow_html=True)
     st.markdown("<h4 style='color: #666 !important;'>LIVE HARDWARE ELECTRONICS // MELBOURNE -- BERLIN</h4>", unsafe_allow_html=True)
     
     st.write("---")
@@ -196,9 +220,10 @@ if selected == "HOME":
 
     with col2:
         # Image will be rendered B&W by CSS, revealing color on hover
-        st.image("https://images.unsplash.com/photo-1614613535308-eb5fbd3d2c17?q=80&w=800&auto=format&fit=crop", 
-                 caption="LIVE PERFORMANCE // 2024", use_column_width=True)
-
+        st.image("https://images.unsplash.com/photo-1627993077678-759b662243d5?q=80&w=800&auto=format&fit=crop", 
+                 caption="LIVE PERFORMANCE // 2024", use_column_width=True) # Replaced image with a more industrial photo
+        st.caption("Image Source: Unsplash (Jesper Brouwers)")
+        
     st.write("---")
     # --- PROMOTIONAL FEATURE: FEATURED TRANSMISSION (EMBED) ---
     st.markdown("##### FEATURED TRANSMISSION (PROMINENT PLAYER)")
@@ -262,7 +287,8 @@ elif selected == "LABEL":
     
     with col2:
         # Image: Vinyl / Studio aesthetic
-        st.image("https://images.unsplash.com/photo-1605218427306-022648d42d32?q=80&w=800&auto=format&fit=crop", caption="HKR CATALOGUE", use_column_width=True)
+        st.image("https://images.unsplash.com/photo-1543354724-c11956108b68?q=80&w=800&auto=format&fit=crop", caption="HKR CATALOGUE", use_column_width=True)
+        st.caption("Image Source: Unsplash (Valentin Gornas)")
         st.write("---")
         
         # --- LABEL FEATURE: ARTIST ROSTER ---
@@ -281,6 +307,7 @@ elif selected == "LABEL":
     
     st.write("---")
     st.markdown("### LATEST PRESSINGS")
+    # These st.text calls will now use the custom CSS for brighter, bigger text
     st.text("HKR001 // TUESDAYNIGHTFREAK // STATIC INTERFERENCE EP [12\"]")
     st.text("HKR002 // VARIOUS ARTISTS // TOOLS FOR DJs VOL. 1 [DIGITAL]")
 
