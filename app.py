@@ -135,7 +135,8 @@ if 'bookings' not in st.session_state:
 selected = option_menu(
     menu_title=None,
     options=["HOME", "TRANSMISSIONS", "LABEL", "VISUALS", "CONTACT", "SYSTEM"],
-    icons=["dot", "dot", "dot", "dot", "dot", "lock"],
+    # Changed "dot" to "circle-fill" because "dot" is not a valid Bootstrap icon
+    icons=["circle-fill", "circle-fill", "circle-fill", "circle-fill", "circle-fill", "lock"],
     menu_icon="cast",
     default_index=0,
     orientation="horizontal",
@@ -158,7 +159,7 @@ selected = option_menu(
         },
         "nav-link-selected": {
             "background-color": "#000000", 
-            "color": "#39ff14", /* Neon Green Active Text */
+            "color": "#39ff14", # Fixed: Changed from CSS comment to Python comment
             "border-bottom": "2px solid #39ff14"
         },
     }
