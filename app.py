@@ -5,170 +5,135 @@ from datetime import datetime
 import random
 import time
 
-# --- CONFIGURATION ---
-NEON_CYAN = "#00f7ff" # Primary Neon color: Cyan
-NEON_CYAN_RGB_SHADOW = "0, 247, 255"
+# --- CONFIGURATION & PALETTE ---
+CP_YELLOW = "#fcee0a"
+CP_CYAN = "#00f0ff"
+CP_RED = "#ff003c"
+CP_BLACK = "#050a0e"
+TT_CREAM = "#f2f2f2" # Used for contrast borders
 
-# --- BRANDING: SIMPLE SVG LOGO FOR CONSISTENCY ---
-TNF_LOGO_SVG = f"""
-<svg width="40" height="20" viewBox="0 0 40 20" fill="none" xmlns="http://www.w3.org/2000/svg">
-<rect x="0" y="0" width="10" height="20" fill="{NEON_CYAN}"/>
-<rect x="15" y="0" width="10" height="20" fill="{NEON_CYAN}"/>
-<path d="M 30 0 L 40 0 L 40 20 L 30 20 L 30 0" fill="{NEON_CYAN}"/>
-<path d="M 30 10 L 40 10" stroke="#000000" stroke-width="2"/>
+# --- BRANDING: CUSTOM SVG LOGO (Toy Tonics Stamp Style x Cyberpunk) ---
+TNF_STAMP_LOGO = f"""
+<svg width="60" height="60" viewBox="0 0 100 100" fill="none" xmlns="http://www.w3.org/2000/svg">
+<circle cx="50" cy="50" r="45" stroke="{CP_YELLOW}" stroke-width="5" fill="{CP_BLACK}"/>
+<path d="M20 50 L40 50 L40 80" stroke="{CP_CYAN}" stroke-width="8"/> 
+<path d="M50 80 L50 20 L80 80 L80 20" stroke="{CP_RED}" stroke-width="6"/>
+<text x="50%" y="50%" text-anchor="middle" stroke="{CP_YELLOW}" stroke-width="1px" dy=".3em" font-family="monospace" font-weight="bold" font-size="20">TNF</text>
 </svg>
 """
 
 # -----------------------------------------------------------------------------
-# 1. PAGE CONFIGURATION & BERLIN AESTHETIC CSS
+# 1. PAGE CONFIGURATION
 # -----------------------------------------------------------------------------
 st.set_page_config(
-    page_title="TUESDAYNIGHTFREAK",
-    page_icon="⚫",
+    page_title="TUESDAYNIGHTFREAK | CULTURE CREW",
+    page_icon="🎹",
     layout="wide",
     initial_sidebar_state="collapsed"
 )
 
-# Custom CSS: Brutalist, Monochrome, Raw + New Cyan Neon Highlights
+# -----------------------------------------------------------------------------
+# 2. CUSTOM CSS (The Mashup Design)
+# -----------------------------------------------------------------------------
 st.markdown(f"""
 <style>
-    /* 1. GLOBAL RESET & MONOCHROME THEME */
-    @keyframes pulse-bg {{
-        0% {{ background-color: #050505; }}
-        50% {{ background-color: #080808; }}
-        100% {{ background-color: #050505; }}
-    }}
+    @import url('https://fonts.googleapis.com/css2?family=Barlow:wght@400;700;900&family=Tomorrow:wght@400;700&display=swap');
 
+    /* GLOBAL RESET */
     .stApp {{
-        background-color: #050505;
-        color: #e0e0e0;
-        font-family: 'Courier New', Courier, monospace;
-        animation: pulse-bg 30s infinite alternate; /* Subtle background pulse flare */
+        background-color: {CP_BLACK};
+        color: {TT_CREAM};
+        font-family: 'Barlow', sans-serif;
     }}
 
-    /* 2. REMOVE STREAMLIT BRANDING & HEADER */
+    /* REMOVE DEFAULT UI */
     #MainMenu {{visibility: hidden;}}
     footer {{visibility: hidden;}}
     header {{visibility: hidden;}}
-    
-    /* 3. FIX MENU CUT-OFF (Adjust Top Padding) */
-    .block-container {{
-        padding-top: 1rem !important;
-        padding-bottom: 5rem;
-        max-width: 1200px;
-    }}
+    .block-container {{ padding-top: 1rem !important; max-width: 1200px; }}
 
-    /* 4. BRANDING & TYPOGRAPHY */
+    /* --- TYPOGRAPHY --- */
     
-    /* Custom Logo Style (New - Brutalist Stamped Block Font) */
-    /* Simulates a low-res terminal block text or stamped text */
-    .logo-text {{
-        color: {NEON_CYAN} !important;
-        font-family: 'monospace';
-        font-size: 5rem;
-        line-height: 0.8;
+    /* Cyberpunk Artist Name Style */
+    .artist-title {{
+        font-family: 'Tomorrow', sans-serif;
+        font-size: 4rem; /* Responsive scaling needed usually, but huge for impact */
+        font-weight: 900;
+        text-transform: uppercase;
+        color: {CP_YELLOW};
+        text-shadow: 4px 4px 0px {CP_CYAN};
+        line-height: 0.9;
+        letter-spacing: -2px;
+        transform: skew(-5deg);
+        margin-bottom: 10px;
+    }}
+    
+    /* Toy Tonics Style Headers (Bold, Graphic) */
+    h1, h2, h3 {{
+        font-family: 'Barlow', sans-serif;
         text-transform: uppercase;
         font-weight: 900;
-        letter-spacing: -5px; /* Tighter block look */
-        display: block;
-        padding-top: 1rem;
-        padding-bottom: 1rem;
-        text-shadow: 0 0 10px rgba({NEON_CYAN_RGB_SHADOW}, 0.5);
+        color: {CP_RED};
+        border-bottom: 3px solid {CP_YELLOW}; /* Graphic underline */
+        display: inline-block;
+        padding-bottom: 5px;
+        margin-top: 30px !important;
     }}
-
-    h1, h2, h3, h4, h5, h6 {{
-        color: {NEON_CYAN} !important; /* NEON CYAN */
-        font-family: 'Courier New', Courier, monospace;
+    
+    h4, h5, h6 {{
+        color: {CP_CYAN} !important;
+        font-family: 'Tomorrow', sans-serif;
         text-transform: uppercase;
-        font-weight: 900;
-        letter-spacing: -1.5px;
-        transition: text-shadow 0.3s ease-in-out;
-    }}
-    
-    h1:hover, h2:hover, h3:hover {{
-        text-shadow: 0 0 10px rgba({NEON_CYAN_RGB_SHADOW}, 0.5); /* Heading hover glow flare */
-    }}
-    
-    p, div, label, span {{
-        font-family: 'Courier New', Courier, monospace;
-        letter-spacing: -0.5px;
-    }}
-    
-    /* Lighter and Bigger Text for items like LATEST PRESSINGS (stText) */
-    div.stText p {{
-        color: #ffffff !important;
-        font-size: 1.1em;
-        margin-bottom: 5px;
+        letter-spacing: 2px;
     }}
 
-    a {{
-        color: {NEON_CYAN} !important;
-        text-decoration: none;
-        transition: text-shadow 0.3s;
-    }}
-    a:hover {{
-        text-decoration: underline;
-        text-shadow: 0 0 10px {NEON_CYAN};
-    }}
-
-    /* 5. IMAGERY - FORCE B&W & HIGH CONTRAST */
-    img {{
-        filter: grayscale(100%) contrast(120%) brightness(85%);
-        transition: all 0.4s ease;
-        border: 1px solid #1a1a1a;
-    }}
-    img:hover {{
-        filter: grayscale(0%) contrast(110%) brightness(100%); /* Color reveal on hover */
-        border: 1px solid {NEON_CYAN};
-        box-shadow: 0 0 15px rgba({NEON_CYAN_RGB_SHADOW}, 0.4);
-    }}
-
-    /* 6. UI ELEMENTS - BRUTALIST (NO ROUNDED CORNERS) */
+    /* --- UI ELEMENTS --- */
+    
+    /* Cyberpunk Buttons */
     .stButton>button {{
-        color: {NEON_CYAN};
-        background-color: #000000;
-        border: 1px solid {NEON_CYAN};
-        border-radius: 0px !important;
-        text-transform: uppercase;
-        padding: 12px 24px;
+        background-color: {CP_YELLOW};
+        color: {CP_BLACK};
+        border: none;
+        font-family: 'Tomorrow', sans-serif;
         font-weight: bold;
+        text-transform: uppercase;
+        clip-path: polygon(10% 0, 100% 0, 100% 70%, 90% 100%, 0 100%, 0 30%); /* Angled cut */
+        padding: 15px 30px;
         transition: all 0.2s;
     }}
     .stButton>button:hover {{
-        background-color: {NEON_CYAN};
-        color: #000000;
-        box-shadow: 0 0 20px rgba({NEON_CYAN_RGB_SHADOW}, 0.8);
+        background-color: {CP_CYAN};
+        color: {CP_BLACK};
+        transform: translate(-2px, -2px);
+        box-shadow: 4px 4px 0px {CP_RED};
     }}
 
-    /* 7. INPUTS & FORMS - Added borders for flare */
-    .stTextInput>div>div>input, .stTextArea>div>div>textarea, .stSelectbox>div>div>div, .stForm {{
-        background-color: #0a0a0a;
-        color: {NEON_CYAN};
-        border: 1px solid #333;
-        border-radius: 0px;
-        font-family: 'Courier New', monospace;
-    }}
-    .stTextInput>div>div>input:focus, .stTextArea>div>div>textarea:focus {{
-        border-color: {NEON_CYAN};
-        box-shadow: 0 0 5px {NEON_CYAN}; /* Input focus flare */
-    }}
-    
-    /* Highlight form borders for better visual separation */
-    .stForm > div:first-child {{
-        border: 2px solid #1a1a1a;
+    /* Graphic Boxes (Toy Tonics Style Borders) */
+    .graphic-box {{
+        border: 2px solid {TT_CREAM};
         padding: 20px;
-        margin-top: 10px;
-        border-left: 5px solid {NEON_CYAN}; /* Brutalist accent border flare */
+        background: #111;
+        margin-bottom: 20px;
     }}
 
-    hr {{
-        border-top: 1px solid #333;
+    /* Inputs */
+    .stTextInput>div>div>input, .stTextArea>div>div>textarea, .stSelectbox>div>div>div {{
+        background-color: #1a1a1a;
+        color: {CP_YELLOW};
+        border: 2px solid {CP_CYAN};
+        border-radius: 0;
+        font-family: 'Tomorrow', sans-serif;
     }}
+
+    /* Links */
+    a {{ color: {CP_YELLOW} !important; text-decoration: none; font-weight: bold; }}
+    a:hover {{ background-color: {CP_YELLOW}; color: {CP_BLACK} !important; }}
+
 </style>
 """, unsafe_allow_html=True)
 
 # -----------------------------------------------------------------------------
-# 2. SESSION STATE & DATA
+# 3. STATE & DATA
 # -----------------------------------------------------------------------------
 if 'songs' not in st.session_state:
     st.session_state.songs = [
@@ -177,352 +142,220 @@ if 'songs' not in st.session_state:
         {"title": "RESIDENT ADVISOR PODCAST 892", "url": "#", "platform": "RA"},
     ]
 
-# --- UPDATED STOCK IMAGES (More industrial/hardware focused) ---
-# Note: These are the previously requested non-stock images, kept for branding.
-if 'gallery' not in st.session_state or 'updated_images' not in st.session_state:
+if 'gallery' not in st.session_state:
     st.session_state.gallery = [
-        {"caption": "ANALOG SYNTHESIS HARDWARE", "url": "https://images.unsplash.com/photo-1510915364890-a7d41f02c611?q=80&w=800&auto=format&fit=crop"}, # Modular synth closeup
-        {"caption": "RAW WAREHOUSE ATMOSPHERE", "url": "https://images.unsplash.com/photo-1543167156-f6d89262f270?q=80&w=800&auto=format&fit=crop"}, # Stark tunnel/warehouse light
-        {"caption": "PATCH CABLE MATRIX", "url": "https://images.unsplash.com/photo-1598275529124-b1c4b786f1e2?q=80&w=800&auto=format&fit=crop"}, # Patch cables/close up connections
-        {"caption": "HIGH-CONTRAST MIXER VIEW", "url": "https://images.unsplash.com/photo-1619967657960-983b6329c370?q=80&w=800&auto=format&fit=crop"}, # Controller/mixer close up
+        {"caption": "WAREHOUSE RAVE // BERLIN", "url": "https://images.unsplash.com/photo-1574169208507-84376144848b?q=80&w=800&auto=format&fit=crop"},
+        {"caption": "MODULAR SYSTEM // LIVE RIG", "url": "https://images.unsplash.com/photo-1550291652-6ea9114a47b1?q=80&w=800&auto=format&fit=crop"},
+        {"caption": "CROWD ENERGY // 3AM", "url": "https://images.unsplash.com/photo-1571266028243-371695063ad6?q=80&w=800&auto=format&fit=crop"},
+        {"caption": "ANALOG OSCILLATORS", "url": "https://images.unsplash.com/photo-1621360841012-2357d27e02a4?q=80&w=800&auto=format&fit=crop"}
     ]
-    st.session_state.updated_images = True 
 
 if 'bookings' not in st.session_state:
     st.session_state.bookings = []
 
-# Removed 'time_placeholder' session state key for stability
-
 # -----------------------------------------------------------------------------
-# 3. UTILITY FUNCTIONS
+# 4. NAVIGATION (Toy Tonics Style - Simple Top Bar)
 # -----------------------------------------------------------------------------
-
-# --- Temporal Display (FIXED FOR STABILITY) ---
-def display_running_time():
-    """
-    Displays the current time, giving a system/terminal aesthetic.
-    The time updates only on full page reload or user interaction to ensure stability
-    in hosted environments (no st.rerun() loop).
-    """
-    current_time_str = datetime.now().strftime('%Y-%m-%d %H:%M:%S')
-    
-    st.markdown(f"""
-        <div style="text-align: right; color: #888; font-size: 0.8em; margin-bottom: 20px;">
-            SYSTEM TIME: {current_time_str} UTC
-        </div>
-        """, unsafe_allow_html=True)
-
-# -----------------------------------------------------------------------------
-# 4. NAVIGATION
-# -----------------------------------------------------------------------------
-
-# Styling option_menu
 selected = option_menu(
     menu_title=None,
-    options=["HOME", "TRANSMISSIONS", "LABEL", "MEDIA", "CONTACT", "SYSTEM"],
-    icons=["circle-fill", "circle-fill", "circle-fill", "circle-fill", "circle-fill", "lock"],
+    options=["HOME", "MUSIC", "LABEL", "MEDIA", "CONTACT", "SYSTEM"],
+    icons=["house", "disc", "vinyl", "camera-reels", "envelope", "cpu"], 
     menu_icon="cast",
     default_index=0,
     orientation="horizontal",
     styles={
-        "container": {
-            "padding": "0!important", 
-            "background-color": "#000000", 
-            "border-bottom": "1px solid #333",
-            "margin-bottom": "2rem"
-        },
-        "icon": {"color": "#333", "font-size": "10px"}, 
+        "container": {"padding": "0!important", "background-color": CP_BLACK, "border-bottom": f"1px solid {CP_CYAN}"},
+        "icon": {"color": CP_YELLOW, "font-size": "14px"}, 
         "nav-link": {
-            "font-size": "16px",
-            "text-align": "center", 
-            "margin": "0px", 
-            "color": "#fff",
-            "font-family": "Courier New",
-            "text-transform": "uppercase",
-            "font-weight": "bold",
-            "transition": "text-shadow 0.3s",
-            "line-height": "1.2", 
-            "min-height": "40px",
-            "display": "flex",
-            "align-items": "center",
-            "justify-content": "center",
+            "font-size": "14px", "text-align": "center", "margin": "0px", 
+            "color": TT_CREAM, "font-family": "Tomorrow, sans-serif", "text-transform": "uppercase"
         },
-        "nav-link:hover": { 
-            "text-shadow": f"0 0 5px {NEON_CYAN}",
-        },
-        "nav-link-selected": {
-            "background-color": "#000000", 
-            "color": NEON_CYAN, 
-            "border-bottom": f"2px solid {NEON_CYAN}"
-        }, 
+        "nav-link-selected": {"background-color": "#1a1a1a", "color": CP_CYAN, "border-top": f"3px solid {CP_RED}"},
     }
 )
 
 # -----------------------------------------------------------------------------
-# 5. PAGE LOGIC
+# 5. PAGE CONTENT
 # -----------------------------------------------------------------------------
 
-# Run the running time display only on main pages
-if selected in ["HOME", "LABEL", "CONTACT"]:
-    # Display the time at the very top of the content area
-    display_running_time()
-
-
-# --- HOME / BIO ---
+# --- HOME PAGE ---
 if selected == "HOME":
-    # New unique artist name/logo presentation (Branding kept)
-    st.markdown(f"<span class='logo-text'>TUESDAYNIGHTFREAK</span>", unsafe_allow_html=True)
-    st.markdown(f"<h4 style='color: #666 !important;'>LIVE HARDWARE ELECTRONICS // MELBOURNE -- BERLIN {TNF_LOGO_SVG}</h4>", unsafe_allow_html=True)
-    
-    # Interactive Live Feed Status
-    status = random.choice(["LIVE: TONE TESTING", "STANDBY", "OFFLINE"])
-    status_color = NEON_CYAN if status.startswith("LIVE") else "#888"
-    st.markdown(f"""
-        <div style="
-            display: inline-block; 
-            padding: 5px 10px; 
-            border: 1px solid {status_color}; 
-            color: {status_color}; 
-            font-size: 0.9em; 
-            font-weight: bold; 
-            margin-bottom: 20px;
-            animation: {'blink 1s steps(1, end) infinite' if status.startswith('LIVE') else 'none'};
-        ">
-            FEED STATUS: {status}
-        </div>
-        <style>
-            @keyframes blink {{ 0% {{ opacity: 1; }} 50% {{ opacity: 0; }} 100% {{ opacity: 1; }} }}
-        </style>
-        """, unsafe_allow_html=True)
-    
-    st.write("---")
-    
-    col1, col2 = st.columns([1, 1], gap="large")
+    # HERO SECTION
+    col1, col2 = st.columns([1.5, 1])
     
     with col1:
-        st.markdown(f"### BIOGRAPHY {TNF_LOGO_SVG}")
+        st.markdown('<div class="artist-title">TUESDAY<br>NIGHT<br>FREAK</div>', unsafe_allow_html=True)
+        st.markdown(f"### LIVE HARDWARE ELECTRONICS {TNF_STAMP_LOGO}", unsafe_allow_html=True)
+        st.markdown(f"<h5 style='color:{TT_CREAM} !important'>MELBOURNE // BERLIN // UNDERGROUND</h5>", unsafe_allow_html=True)
         
-        st.markdown("""
-        **Tuesdaynightfreak** operates in the void between mechanical precision and human error. Rejecting the safety of pre-recorded sets, the project is a study in live improvisation using a complex architecture of modular synthesis, drum machines, and feedback loops.
+        # Toy Tonics style copy: "Culture Crew", "Vibes", "Analogue"
+        st.markdown(f"""
+        <div class="graphic-box">
+        Tuesdaynightfreak is not just an artist; it's a **sonic movement**. 
+        We are an independent electronic music project and culture crew bridging the gap between 
+        Berlin's concrete basements and Melbourne's warehouse soul.
+        <br><br>
+        We reject the digital perfection of modern EDM. We embrace the <strong>analogue error</strong>.
+        We combine raw modular synthesis with the funk of Detroit's second wave to create 
+        positive, high-pressure vibes. No laptops. Just voltage.
+        </div>
+        """, unsafe_allow_html=True)
         
-        Drawing from the austere industrialism of the Berlin school and the raw funk of Detroit's second wave, the sound is reductive and texture-heavy. It is music built for concrete rooms and high-pressure sound systems.
-        
-        No laptops. No presets. Just voltage and rhythm.
-        """)
-        
-        st.write("")
-        st.markdown("##### SCHEDULE")
-        st.code("04.11 // TRESOR [BERLIN]\n11.11 // FOLD [LONDON]\n18.11 // REVOLVER [MELBOURNE]\n25.11 // STUDIO LOCKDOWN")
+        # Interactive Element: Status
+        st.markdown(f"**CURRENT SYSTEM STATUS:** <span style='color:{CP_YELLOW}; font-family:monospace; animation: blink 1s infinite;'>ONLINE // STUDIO MODE</span>", unsafe_allow_html=True)
 
     with col2:
-        # New Stock Image 1: Industrial Warehouse / Live (Kept)
-        st.image("https://images.unsplash.com/photo-1543167156-f6d89262f270?q=80&w=800&auto=format&fit=crop", 
-                 caption="LIVE PERFORMANCE // 2024", use_column_width=True)
-        st.caption("Image Source: Unsplash (Alistair Green)")
+        # New Techno Image
+        st.image("https://images.unsplash.com/photo-1594623930572-300a3011d9ae?q=80&w=800&auto=format&fit=crop", caption="LIVE AT TRESOR // 2024")
+
+    st.write("---")
+    
+    # FEATURED RELEASE
+    c1, c2, c3 = st.columns([1, 2, 1])
+    with c2:
+        st.markdown("### LATEST DROP")
+        # Simulating a bold graphic card for a release
+        st.image("https://images.unsplash.com/photo-1614613535308-eb5fbd3d2c17?q=80&w=800&auto=format&fit=crop", caption="STATIC INTERFERENCE EP [12\" VINYL]")
+        st.button("BUY VINYL / DIGITAL")
+
+# --- MUSIC ---
+elif selected == "MUSIC":
+    st.markdown("## SONIC ARCHIVE")
+    st.markdown("### LIVE JAMS & STUDIO CUTS")
+    
+    # Layout inspired by Toy Tonics "Music" page - Grid of releases
+    col1, col2 = st.columns(2)
+    
+    with col1:
+        st.markdown(f"#### UNTITLED_SEQ_04")
+        st.image("https://images.unsplash.com/photo-1493225255756-d9584f8606e9?q=80&w=800&auto=format&fit=crop", caption="Live Recording")
+        st.markdown(f"[STREAM ON SOUNDCLOUD]({ '#'})")
+
+    with col2:
+        st.markdown(f"#### ACID RAIN (DUB)")
+        st.image("https://images.unsplash.com/photo-1514525253440-b393452e8d26?q=80&w=800&auto=format&fit=crop", caption="Studio Cut")
+        st.markdown(f"[BUY ON BANDCAMP]({ '#'})")
         
     st.write("---")
-    # PROMOTIONAL FEATURE: FEATURED TRANSMISSION (EMBED)
-    st.markdown("##### FEATURED TRANSMISSION (PROMINENT PLAYER)")
-    st.html(f"""
-    <iframe width="100%" height="166" scrolling="no" frameborder="no" src="https://w.soundcloud.com/player/?url=https%3A//api.soundcloud.com/tracks/1758580218&color=%23{'00f7ff'.lstrip('#')}&auto_play=false&hide_related=false&show_comments=false&show_user=true&show_reposts=false&show_teaser=true"></iframe>
-    """)
-    st.write("---")
-
-    # Minimal Text Links for Socials
-    cols = st.columns(4)
-    cols[0].markdown("[INSTAGRAM](#)")
-    cols[1].markdown("[SOUNDCLOUD](#)")
-    cols[2].markdown("[SPOTIFY](#)")
-    cols[3].markdown("[RESIDENT ADVISOR](#)")
-
-# --- TRANSMISSIONS (MUSIC) ---
-elif selected == "TRANSMISSIONS":
-    st.markdown("### SONIC ARCHIVE")
-    st.write("Live recordings and unreleased sketches.")
-    
-    st.write("---")
-    
-    # Text-based list layout (Brutalist style)
+    st.markdown("### DISCOGRAPHY LIST")
     for song in st.session_state.songs:
-        col1, col2, col3 = st.columns([5, 2, 2])
-        with col1:
-            st.markdown(f"**{song['title']}**")
-        with col2:
-            st.caption(f"[{song['platform']}]")
-        with col3:
-            st.markdown(f"[>> LISTEN]({song['url']})")
-        st.markdown("<hr style='margin: 10px 0; border-top: 1px dashed #333;'>", unsafe_allow_html=True)
+        st.markdown(f"**{song['title']}** // {song['platform']}")
 
 # --- LABEL ---
 elif selected == "LABEL":
-    col1, col2 = st.columns([1, 1], gap="large")
-    
+    col1, col2 = st.columns([1, 1])
     with col1:
         st.markdown("## HOUSE KEEPING RECORDS")
-        st.caption("EST. 2023 // PHYSICAL & DIGITAL")
+        st.markdown("**EST. 2023 // VINYL ONLY**")
         st.write("---")
+        st.markdown(f"""
+        <div class="graphic-box">
+        House Keeping Records is our platform for the raw, the deep, and the functional. 
+        We release tools for DJs and explorations for heads. 
+        <br><br>
+        **PHILOSOPHY:**<br>
+        1. Respect the groove.<br>
+        2. Hardware over software.<br>
+        3. Community over clout.
+        </div>
+        """, unsafe_allow_html=True)
         
-        # --- LABEL FEATURE: MAILING LIST SIGNUP ---
-        st.markdown("##### ACCESS PROTOCOL (MAILING LIST)")
-        with st.form("mailing_list_form"):
-            email_ml = st.text_input("ENTER FREQUENCY", placeholder="user@domain.com")
-            if st.form_submit_button("SUBSCRIBE"):
-                if email_ml:
-                    st.success("FREQUENCY ACQUIRED. THANK YOU.")
-                else:
-                    st.error("INVALID FREQUENCY.")
-        st.write("---")
-        
-        # --- Enhancement 1: Gated Download/Promo Section ---
-        st.markdown("##### PROMO ACCESS (BETA TRACKS)")
-        st.caption("ENTER PROMO KEY FOR UNRELEASED STEMS & DJ TOOLS")
-        with st.form("promo_access_form"):
-            promo_code = st.text_input("ENTER PROMO KEY", type="password", placeholder="e.g., HKR-BETA-003")
-            if st.form_submit_button("UNLOCK ASSETS"):
-                if promo_code == "HKR-BETA-003":
-                    st.success("ACCESS GRANTED. [DOWNLOAD STICKERS & STEMS HERE](#) (Note: In a real app, this would require a backend.)")
-                else:
-                    st.warning("KEY INVALID. REQUIRES ADMIN OR PROMOTER CLEARANCE.")
-        st.write("---")
+        # Demo Submission with "Cyberpunk" form style
+        st.markdown("### SUBMIT DEMO")
+        with st.form("demo_form"):
+            st.text_input("ARTIST ALIAS")
+            st.text_input("SOUNDCLOUD LINK (PRIVATE ONLY)")
+            st.form_submit_button("TRANSMIT DATA")
 
-
-        st.markdown("""
-        **House Keeping Records** exists to document the output of the local hardware community. 
-        
-        We focus on the functional, the raw, and the deep. We release tools for DJs and explorations for heads. Vinyl pressing for select projects. 
-        """)
-        
-    
     with col2:
-        # New Stock Image 2: Patch Cables (Kept)
-        st.image("https://images.unsplash.com/photo-1598275529124-b1c4b786f1e2?q=80&w=800&auto=format&fit=crop", caption="HKR CATALOGUE", use_column_width=True)
-        st.caption("Image Source: Unsplash (Ryan Hoffman)")
-        st.write("---")
+        st.image("https://images.unsplash.com/photo-1603048588665-791ca8aea617?q=80&w=800&auto=format&fit=crop", caption="HKR HEADQUARTERS")
         
-        # --- LABEL FEATURE: ARTIST ROSTER ---
-        st.markdown("##### ARTIST ROSTER")
-        st.code("TUESDAYNIGHTFREAK\nSYSTEM NOISE\nFUTURA DYNAMICS")
-        
-        # --- LABEL FEATURE: STOCKISTS ---
-        st.markdown("##### PHYSICAL STOCKISTS (EUROPE)")
-        st.code("HARDWAX [BERLIN]\nTECHNO IMPORT [PARIS]\nPHONICA [LONDON]")
-        
+        # Physical Stockists List
+        st.markdown("#### STOCKISTS")
+        st.markdown(f"""
+        * <span style="color:{CP_CYAN}">HARDWAX</span> [BERLIN]
+        * <span style="color:{CP_CYAN}">PHONICA</span> [LONDON]
+        * <span style="color:{CP_CYAN}">RUSH HOUR</span> [AMSTERDAM]
+        """, unsafe_allow_html=True)
 
-    st.write("---")
-    st.markdown("### DEMO SUBMISSION")
-    st.write("We listen. Private SoundCloud links only. Do not send WeTransfer files.")
-    st.code("demo@housekeeping-rec.com")
-    
-    st.write("---")
-    st.markdown("### LATEST PRESSINGS")
-    st.text("HKR001 // TUESDAYNIGHTFREAK // STATIC INTERFERENCE EP [12\"]")
-    st.text("HKR002 // VARIOUS ARTISTS // TOOLS FOR DJs VOL. 1 [DIGITAL]")
-
-
-# --- MEDIA (PHOTO / VIDEO) ---
+# --- MEDIA ---
 elif selected == "MEDIA":
-    st.markdown("### MEDIA ARCHIVE (PHOTO / VIDEO)")
+    st.markdown("## VISUAL FEED")
     
-    # Strict 2-column grid for visuals
-    cols = st.columns(2)
+    # Masonry-style grid (Toy Tonics often has eclectic layouts)
+    c1, c2 = st.columns(2)
     for i, item in enumerate(st.session_state.gallery):
-        col_idx = i % 2
-        with cols[col_idx]:
-            st.image(item['url'], use_column_width=True)
-            st.caption(f"// {item['caption']}")
-            st.write("")
+        if i % 2 == 0:
+            with c1:
+                st.image(item["url"], caption=item["caption"])
+        else:
+            with c2:
+                st.image(item["url"], caption=item["caption"])
 
 # --- CONTACT ---
 elif selected == "CONTACT":
-    col1, col2 = st.columns([1, 1], gap="large")
-    
-    with col1:
-        st.markdown("### BOOKING")
-        st.write("Representation: Independent.")
-        st.write("Region: Worldwide.")
-        st.write("")
+    c1, c2 = st.columns(2)
+    with c1:
+        st.markdown("## BOOKING & PRESS")
+        st.markdown("### WORLDWIDE")
+        st.write("Direct Management")
+        st.markdown(f"<h2 style='border:none; color:{CP_YELLOW};'>tuesdaynightfreak@gmail.com</h2>", unsafe_allow_html=True)
         
         st.write("---")
-        st.markdown("### MEDIA RELATIONS")
-        # --- PROMOTIONAL FEATURE: PRESS KIT ---
-        st.markdown("""
-        **PRESS KIT (HIGH-RES ASSETS)**
-        Download high-resolution press photos, full biography, and logo files.
-        """)
-        st.button("DOWNLOAD PKG [28MB]") 
-        
-        st.write("")
-        st.markdown("**MANAGEMENT**")
-        st.code("tuesdaynightfreak@gmail.com")
-        st.write("")
-        st.markdown("""
-        **TECHNICAL RIDER**
-        * 2x Meters table space (vibration free)
-        * 2x Stereo DI boxes (Radial preferred)
-        * 1x Monitor wedge (controllable from booth)
-        * No smoke machines during performance
-        """)
+        st.markdown("### MEDIA KIT")
+        # Downloadable Rider/Press Kit
+        st.download_button("DOWNLOAD TECH RIDER (PDF)", "Rider Content", file_name="TNF_Rider_2025.pdf")
+        st.download_button("DOWNLOAD PRESS PHOTOS (ZIP)", "Photo Content", file_name="TNF_Press_Photos.zip")
 
-    with col2:
-        st.markdown("### INQUIRY CHANNEL")
-        with st.form("booking_form"):
-            st.markdown("**DATE / VENUE / OFFER**")
-            name = st.text_input("PROMOTER / AGENT", placeholder="Name or Organization")
-            email = st.text_input("RETURN FREQUENCY (EMAIL)", placeholder="contact@domain.com")
-            details = st.text_area("DETAILS", placeholder="Include date, venue, and fee offer.")
-            
-            submitted = st.form_submit_button("TRANSMIT REQUEST")
-            
-            if submitted:
-                if name and email:
-                    new_booking = {
-                        "name": name, 
-                        "email": email, 
-                        "details": details,
-                        "timestamp": str(datetime.now())
-                    }
-                    st.session_state.bookings.append(new_booking)
-                    st.success("TRANSMISSION RECEIVED. WE WILL RESPOND IF ALIGNED.")
-                else:
-                    st.error("INCOMPLETE DATA.")
+    with c2:
+        st.markdown("### TRANSMIT MESSAGE")
+        with st.form("contact_form"):
+            st.text_input("IDENTIFIER (NAME)")
+            st.text_input("RETURN FREQUENCY (EMAIL)")
+            st.text_area("MESSAGE PACKET")
+            st.form_submit_button("SEND TRANSMISSION")
 
 # --- SYSTEM (ADMIN) ---
 elif selected == "SYSTEM":
-    st.markdown("### RESTRICTED ACCESS")
+    st.markdown("## SYSTEM ACCESS")
+    st.caption("SECURE AREA. AUTHORIZED PERSONNEL ONLY.")
     
-    password = st.text_input("ACCESS CODE", type="password")
+    pwd = st.text_input("ENTER AUTH CODE", type="password")
     
-    if password == "admin123":
-        st.success("AUTHENTICATED")
+    if pwd == "admin123":
+        st.success("ACCESS GRANTED. WELCOME, OPERATOR.")
         
-        tab1, tab2, tab3 = st.tabs(["AUDIO", "VISUAL", "LOGS"])
+        # --- ADMIN TABS FOR UPLOADING CONTENT ---
+        tab1, tab2, tab3 = st.tabs(["UPLOAD MUSIC", "UPLOAD VISUALS", "INCOMING DATA"])
         
         with tab1:
-            st.markdown("**ADD AUDIO SOURCE**")
-            with st.form("add_song"):
-                new_title = st.text_input("TITLE")
-                new_url = st.text_input("URL")
+            st.markdown("### ADD AUDIO SOURCE")
+            with st.form("add_song_admin"):
+                new_title = st.text_input("SONG TITLE")
+                new_url = st.text_input("URL (SoundCloud/Bandcamp)")
                 new_platform = st.selectbox("PLATFORM", ["SoundCloud", "Bandcamp", "Spotify", "RA"])
-                if st.form_submit_button("UPLOAD"):
+                if st.form_submit_button("UPLOAD TRACK"):
                     st.session_state.songs.append({"title": new_title, "url": new_url, "platform": new_platform})
-                    st.rerun()
+                    st.success(f"TRACK '{new_title}' ADDED TO ARCHIVE.")
             
-            if st.button("PURGE ALL SONGS"):
+            if st.button("PURGE AUDIO ARCHIVE"):
                 st.session_state.songs = []
+                st.warning("AUDIO ARCHIVE CLEARED.")
                 st.rerun()
 
         with tab2:
-            st.markdown("**ADD VISUAL ASSET**")
-            with st.form("add_photo"):
+            st.markdown("### ADD VISUAL ASSET")
+            with st.form("add_photo_admin"):
                 new_caption = st.text_input("CAPTION")
                 new_img_url = st.text_input("IMAGE URL")
-                if st.form_submit_button("UPLOAD"):
+                if st.form_submit_button("UPLOAD VISUAL"):
                     st.session_state.gallery.append({"caption": new_caption, "url": new_img_url})
+                    st.success("VISUAL ASSET ADDED TO FEED.")
                     st.rerun()
 
         with tab3:
-            st.markdown("**INCOMING TRANSMISSIONS**")
+            st.markdown("### INCOMING TRANSMISSIONS")
             if len(st.session_state.bookings) > 0:
-                st.table(pd.DataFrame(st.session_state.bookings))
+                st.dataframe(pd.DataFrame(st.session_state.bookings))
             else:
-                st.write("NO DATA.")
+                st.info("NO NEW MESSAGES.")
