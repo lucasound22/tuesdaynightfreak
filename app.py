@@ -360,8 +360,9 @@ selected = option_menu(
         "nav-link-selected": {
             "background-color": "rgba(255,255,255,0.1)",
             "color": COLOR_CYAN,
-            "border-bottom": f"3px solid {COLOR_CYAN}",
-            "text-shadow": f"0 0 10px {COLOR_CYAN}"
+            # FIXED: Changed f-strings to concatenation to prevent SyntaxError on '}'
+            "border-bottom": "3px solid " + COLOR_CYAN,
+            "text-shadow": "0 0 10px " + COLOR_CYAN
         },
     }
 )
