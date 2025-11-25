@@ -13,26 +13,26 @@ COLOR_ACCENT = "#FF0033" # Acid Red (Primary Brand)
 COLOR_CYAN = "#00f7ff"   # Cyberpunk Splash (Secondary/Tech)
 COLOR_SECONDARY = "#141414" # Card Background
 
-# --- BRANDING: NEW COOLER LOGOS ---
-
-# 1. TNF MAIN LOGO (Modern, Geometric, "Cyber-Sigil" Style)
+# --- BRANDING: NEW GLITCH LOGO ---
+# Updated for a "Glitch" effect with offset layers
 TNF_LOGO_SVG = f"""
-<svg width="150" height="50" viewBox="0 0 150 50" fill="none" xmlns="http://www.w3.org/2000/svg">
-    <!-- Abstract Glitch Text Shape -->
-    <path d="M10 10 L30 10 L20 40 L0 40 Z" fill="{COLOR_TEXT}"/> <!-- T shape left -->
-    <rect x="35" y="10" width="10" height="30" fill="{COLOR_ACCENT}"/> <!-- N vertical -->
-    <path d="M35 10 L55 40" stroke="{COLOR_ACCENT}" stroke-width="3"/> <!-- N diagonal -->
-    <rect x="55" y="10" width="10" height="30" fill="{COLOR_ACCENT}"/> <!-- N right -->
-    <rect x="75" y="10" width="20" height="5" fill="{COLOR_CYAN}"/> <!-- F top -->
-    <rect x="75" y="20" width="15" height="5" fill="{COLOR_CYAN}"/> <!-- F mid -->
-    <rect x="75" y="10" width="5" height="30" fill="{COLOR_CYAN}"/> <!-- F vertical -->
-    <!-- Underline Element -->
-    <rect x="0" y="45" width="100" height="2" fill="{COLOR_TEXT}"/>
+<svg width="160" height="50" viewBox="0 0 160 50" fill="none" xmlns="http://www.w3.org/2000/svg">
+    <!-- Glitch Layers -->
+    <text x="2" y="32" font-family="Helvetica, Arial, sans-serif" font-weight="900" font-size="36" fill="{COLOR_CYAN}" opacity="0.7" letter-spacing="-3">TNF</text>
+    <text x="-2" y="32" font-family="Helvetica, Arial, sans-serif" font-weight="900" font-size="36" fill="{COLOR_ACCENT}" opacity="0.7" letter-spacing="-3">TNF</text>
+    <!-- Main Text -->
+    <text x="0" y="32" font-family="Helvetica, Arial, sans-serif" font-weight="900" font-size="36" fill="{COLOR_TEXT}" letter-spacing="-3">TNF</text>
+    
+    <!-- Graphic Elements -->
+    <rect x="85" y="10" width="4" height="20" fill="{COLOR_ACCENT}"/>
+    <rect x="95" y="10" width="4" height="20" fill="{COLOR_CYAN}"/>
+    <rect x="105" y="10" width="4" height="20" fill="{COLOR_TEXT}"/>
+    <circle cx="130" cy="20" r="6" stroke="{COLOR_TEXT}" stroke-width="2"/>
+    <line x1="0" y1="45" x2="140" y2="45" stroke="{COLOR_CYAN}" stroke-width="1"/>
 </svg>
 """
 
 # 2. HOUSE KEEPING RECORDS LOGO (Industrial, Bold)
-# This replaces the broken image link with a reliable SVG
 HKR_LOGO_SVG = f"""
 <svg width="100" height="100" viewBox="0 0 100 100" fill="none" xmlns="http://www.w3.org/2000/svg">
     <rect x="5" y="5" width="90" height="90" stroke="{COLOR_TEXT}" stroke-width="4"/>
@@ -184,6 +184,41 @@ st.markdown(f"""
     a:hover {{ color: {COLOR_CYAN} !important; }}
     
     hr {{ border-color: #222; margin: 3rem 0; }}
+    
+    /* BACKGROUND VIDEO STYLING */
+    .video-background {{
+        position: fixed;
+        top: 0;
+        left: 0;
+        width: 100vw;
+        height: 100vh;
+        z-index: -1;
+        pointer-events: none;
+        overflow: hidden;
+        opacity: 0.4; /* Dim video for readability */
+    }}
+    .video-background iframe {{
+        width: 100vw;
+        height: 56.25vw; /* Given a 16:9 aspect ratio */
+        min-height: 100vh;
+        min-width: 177.77vh; /* Given a 16:9 aspect ratio */
+        position: absolute;
+        top: 50%;
+        left: 50%;
+        transform: translate(-50%, -50%);
+    }}
+    
+    /* Overlay to darken video slightly */
+    .video-overlay {{
+        position: fixed;
+        top: 0;
+        left: 0;
+        width: 100vw;
+        height: 100vh;
+        background: linear-gradient(to bottom, rgba(8,8,8,0.8) 0%, rgba(8,8,8,0.6) 50%, rgba(8,8,8,1) 100%);
+        z-index: -1;
+        pointer-events: none;
+    }}
 
 </style>
 """, unsafe_allow_html=True)
@@ -199,13 +234,13 @@ selected = option_menu(
     default_index=0,
     orientation="horizontal",
     styles={
-        "container": {"padding": "0!important", "background-color": COLOR_BG, "border-bottom": "1px solid #333"},
+        "container": {"padding": "0!important", "background-color": "rgba(8,8,8,0.95)", "border-bottom": "1px solid #333"},
         "icon": {"color": "#666", "font-size": "12px"}, 
         "nav-link": {
             "font-size": "14px", "text-align": "center", "margin": "0px", 
             "color": "#888", "font-family": "Inter, sans-serif", "text-transform": "uppercase", "font-weight": "600"
         },
-        "nav-link-selected": {"background-color": COLOR_BG, "color": COLOR_TEXT, "border-bottom": f"2px solid {COLOR_ACCENT}"},
+        "nav-link-selected": {"background-color": "rgba(255,255,255,0.05)", "color": COLOR_TEXT, "border-bottom": f"2px solid {COLOR_ACCENT}"},
     }
 )
 
@@ -215,21 +250,17 @@ selected = option_menu(
 
 # --- HOME PAGE ---
 if selected == "HOME":
-    # --- 1. VIDEO BACKGROUND / SCROLLING EFFECT ---
-    # This HTML/CSS block creates a simulated video background effect using a YouTube embed
-    video_html = """
-        <div style="position: relative; width: 100%; padding-bottom: 56.25%; height: 0; overflow: hidden; margin-bottom: 2rem; border-bottom: 2px solid #333;">
-            <iframe 
-                src="https://www.youtube.com/embed/2nu15ed5tk7?autoplay=1&mute=1&controls=0&loop=1&playlist=2nu15ed5tk7&showinfo=0&modestbranding=1" 
-                style="position: absolute; top: 0; left: 0; width: 100%; height: 100%; opacity: 0.8;" 
-                frameborder="0" 
-                allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture" 
-                allowfullscreen>
-            </iframe>
-            <div style="position: absolute; top: 0; left: 0; width: 100%; height: 100%; pointer-events: none; background: linear-gradient(to bottom, transparent 80%, #080808 100%);"></div>
+    # --- BACKGROUND VIDEO (Behind Text) ---
+    # Using a different, reliable Abstract Techno Loop from YouTube (qC0vDKVPCrw)
+    # Embedding it full screen behind content
+    st.markdown("""
+        <div class="video-background">
+            <iframe src="https://www.youtube.com/embed/qC0vDKVPCrw?controls=0&showinfo=0&rel=0&autoplay=1&loop=1&mute=1&playlist=qC0vDKVPCrw" frameborder="0" allowfullscreen></iframe>
         </div>
-    """
-    st.markdown(video_html, unsafe_allow_html=True)
+        <div class="video-overlay"></div>
+    """, unsafe_allow_html=True)
+    
+    st.markdown("<br><br>", unsafe_allow_html=True)
     
     col1, col2 = st.columns([2, 1])
     
@@ -238,7 +269,7 @@ if selected == "HOME":
         st.markdown("#### ARCHITECTS OF THE ANALOGUE SIGNAL")
         
         st.markdown("""
-        <div style="font-size: 1.1rem; line-height: 1.6;">
+        <div style="font-size: 1.1rem; line-height: 1.6; text-shadow: 0 2px 4px rgba(0,0,0,0.8);">
         Tuesdaynightfreak operates at the intersection of <strong>studio precision</strong> and <strong>live improvisation</strong>. 
         We construct immersive sonic environments using modular synthesis, exploring the tension between mechanical repetition and human error.
         <br><br>
@@ -257,12 +288,12 @@ if selected == "HOME":
         st.markdown("#### SYSTEM UPDATES")
         
         st.markdown(f"""
-        <div class="tech-card">
+        <div class="tech-card" style="background: rgba(15,15,15,0.8);">
         <span style="color:{COLOR_ACCENT}">●</span> <strong>NEW RELEASE</strong><br>
         'VOLTAGE CONTROL' EP OUT NOW VIA OSTGUT TON.
         </div>
         <br>
-        <div class="tech-card">
+        <div class="tech-card" style="background: rgba(15,15,15,0.8);">
         <span style="color:{COLOR_CYAN}">●</span> <strong>TOUR ANNOUNCEMENT</strong><br>
         EUROPEAN DATES CONFIRMED FOR WINTER 2025.
         </div>
@@ -274,7 +305,7 @@ if selected == "HOME":
     st.markdown("### LIVE TRANSMISSION")
     col1, col2 = st.columns(2)
     with col1:
-        # Replaced guitar/broken image with robust modular synth image
+        # Robust Modular Synth Image
         st.image("https://images.unsplash.com/photo-1598275529124-b1c4b786f1e2?q=80&w=800&auto=format&fit=crop", caption="LIVE RIG CONFIGURATION")
     with col2:
         st.markdown("""
