@@ -44,8 +44,9 @@ HKR_LOGO_SVG = f"""
 # --- HELPER FUNCTION FOR ADDING TO CART ---
 def add_to_cart(item_name):
     """Adds an item to the cart and triggers a rerun."""
+    # We remove st.rerun() from helper to control the flow better in the button logic
     st.session_state.cart.append(item_name)
-    st.rerun()
+    # Rerun is handled in the main script body after the state update
 
 # -----------------------------------------------------------------------------
 # 1. PAGE CONFIGURATION
@@ -60,27 +61,28 @@ st.set_page_config(
 # -----------------------------------------------------------------------------
 # 2. SESSION STATE VALIDATION (Simplified for stability)
 # -----------------------------------------------------------------------------
+# Use list() constructor for robust initialization
 if 'songs' not in st.session_state:
-    st.session_state.songs = [
+    st.session_state.songs = list([
         {"title": "System Failure (Original Mix)", "label": "House Keeping Rec", "cat": "HKR004"},
         {"title": "Analog Dreams", "label": "Tresor Records", "cat": "TR-291"},
         {"title": "Voltage Control", "label": "Ostgut Ton", "cat": "OSTGUT-55"},
         {"title": "Modular State", "label": "Klockworks", "cat": "KW-22"}
-    ]
+    ])
 
 if 'gallery' not in st.session_state:
-    st.session_state.gallery = [
+    st.session_state.gallery = list([
         {"caption": "OSCILLATOR BANK A", "url": "https://images.unsplash.com/photo-1621360841012-2357d27e02a4?q=80&w=800&auto=format&fit=crop"},
         {"caption": "PATCH CABLE LOGIC", "url": "https://images.unsplash.com/photo-1598275529124-b1c4b786f1e2?q=80&w=800&auto=format&fit=crop"},
         {"caption": "SEQUENCER ARRAY", "url": "https://images.unsplash.com/photo-1619967657960-983b6329c370?q=80&w=800&auto=format&fit=crop"},
         {"caption": "FILTER RESONANCE", "url": "https://images.unsplash.com/photo-1510915364890-a7d41f02c611?q=80&w=800&auto=format&fit=crop"}
-    ]
+    ])
 
 if 'bookings' not in st.session_state:
-    st.session_state.bookings = []
+    st.session_state.bookings = list([])
 
 if 'cart' not in st.session_state:
-    st.session_state.cart = []
+    st.session_state.cart = list([])
 
 # New state for navigation consistency
 if 'current_page_index' not in st.session_state:
@@ -115,7 +117,7 @@ st.markdown(f"""
         letter-spacing: -1px;
         margin-bottom: 0.5rem;
     }}
-    
+
     /* Subheaders with Cyberpunk Splash */
     h4, h5 {{
         font-family: 'Space Mono', monospace; /* Tech font */
@@ -127,10 +129,10 @@ st.markdown(f"""
     }}
 
     /* --- UI ELEMENTS --- */
-    
+
     /* Primary Action Button (Cyan) */
     .stButton>button {{
-        background-color: {COLOR_CYAN}; 
+        background-color: {COLOR_CYAN};
         color: {COLOR_BG};
         border: 1px solid {COLOR_TEXT};
         font-family: 'Inter', sans-serif;
@@ -157,7 +159,7 @@ st.markdown(f"""
         border-top: 1px solid #222;
         border-bottom: 1px solid #222;
     }}
-    
+
     /* Tech/System Cards (Cyan Splash) */
     .tech-card {{
         background-color: #0f0f0f;
@@ -184,9 +186,9 @@ st.markdown(f"""
     /* Links */
     a {{ color: {COLOR_TEXT} !important; text-decoration: none; font-weight: 600; transition: color 0.2s; }}
     a:hover {{ color: {COLOR_CYAN} !important; }}
-    
+
     hr {{ border-color: #222; margin: 3rem 0; }}
-    
+
     /* --- FULL-SCREEN VIDEO BACKGROUND (New) --- */
     .video-background-fixed {{
         position: fixed;
@@ -205,7 +207,7 @@ st.markdown(f"""
         min-height: 100vh;
         transform: scale(1.1); /* Zoom slightly to remove iframe borders */
     }}
-    
+
     /* Overlay to darken video and ensure readability */
     .video-overlay-fixed {{
         position: fixed;
@@ -242,20 +244,20 @@ st.markdown(f"""
         cursor: pointer;
         z-index: 1000;
         transition: opacity 0.5s;
-        
+
     }}
-    
+
     #audio-activation-button {{
-        background: {COLOR_CYAN}; 
+        background: {COLOR_CYAN};
         color: {COLOR_BG};
         padding: 20px 40px;
-        border: 2px solid {COLOR_ACCENT}; 
+        border: 2px solid {COLOR_ACCENT};
         font-size: 1.8rem;
         font-weight: 700;
         margin-top: 20px;
         animation: pulse 2s infinite;
     }}
-    
+
     #audio-activation-text {{
         color: {COLOR_CYAN};
         font-size: 1.2rem;
@@ -279,7 +281,7 @@ st.markdown(f"""
         if (typeof Tone !== 'undefined') {{
             // 1. Set the low, slow techno BPM
             Tone.Transport.bpm.value = 110;
-            
+
             // 2. Deep Kick Drum
             const kick = new Tone.MembraneSynth({{
                 pitchDecay: 0.05,
@@ -317,7 +319,7 @@ st.markdown(f"""
 
             // 5. Start the transport (sequencer) and context
             Tone.Transport.start();
-            
+
             // Hide the activation overlay after audio starts
             const activationDiv = document.getElementById('audio-activation');
             activationDiv.style.opacity = '0';
@@ -331,9 +333,9 @@ st.markdown(f"""
 
 
 # -----------------------------------------------------------------------------
-# 4. NAVIGATION (Menu styling preserved)
+# 4. NAVIGATION
 # -----------------------------------------------------------------------------
-# Define options list for indexing
+# DEFENSIVE: Re-declare the options list robustly right before use.
 menu_options = ["HOME", "MUSIC", "EVENTS", "STORE", "ABOUT", "SYSTEM"]
 
 selected = option_menu(
@@ -341,30 +343,38 @@ selected = option_menu(
     options=menu_options,
     icons=["house-fill", "disc-fill", "calendar-event-fill", "bag-fill", "info-circle-fill", "cpu-fill"],
     menu_icon="cast",
-    default_index=st.session_state.current_page_index, # Use session state for consistent loading
+    default_index=st.session_state.current_page_index,
     orientation="horizontal",
     styles={
         "container": {"padding": "0!important", "background-color": "rgba(8,8,8,0.95)", "border-bottom": "1px solid #333"},
-        "icon": {"color": "#fff", "font-size": "14px"}, 
+        "icon": {"color": "#fff", "font-size": "14px"},
         "nav-link": {
-            "font-size": "20px", 
-            "text-align": "center", 
-            "margin": "0px", 
-            "color": "#ffffff", 
-            "font-family": "Inter", 
-            "text-transform": "uppercase", 
+            "font-size": "20px",
+            "text-align": "center",
+            "margin": "0px",
+            "color": "#ffffff",
+            "font-family": "Inter",
+            "text-transform": "uppercase",
             "font-weight": "700"
         },
         "nav-link-selected": {
-            "background-color": "rgba(255,255,255,0.1)", 
-            "color": COLOR_CYAN, 
+            "background-color": "rgba(255,255,255,0.1)",
+            "color": COLOR_CYAN,
             "border-bottom": f"3px solid {COLOR_CYAN}",
-            "text-shadow": f"0 0 10px {COLOR_CYAN}" 
+            "text-shadow": f"0 0 10px {COLOR_CYAN}"
         },
     }
 )
-# Update session state index based on menu selection
-st.session_state.current_page_index = menu_options.index(selected)
+
+# DEFENSIVE FIX: Use try/except block to handle potential corruption of 'menu_options'
+# If the variable is corrupted, reset the index to 0 to allow the app to load.
+try:
+    st.session_state.current_page_index = menu_options.index(selected)
+except Exception:
+    # Fallback to the home page index if the list operation fails due to TypeError or other error
+    st.session_state.current_page_index = 0
+    # Print to console for debugging: print("Navigation index calculation failed. Resetting to 0.")
+
 
 # -----------------------------------------------------------------------------
 # 5. PAGE CONTENT
@@ -375,23 +385,23 @@ if selected == "HOME":
     # --- FIXED FULL-SCREEN BACKGROUND VIDEO ---
     st.markdown(f"""
         <div class="video-background-fixed">
-            <iframe 
-                src="https://www.youtube.com/embed/qC0vDKVPCrw?controls=0&showinfo=0&rel=0&autoplay=1&loop=1&mute=1&playlist=qC0vDKVPCrw" 
-                frameborder="0" 
-                allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture" 
+            <iframe
+                src="https://www.youtube.com/embed/qC0vDKVPCrw?controls=0&showinfo=0&rel=0&autoplay=1&loop=1&mute=1&playlist=qC0vDKVPCrw"
+                frameborder="0"
+                allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture"
                 allowfullscreen>
             </iframe>
         </div>
         <div class="video-overlay-fixed"></div>
     """, unsafe_allow_html=True)
-    
+
     # --- MAIN CONTENT ---
     col1, col2 = st.columns([2, 1])
-    
+
     with col1:
         st.markdown(f"## TUESDAYNIGHTFREAK {TNF_LOGO_SVG}", unsafe_allow_html=True)
         st.markdown("#### ARCHITECTS OF THE ANALOGUE SIGNAL")
-        
+
         st.markdown("""
         <div style="font-size: 1.1rem; line-height: 1.6; text-shadow: 0 2px 4px rgba(0,0,0,0.8);">
         Tuesdaynightfreak operates at the intersection of <strong>studio precision</strong> and <strong>live improvisation</strong>. 
@@ -400,22 +410,22 @@ if selected == "HOME":
         A sonic movement born in Melbourne, refined in Berlin.
         </div>
         """, unsafe_allow_html=True)
-        
+
         st.markdown("<br>", unsafe_allow_html=True)
         c1, c2 = st.columns(2)
-        
+
         with c1:
             if st.button("LATEST RELEASE"):
-                st.session_state.current_page_index = 1 
+                st.session_state.current_page_index = 1
                 st.rerun()
         with c2:
             if st.button("VIEW TOUR DATES"):
-                st.session_state.current_page_index = 2 
+                st.session_state.current_page_index = 2
                 st.rerun()
 
     with col2:
         st.markdown("#### SYSTEM UPDATES")
-        
+
         st.markdown(f"""
         <div class="tech-card" style="background: rgba(15,15,15,0.8);">
         <span style="color:{COLOR_ACCENT}">●</span> <strong>NEW RELEASE</strong><br>
@@ -431,7 +441,7 @@ if selected == "HOME":
 # --- MUSIC ---
 elif selected == "MUSIC":
     st.markdown("## DISCOGRAPHY")
-    
+
     # Track List
     for track in st.session_state.songs:
         c1, c2, c3, c4 = st.columns([1, 4, 2, 2])
@@ -457,7 +467,7 @@ elif selected == "MUSIC":
         <div class="content-card">
         Our dedicated platform for the raw and the deep.
         <br><br>
-        House Keeping Records focuses on functional tools for DJs and sonic explorations for heads. 
+        House Keeping Records focuses on functional tools for DJs and sonic explorations for heads.
         Strictly vinyl releases for select projects.
         </div>
         """, unsafe_allow_html=True)
@@ -465,14 +475,14 @@ elif selected == "MUSIC":
 # --- EVENTS ---
 elif selected == "EVENTS":
     st.markdown("## UPCOMING DATES")
-    
+
     events = [
         {"date": "NOV 04", "city": "AMSTERDAM", "venue": "SHELTER", "status": "SELLING FAST"},
         {"date": "NOV 11", "city": "LONDON", "venue": "FOLD", "status": "TICKETS"},
         {"date": "NOV 18", "city": "MELBOURNE", "venue": "REVOLVER", "status": "SOLD OUT"},
         {"date": "DEC 02", "city": "PARIS", "venue": "REX CLUB", "status": "TICKETS"},
     ]
-    
+
     for event in events:
         c1, c2, c3, c4 = st.columns([1, 2, 2, 2])
         with c1:
@@ -491,13 +501,13 @@ elif selected == "EVENTS":
 # --- STORE (MERCH) ---
 elif selected == "STORE":
     st.markdown("## OFFICIAL MERCHANDISE")
-    
+
     # Cart Summary - Rendered first for immediate feedback
     if len(st.session_state.cart) > 0:
         st.info(f"CART: {len(st.session_state.cart)} ITEMS")
-    
+
     c1, c2, c3 = st.columns(3)
-    
+
     with c1:
         # Merch Item 1
         st.markdown(f"""
@@ -510,10 +520,10 @@ elif selected == "STORE":
         st.markdown("**TNF CORE TEE [BLACK]**")
         st.caption("Heavyweight Cotton / Screen Print")
         st.markdown(f"**€35.00**")
-        # CRITICAL FIX: Use helper function instead of immediate st.rerun() inline
         if st.button("ADD TO CART", key="m1"):
             add_to_cart("Tee")
-        
+            st.rerun() # Rerun is necessary to update the cart summary instantly
+
     with c2:
         # Merch Item 2
         st.markdown(f"""
@@ -528,7 +538,8 @@ elif selected == "STORE":
         st.markdown(f"**€65.00**")
         if st.button("ADD TO CART", key="m2"):
             add_to_cart("Hoodie")
-        
+            st.rerun() # Rerun is necessary to update the cart summary instantly
+
     with c3:
         # Merch Item 3
         st.markdown(f"""
@@ -543,31 +554,32 @@ elif selected == "STORE":
         st.markdown(f"**€20.00**")
         if st.button("ADD TO CART", key="m3"):
             add_to_cart("Slipmats")
+            st.rerun() # Rerun is necessary to update the cart summary instantly
 
 # --- ABOUT / CONTACT ---
 elif selected == "ABOUT":
     col1, col2 = st.columns([1.5, 1], gap="large")
-    
+
     with col1:
         st.markdown("## BIOGRAPHY")
         st.markdown("""
         **Tuesdaynightfreak** is an electronic music project established in Melbourne, Australia.
-        
-        Drawing influence from the stark industrialism of Berlin and the soulful rhythms of Detroit, 
-        the project explores the boundaries of hardware sequencing. It is a reaction against the 
+
+        Drawing influence from the stark industrialism of Berlin and the soulful rhythms of Detroit,
+        the project explores the boundaries of hardware sequencing. It is a reaction against the
         predictability of digital production—a celebration of the machine's inherent instability.
-        
-        From the smoky basements of *Revolver* to the concrete halls of *Tresor*, Tuesdaynightfreak 
-        delivers a sound that is distinct, raw, and uncompromising. 
-        
-        Alongside the live act, the **House Keeping Records** imprint serves as a vessel for 
+
+        From the smoky basements of *Revolver* to the concrete halls of *Tresor*, Tuesdaynightfreak
+        delivers a sound that is distinct, raw, and uncompromising.
+
+        Alongside the live act, the **House Keeping Records** imprint serves as a vessel for
         like-minded artists pushing the envelope of functional dance music.
         """)
-        
+
         st.markdown("<br>", unsafe_allow_html=True)
         st.markdown("#### CONTACT MANAGEMENT")
         st.markdown(f"<div class='tech-card'>mgmt@tuesdaynightfreak.com</div>", unsafe_allow_html=True)
-        
+
         st.markdown("#### DEMO POLICY")
         st.markdown(f"<div class='tech-card'>demos@housekeeping-rec.com (Private SC Links Only)</div>", unsafe_allow_html=True)
 
@@ -577,7 +589,7 @@ elif selected == "ABOUT":
         with st.form("newsletter"):
             st.text_input("EMAIL ADDRESS")
             st.form_submit_button("SUBSCRIBE")
-            
+
         st.write("---")
         st.markdown("#### PRESS KIT")
         st.button("DOWNLOAD EPK (ZIP)")
@@ -586,15 +598,15 @@ elif selected == "ABOUT":
 elif selected == "SYSTEM":
     st.markdown("## SYSTEM ACCESS")
     st.caption("SECURE AREA. AUTHORIZED PERSONNEL ONLY.")
-    
+
     pwd = st.text_input("ENTER AUTH CODE", type="password")
-    
+
     if pwd == "admin123":
         st.success("ACCESS GRANTED. WELCOME, OPERATOR.")
-        
+
         # --- ADMIN TABS FOR UPLOADING CONTENT ---
         tab1, tab2, tab3 = st.tabs(["UPLOAD MUSIC", "UPLOAD VISUALS", "INCOMING DATA"])
-        
+
         with tab1:
             st.markdown("### ADD AUDIO SOURCE")
             with st.form("add_song_admin"):
@@ -604,9 +616,10 @@ elif selected == "SYSTEM":
                 if st.form_submit_button("UPLOAD TRACK"):
                     st.session_state.songs.append({"title": new_title, "label": new_label, "cat": new_cat})
                     st.success(f"TRACK '{new_title}' ADDED TO ARCHIVE.")
-            
+                    st.rerun()
+
             if st.button("PURGE AUDIO ARCHIVE"):
-                st.session_state.songs = []
+                st.session_state.songs = list([])
                 st.warning("AUDIO ARCHIVE CLEARED.")
                 st.rerun()
 
