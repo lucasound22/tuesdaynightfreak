@@ -215,17 +215,18 @@ selected = option_menu(
 
 # --- HOME PAGE ---
 if selected == "HOME":
-    # REPLACED GUITAR IMAGE WITH EMBEDDED VIDEO LOOP (Youtube Embed with Autoplay params)
-    # This simulates the "scrolling video" background effect requested
+    # --- 1. VIDEO BACKGROUND / SCROLLING EFFECT ---
+    # This HTML/CSS block creates a simulated video background effect using a YouTube embed
     video_html = """
-        <div style="position: relative; width: 100%; padding-bottom: 56.25%; height: 0; overflow: hidden; margin-bottom: 2rem; border: 1px solid #333;">
+        <div style="position: relative; width: 100%; padding-bottom: 56.25%; height: 0; overflow: hidden; margin-bottom: 2rem; border-bottom: 2px solid #333;">
             <iframe 
                 src="https://www.youtube.com/embed/2nu15ed5tk7?autoplay=1&mute=1&controls=0&loop=1&playlist=2nu15ed5tk7&showinfo=0&modestbranding=1" 
-                style="position: absolute; top: 0; left: 0; width: 100%; height: 100%;" 
+                style="position: absolute; top: 0; left: 0; width: 100%; height: 100%; opacity: 0.8;" 
                 frameborder="0" 
                 allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture" 
                 allowfullscreen>
             </iframe>
+            <div style="position: absolute; top: 0; left: 0; width: 100%; height: 100%; pointer-events: none; background: linear-gradient(to bottom, transparent 80%, #080808 100%);"></div>
         </div>
     """
     st.markdown(video_html, unsafe_allow_html=True)
@@ -269,12 +270,12 @@ if selected == "HOME":
 
     st.write("---")
     
-    # FEATURED VIDEO SECTION
+    # --- 2. LIVE TRANSMISSION SECTION (Fixed Image) ---
     st.markdown("### LIVE TRANSMISSION")
     col1, col2 = st.columns(2)
     with col1:
-        # Replaced Guitar Image with Modular Synth Close-up
-        st.image("https://images.unsplash.com/photo-1619967657960-983b6329c370?q=80&w=800&auto=format&fit=crop", caption="LIVE RIG CONFIGURATION")
+        # Replaced guitar/broken image with robust modular synth image
+        st.image("https://images.unsplash.com/photo-1598275529124-b1c4b786f1e2?q=80&w=800&auto=format&fit=crop", caption="LIVE RIG CONFIGURATION")
     with col2:
         st.markdown("""
         **SESSION 001: MODULAR IMPROV**
