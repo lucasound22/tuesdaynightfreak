@@ -54,7 +54,7 @@ st.set_page_config(
 )
 
 # -----------------------------------------------------------------------------
-# 2. SESSION STATE VALIDATION (Unchanged from previous turn)
+# 2. SESSION STATE VALIDATION (Updated for robust navigation)
 # -----------------------------------------------------------------------------
 if 'songs' in st.session_state:
     if len(st.session_state.songs) > 0 and 'label' not in st.session_state.songs[0]:
@@ -81,6 +81,10 @@ if 'bookings' not in st.session_state:
 
 if 'cart' not in st.session_state:
     st.session_state.cart = []
+
+# New state for navigation consistency
+if 'current_page_index' not in st.session_state:
+    st.session_state.current_page_index = 0
 
 # -----------------------------------------------------------------------------
 # 3. CUSTOM CSS & TONE.JS AUDIO SETUP
@@ -124,9 +128,9 @@ st.markdown(f"""
 
     /* --- UI ELEMENTS --- */
     
-    /* Primary Action Button (Red) */
+    /* Primary Action Button (Now Cyan - addressing "don't like the red button") */
     .stButton>button {{
-        background-color: {COLOR_TEXT};
+        background-color: {COLOR_CYAN}; /* New Primary Button Color */
         color: {COLOR_BG};
         border: 1px solid {COLOR_TEXT};
         font-family: 'Inter', sans-serif;
@@ -137,7 +141,7 @@ st.markdown(f"""
         transition: all 0.3s;
     }}
     .stButton>button:hover {{
-        background-color: {COLOR_ACCENT};
+        background-color: {COLOR_ACCENT}; /* Red on hover for high contrast accent */
         color: {COLOR_TEXT};
         border-color: {COLOR_ACCENT};
         box-shadow: 0 0 15px rgba(255, 0, 51, 0.4);
@@ -242,10 +246,10 @@ st.markdown(f"""
     }}
     
     #audio-activation-button {{
-        background: {COLOR_ACCENT};
-        color: {COLOR_TEXT};
+        background: {COLOR_CYAN}; /* Changed to Cyan */
+        color: {COLOR_BG};
         padding: 20px 40px;
-        border: 2px solid {COLOR_CYAN};
+        border: 2px solid {COLOR_ACCENT}; /* Border is now Acid Red */
         font-size: 1.8rem;
         font-weight: 700;
         margin-top: 20px;
@@ -329,12 +333,15 @@ st.markdown(f"""
 # -----------------------------------------------------------------------------
 # 4. NAVIGATION (Menu styling preserved)
 # -----------------------------------------------------------------------------
+# Define options list for indexing
+menu_options = ["HOME", "MUSIC", "EVENTS", "STORE", "ABOUT", "SYSTEM"]
+
 selected = option_menu(
     menu_title=None,
-    options=["HOME", "MUSIC", "EVENTS", "STORE", "ABOUT", "SYSTEM"],
+    options=menu_options,
     icons=["house-fill", "disc-fill", "calendar-event-fill", "bag-fill", "info-circle-fill", "cpu-fill"],
     menu_icon="cast",
-    default_index=0,
+    default_index=st.session_state.current_page_index, # Use session state for consistent loading
     orientation="horizontal",
     styles={
         "container": {"padding": "0!important", "background-color": "rgba(8,8,8,0.95)", "border-bottom": "1px solid #333"},
@@ -356,6 +363,8 @@ selected = option_menu(
         },
     }
 )
+# Update session state index based on menu selection
+st.session_state.current_page_index = menu_options.index(selected)
 
 # -----------------------------------------------------------------------------
 # 5. PAGE CONTENT
@@ -395,10 +404,16 @@ if selected == "HOME":
         
         st.markdown("<br>", unsafe_allow_html=True)
         c1, c2 = st.columns(2)
+        
+        # FIXED: Home page buttons now update state to navigate
         with c1:
-            st.button("LATEST RELEASE")
+            if st.button("LATEST RELEASE"):
+                st.session_state.current_page_index = 1 # Index for "MUSIC"
+                st.rerun()
         with c2:
-            st.button("VIEW TOUR DATES")
+            if st.button("VIEW TOUR DATES"):
+                st.session_state.current_page_index = 2 # Index for "EVENTS"
+                st.rerun()
 
     with col2:
         st.markdown("#### SYSTEM UPDATES")
@@ -414,8 +429,6 @@ if selected == "HOME":
         EUROPEAN DATES CONFIRMED FOR WINTER 2025.
         </div>
         """, unsafe_allow_html=True)
-
-    # The entire "LIVE TRANSMISSION" section has been removed as requested.
 
 # --- MUSIC ---
 elif selected == "MUSIC":
@@ -433,7 +446,9 @@ elif selected == "MUSIC":
             cat = track.get('cat', '000')
             st.caption(f"{lbl} // {cat}")
         with c4:
-            st.button("STREAM", key=track['title'])
+            # FIXED: Added a placeholder action for the STREAM button
+            if st.button("STREAM", key=track['title']):
+                st.info(f"Initiating stream for **{track['title']}**. Please wait for transmission handshake.")
         st.markdown(f"<hr style='margin: 10px 0; border-color: #1a1a1a;'>", unsafe_allow_html=True)
 
     st.markdown("### HOUSE KEEPING RECORDS")
