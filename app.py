@@ -187,36 +187,32 @@ st.markdown(f"""
     
     /* BACKGROUND VIDEO STYLING */
     .video-background {{
-        position: fixed;
-        top: 0;
-        left: 0;
-        width: 100vw;
-        height: 100vh;
-        z-index: -1;
-        pointer-events: none;
+        position: relative;
+        width: 100%;
+        padding-bottom: 56.25%; /* 16:9 Aspect Ratio */
+        height: 0;
         overflow: hidden;
-        opacity: 0.4; /* Dim video for readability */
+        margin-bottom: 2rem;
+        border-bottom: 2px solid #333;
     }}
     .video-background iframe {{
-        width: 100vw;
-        height: 56.25vw; /* Given a 16:9 aspect ratio */
-        min-height: 100vh;
-        min-width: 177.77vh; /* Given a 16:9 aspect ratio */
         position: absolute;
-        top: 50%;
-        left: 50%;
-        transform: translate(-50%, -50%);
+        top: 0;
+        left: 0;
+        width: 100%;
+        height: 100%;
+        /* Zoom in slightly to cover edges */
+        transform: scale(1.05); 
     }}
     
     /* Overlay to darken video slightly */
     .video-overlay {{
-        position: fixed;
+        position: absolute;
         top: 0;
         left: 0;
-        width: 100vw;
-        height: 100vh;
-        background: linear-gradient(to bottom, rgba(8,8,8,0.8) 0%, rgba(8,8,8,0.6) 50%, rgba(8,8,8,1) 100%);
-        z-index: -1;
+        width: 100%;
+        height: 100%;
+        background: linear-gradient(to bottom, rgba(8,8,8,0.4) 0%, rgba(8,8,8,0.2) 50%, rgba(8,8,8,1) 100%);
         pointer-events: none;
     }}
 
@@ -235,12 +231,22 @@ selected = option_menu(
     orientation="horizontal",
     styles={
         "container": {"padding": "0!important", "background-color": "rgba(8,8,8,0.95)", "border-bottom": "1px solid #333"},
-        "icon": {"color": "#666", "font-size": "12px"}, 
+        "icon": {"color": "#fff", "font-size": "14px"}, 
         "nav-link": {
-            "font-size": "14px", "text-align": "center", "margin": "0px", 
-            "color": "#888", "font-family": "Inter, sans-serif", "text-transform": "uppercase", "font-weight": "600"
+            "font-size": "20px", # Increased size
+            "text-align": "center", 
+            "margin": "0px", 
+            "color": "#ffffff", # Brighter white
+            "font-family": "Inter, sans-serif", 
+            "text-transform": "uppercase", 
+            "font-weight": "700"
         },
-        "nav-link-selected": {"background-color": "rgba(255,255,255,0.05)", "color": COLOR_TEXT, "border-bottom": f"2px solid {COLOR_ACCENT}"},
+        "nav-link-selected": {
+            "background-color": "rgba(255,255,255,0.1)", 
+            "color": COLOR_CYAN, # Cyberpunk Cyan highlight
+            "border-bottom": f"3px solid {COLOR_CYAN}",
+            "text-shadow": f"0 0 10px {COLOR_CYAN}" # Glow effect
+        },
     }
 )
 
@@ -251,16 +257,19 @@ selected = option_menu(
 # --- HOME PAGE ---
 if selected == "HOME":
     # --- BACKGROUND VIDEO (Behind Text) ---
-    # Using a different, reliable Abstract Techno Loop from YouTube (qC0vDKVPCrw)
+    # Using a reliable Abstract Techno Loop from YouTube (qC0vDKVPCrw)
     # Embedding it full screen behind content
     st.markdown("""
         <div class="video-background">
-            <iframe src="https://www.youtube.com/embed/qC0vDKVPCrw?controls=0&showinfo=0&rel=0&autoplay=1&loop=1&mute=1&playlist=qC0vDKVPCrw" frameborder="0" allowfullscreen></iframe>
+            <iframe 
+                src="https://www.youtube.com/embed/qC0vDKVPCrw?controls=0&showinfo=0&rel=0&autoplay=1&loop=1&mute=1&playlist=qC0vDKVPCrw" 
+                frameborder="0" 
+                allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture" 
+                allowfullscreen>
+            </iframe>
+            <div class="video-overlay"></div>
         </div>
-        <div class="video-overlay"></div>
     """, unsafe_allow_html=True)
-    
-    st.markdown("<br><br>", unsafe_allow_html=True)
     
     col1, col2 = st.columns([2, 1])
     
@@ -305,8 +314,8 @@ if selected == "HOME":
     st.markdown("### LIVE TRANSMISSION")
     col1, col2 = st.columns(2)
     with col1:
-        # Robust Modular Synth Image
-        st.image("https://images.unsplash.com/photo-1598275529124-b1c4b786f1e2?q=80&w=800&auto=format&fit=crop", caption="LIVE RIG CONFIGURATION")
+        # Replaced broken image with a reliable modular synth Unsplash image
+        st.image("https://images.unsplash.com/photo-1550291652-6ea9114a47b1?q=80&w=800&auto=format&fit=crop", caption="LIVE RIG CONFIGURATION")
     with col2:
         st.markdown("""
         **SESSION 001: MODULAR IMPROV**
