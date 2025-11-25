@@ -338,6 +338,29 @@ st.markdown(f"""
 # DEFENSIVE: Re-declare the options list robustly right before use.
 menu_options = ["HOME", "MUSIC", "EVENTS", "STORE", "ABOUT", "SYSTEM"]
 
+# NEW FIX: Define the styles dictionary outside the function call to prevent 
+# the Python parser from incorrectly interpreting the nested dictionary structure 
+# as a faulty f-string, which causes the "SyntaxError: single '}' is not allowed".
+menu_styles = {
+    "container": {"padding": "0!important", "background-color": "rgba(8,8,8,0.95)", "border-bottom": "1px solid #333"},
+    "icon": {"color": "#fff", "font-size": "14px"},
+    "nav-link": {
+        "font-size": "20px",
+        "text-align": "center",
+        "margin": "0px",
+        "color": "#ffffff",
+        "font-family": "Inter",
+        "text-transform": "uppercase",
+        "font-weight": "700"
+    },
+    "nav-link-selected": {
+        "background-color": "rgba(255,255,255,0.1)",
+        "color": COLOR_CYAN,
+        "border-bottom": "3px solid " + COLOR_CYAN,
+        "text-shadow": "0 0 10px " + COLOR_CYAN
+    },
+}
+
 selected = option_menu(
     menu_title=None,
     options=menu_options,
@@ -345,26 +368,7 @@ selected = option_menu(
     menu_icon="cast",
     default_index=st.session_state.current_page_index,
     orientation="horizontal",
-    styles={
-        "container": {"padding": "0!important", "background-color": "rgba(8,8,8,0.95)", "border-bottom": "1px solid #333"},
-        "icon": {"color": "#fff", "font-size": "14px"},
-        "nav-link": {
-            "font-size": "20px",
-            "text-align": "center",
-            "margin": "0px",
-            "color": "#ffffff",
-            "font-family": "Inter",
-            "text-transform": "uppercase",
-            "font-weight": "700"
-        },
-        "nav-link-selected": {
-            "background-color": "rgba(255,255,255,0.1)",
-            "color": COLOR_CYAN,
-            # FIXED: Changed f-strings to concatenation to prevent SyntaxError on '}'
-            "border-bottom": "3px solid " + COLOR_CYAN,
-            "text-shadow": "0 0 10px " + COLOR_CYAN
-        },
-    }
+    styles=menu_styles # Pass the variable
 )
 
 # DEFENSIVE FIX: Use try/except block to handle potential corruption of 'menu_options'
@@ -374,7 +378,7 @@ try:
 except Exception:
     # Fallback to the home page index if the list operation fails due to TypeError or other error
     st.session_state.current_page_index = 0
-    # Print to console for debugging: print("Navigation index calculation failed. Resetting to 0.")
+    # print("Navigation index calculation failed. Resetting to 0.") # Keep silent in final code
 
 
 # -----------------------------------------------------------------------------
