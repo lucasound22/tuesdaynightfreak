@@ -1,7 +1,10 @@
+# app.py - Tuesdaynightfreak (Full Upgrade)
 import streamlit as st
 import pandas as pd
 from streamlit_option_menu import option_menu
-import random
+import requests
+import io
+import validators
 import time
 
 # --- CONFIGURATION & PALETTE ---
@@ -16,6 +19,9 @@ COLOR_BG = "#080808"
 COLOR_TEXT = "#F0F0F0"
 COLOR_ACCENT = "#FF0033"
 COLOR_SECONDARY = "#1A1A1A"
+
+# Poster local image (developer uploaded file). Use as fallback for video.
+POSTER_IMG_LOCAL = "/mnt/data/32b1d44b-a37c-4c95-acdd-0c4ef6a11a99.png"
 
 # --- BRANDING: CUSTOM SVG LOGOS ---
 TNF_STAMP_LOGO = f"""
@@ -35,9 +41,9 @@ TNF_LOGO_SVG = f"""
 </svg>
 """
 
-# -----------------------------------------------------------------------------
-# PAGE CONFIG
-# -----------------------------------------------------------------------------
+# -------------------------------------------------------------------------
+# Page config
+# -------------------------------------------------------------------------
 st.set_page_config(
     page_title="TUESDAYNIGHTFREAK | OFFICIAL",
     page_icon="⚫",
@@ -45,53 +51,106 @@ st.set_page_config(
     initial_sidebar_state="collapsed",
 )
 
-# -----------------------------------------------------------------------------
-# CUSTOM CSS: build with placeholders then replace to avoid f-string brace issues
-# -----------------------------------------------------------------------------
+# -------------------------------------------------------------------------
+# CSS template (placeholders replaced to avoid f-string brace problems)
+# -------------------------------------------------------------------------
 css_template = """
 <style>
-    @import url('https://fonts.googleapis.com/css2?family=Barlow:wght@400;700;900&family=Tomorrow:wght@400;700&display=swap');
-    @import url('https://fonts.googleapis.com/css2?family=Inter:wght@400;600;900&display=swap');
+:root{
+  --bg: %%COLOR_BG%%;
+  --text: %%COLOR_TEXT%%;
+  --accent: %%COLOR_ACCENT%%;
+  --yellow: %%CP_YELLOW%%;
+  --cyan: %%CP_CYAN%%;
+  --red: %%CP_RED%%;
+  --cream: %%TT_CREAM%%;
+  --secondary: %%COLOR_SECONDARY%%;
+}
 
-    /* GLOBAL RESET */
-    .stApp { background-color: %%COLOR_BG%%; color: %%COLOR_TEXT%%; font-family: 'Inter', sans-serif; }
+/* base */
+body, .stApp {
+  background: var(--bg);
+  color: var(--text);
+  font-family: Inter, sans-serif;
+}
 
-    /* HIDE DEFAULT UI */
-    #MainMenu { visibility: hidden; }
-    footer { visibility: hidden; }
-    header { visibility: hidden; }
+/* hide default chrome */
+#MainMenu { visibility: hidden; }
+footer { visibility: hidden; }
+header { visibility: hidden; }
 
-    /* CONTAINER SIZING */
-    .block-container { padding-top: 1rem !important; max-width: 1200px; }
+/* container */
+.block-container { padding-top: 1.25rem !important; max-width: 1230px; }
 
-    /* TYPOGRAPHY */
-    .artist-title { font-family: 'Tomorrow', sans-serif; font-size: 4rem; font-weight: 900; text-transform: uppercase; color: %%CP_YELLOW%%; text-shadow: 4px 4px 0px %%CP_CYAN%%; line-height: 0.9; letter-spacing: -2px; transform: skew(-5deg); margin-bottom: 10px; }
+/* hero typography */
+.artist-title { font-family: 'Tomorrow', sans-serif; font-size: clamp(2rem, 5vw, 4rem); font-weight: 900; text-transform: uppercase; color: var(--yellow); text-shadow: 4px 4px 0px var(--cyan); line-height: 0.9; letter-spacing: -2px; transform: skew(-5deg); margin-bottom: .6rem; }
 
-    h1, h2, h3 { font-family: 'Barlow', sans-serif; text-transform: uppercase; font-weight: 900; color: %%COLOR_TEXT%%; border-bottom: 3px solid %%CP_YELLOW%%; display: inline-block; padding-bottom: 5px; margin-top: 30px !important; letter-spacing: -1px; margin-bottom: 0.5rem; }
+/* head styles */
+h1,h2,h3 { font-family: Barlow, sans-serif; text-transform: uppercase; font-weight: 900; color: var(--text); border-bottom: 3px solid var(--yellow); display: inline-block; padding-bottom: .4rem; margin-top: 1.6rem !important; letter-spacing: -1px; margin-bottom: .5rem; }
 
-    h4, h5, h6 { color: %%CP_CYAN%% !important; font-family: 'Tomorrow', sans-serif; }
+h4,h5,h6 { color: var(--cyan) !important; font-family: Tomorrow, sans-serif; }
 
-    /* BUTTONS */
-    .stButton > button { background-color: %%COLOR_TEXT%%; color: %%COLOR_BG%%; border: none; font-family: 'Inter', sans-serif; font-weight: 900; text-transform: uppercase; padding: 12px 28px; border-radius: 0px; transition: all 0.3s; }
-    .stButton > button:hover { background-color: %%COLOR_ACCENT%%; color: %%COLOR_TEXT%%; transform: scale(1.02); box-shadow: 4px 4px 0px %%CP_RED%%; }
+/* buttons */
+.stButton > button {
+  background-color: var(--text);
+  color: var(--bg);
+  border: none;
+  font-weight: 900;
+  text-transform: uppercase;
+  padding: 10px 22px;
+  border-radius: 0;
+  transition: transform .18s ease, box-shadow .18s ease;
+}
+.stButton > button:hover {
+  background-color: var(--accent);
+  color: var(--text);
+  transform: translate(-2px,-2px) scale(1.02);
+  box-shadow: 4px 4px 0px var(--red);
+}
 
-    /* CARDS */
-    .graphic-box { border: 2px solid %%TT_CREAM%%; padding: 18px; }
-    .news-card { background-color: %%COLOR_SECONDARY%%; padding: 18px; border-left: 4px solid %%COLOR_ACCENT%%; margin-bottom: 20px; transition: transform 0.3s; }
-    .news-card:hover { transform: translateX(5px); }
+/* cards */
+.graphic-box { border: 2px solid var(--cream); padding: 16px; background: linear-gradient(180deg, rgba(0,0,0,0.35), transparent); }
+.news-card { background-color: var(--secondary); padding: 14px; border-left: 4px solid var(--accent); margin-bottom: 14px; transition: transform .2s ease; }
+.news-card:hover { transform: translateX(6px); }
 
-    /* INPUTS */
-    .stTextInput input, .stTextArea textarea, .stSelectbox div { background-color: #1a1a1a; color: %%CP_YELLOW%%; border: 2px solid %%CP_CYAN%%; }
-    .stTextInput input:focus, .stTextArea textarea:focus { border-color: %%COLOR_ACCENT%%; }
+/* inputs */
+.stTextInput input, .stTextArea textarea { background-color: #121212; color: var(--yellow); border: 1px solid #2b2b2b; border-radius: 2px; }
 
-    a { color: %%CP_YELLOW%% !important; text-decoration: none; font-weight: bold; }
-    a:hover { background-color: %%CP_YELLOW%%; color: %%CP_BLACK%% !important; }
+/* links */
+a { color: var(--yellow) !important; text-decoration: none; font-weight: 600; }
+a:hover { color: var(--accent) !important; text-decoration: underline; }
 
-    hr { border-color: #333; margin: 3rem 0; }
+/* utility */
+.muted { color: #888; font-size: 0.9rem; }
 
-    /* small utility */
-    .muted { color: #888; font-size: 0.85rem; }
+/* bg video */
+.bg-video-wrap {
+  position: fixed;
+  inset: 0;
+  z-index: -1;
+  overflow: hidden;
+  pointer-events: none;
+}
+.bg-video-wrap video {
+  position: absolute;
+  top: 50%; left: 50%;
+  transform: translate(-50%,-50%);
+  min-width: 100%;
+  min-height: 100%;
+  width: auto; height: auto;
+  object-fit: cover;
+  filter: brightness(.45) contrast(1.05);
+  will-change: transform;
+}
 
+/* content overlay spacing helper */
+.content-overlay { position: relative; z-index: 2; padding-top: 2rem; }
+
+/* responsive tweaks */
+@media (max-width: 600px) {
+  .artist-title { font-size: 2.1rem; transform: none; }
+  .bg-video-wrap { display: none; } /* mobile browsers often block background autoplay */
+}
 </style>
 """
 
@@ -109,9 +168,17 @@ css = (css_template
 
 st.markdown(css, unsafe_allow_html=True)
 
-# -----------------------------------------------------------------------------
-# INITIALIZE SESSION STATE
-# -----------------------------------------------------------------------------
+# -------------------------------------------------------------------------
+# Helper utilities & initial state
+# -------------------------------------------------------------------------
+def sanitize_url(url: str) -> str:
+    if not url:
+        return ""
+    url = url.strip()
+    if url.startswith("http"):
+        return url
+    return url
+
 if 'songs' not in st.session_state:
     st.session_state.songs = [
         {"title": "UNTITLED_SEQ_04 [LIVE REC]", "url": "#", "platform": "SoundCloud"},
@@ -122,24 +189,45 @@ if 'songs' not in st.session_state:
         {"title": "Voltage Control", "label": "Ostgut Ton", "cat": "OSTGUT-55"}
     ]
 
+# curated techno-related media (Unsplash / Mixkit placeholders)
 if 'gallery' not in st.session_state:
     st.session_state.gallery = [
-        {"caption": "WAREHOUSE RAVE // BERLIN", "url": "https://images.unsplash.com/photo-1574169208507-84376144848b?q=80&w=800&auto=format&fit=crop"},
-        {"caption": "MODULAR SYSTEM // LIVE RIG", "url": "https://images.unsplash.com/photo-1550291652-6ea9114a47b1?q=80&w=800&auto=format&fit=crop"},
-        {"caption": "CROWD ENERGY // 3AM", "url": "https://images.unsplash.com/photo-1571266028243-371695063ad6?q=80&w=800&auto=format&fit=crop"},
-        {"caption": "ANALOG OSCILLATORS", "url": "https://images.unsplash.com/photo-1621360841012-2357d27e02a4?q=80&w=800&auto=format&fit=crop"},
-        {"caption": "MODULAR RIG SETUP A", "url": "https://images.unsplash.com/photo-1550291652-6ea9114a47b1?q=80&w=800&auto=format&fit=crop"},
-        {"caption": "LIVE SIGNAL PATH", "url": "https://images.unsplash.com/photo-1598275529124-b1c4b786f1e2?q=80&w=800&auto=format&fit=crop"},
-        {"caption": "WAREHOUSE CROWD", "url": "https://images.unsplash.com/photo-1571266028243-371695063ad6?q=80&w=800&auto=format&fit=crop"},
-        {"caption": "OSCILLATOR DETAIL", "url": "https://images.unsplash.com/photo-1619967657960-983b6329c370?q=80&w=800&auto=format&fit=crop"}
+        {"caption": "WAREHOUSE RAVE // BERLIN", "url": "https://images.unsplash.com/photo-1517457375825-e578c799a74f?q=80&w=1200&auto=format&fit=crop"},
+        {"caption": "LIVE MODULAR RIG", "url": "https://images.unsplash.com/photo-1550291652-6ea9114a47b1?q=80&w=1200&auto=format&fit=crop"},
+        {"caption": "CROWD ENERGY // 3AM", "url": "https://images.pexels.com/photos/1190293/pexels-photo-1190293.jpeg?auto=compress&cs=tinysrgb&dpr=2&h=650&w=940"},
+        {"caption": "ANALOG OSCILLATORS", "url": "https://images.unsplash.com/photo-1621360841012-2357d27e02a4?q=80&w=1200&auto=format&fit=crop"},
+        {"caption": "MODULAR RIG SETUP", "url": "https://images.unsplash.com/photo-1510915364890-a7d41f02c611?q=80&w=1200&auto=format&fit=crop"},
+        {"caption": "LIVE SIGNAL PATH", "url": "https://images.unsplash.com/photo-1598275529124-b1c4b786f1e2?q=80&w=1200&auto=format&fit=crop"},
+        {"caption": "WAREHOUSE CROWD", "url": "https://images.unsplash.com/photo-1571266028243-371695063ad6?q=80&w=1200&auto=format&fit=crop"},
+        {"caption": "OSCILLATOR DETAIL", "url": "https://images.unsplash.com/photo-1619967657960-983b6329c370?q=80&w=1200&auto=format&fit=crop"}
     ]
 
 if 'bookings' not in st.session_state:
     st.session_state.bookings = []
 
-# -----------------------------------------------------------------------------
-# NAVIGATION
-# -----------------------------------------------------------------------------
+# -------------------------------------------------------------------------
+# Background video HTML (insert once)
+# -------------------------------------------------------------------------
+# Placeholder / example MP4. Replace VIDEO_SRC with your production video URL (CDN).
+# Mixkit / Mixdrive / Pexels offer free short loops; host on CDN for reliability.
+VIDEO_SRC = "https://assets.mixkit.co/videos/preview/mixkit-clubbing-dancers-loop-2387-large.mp4"
+# Use local poster image as fallback (from developer uploaded file). See developer note.
+POSTER_IMG = POSTER_IMG_LOCAL  # "/mnt/data/32b1d44b-a37c-4c95-acdd-0c4ef6a11a99.png"
+
+bg_video_html = f"""
+<div class="bg-video-wrap">
+  <video autoplay muted loop playsinline poster="{POSTER_IMG}" id="hero-bg">
+    <source src="{VIDEO_SRC}" type="video/mp4">
+    <!-- fallback: poster image will show -->
+  </video>
+</div>
+<div class="content-overlay"></div>
+"""
+st.markdown(bg_video_html, unsafe_allow_html=True)
+
+# -------------------------------------------------------------------------
+# Navigation
+# -------------------------------------------------------------------------
 selected = option_menu(
     menu_title=None,
     options=["HOME", "MUSIC", "LABEL", "MEDIA", "EVENTS", "STORE", "CONTACT", "SYSTEM", "ABOUT"],
@@ -148,44 +236,42 @@ selected = option_menu(
     default_index=0,
     orientation="horizontal",
     styles={
-        "container": {"padding": "0!important", "background-color": COLOR_BG, "border-bottom": "1px solid #333"},
-        "icon": {"color": "#666", "font-size": "12px"},
+        "container": {"padding": "0!important", "background-color": COLOR_BG, "border-bottom": "1px solid #222"},
+        "icon": {"color": "#999", "font-size": "12px"},
         "nav-link": {"font-size": "14px", "text-align": "center", "margin": "0px", "color": TT_CREAM, "font-family": "Inter, sans-serif", "text-transform": "uppercase", "font-weight": "600"},
         "nav-link-selected": {"background-color": COLOR_BG, "color": COLOR_TEXT, "border-bottom": f"2px solid {COLOR_ACCENT}"},
     }
 )
 
-# -----------------------------------------------------------------------------
-# PAGES
-# -----------------------------------------------------------------------------
-
-# HOME
-if selected == "HOME":
-    col1, col2 = st.columns([2, 1])
-
-    with col1:
-        st.image("https://images.unsplash.com/photo-1517457375825-e578c799a74f?q=80&w=1400&auto=format&fit=crop", use_column_width=True)
+# -------------------------------------------------------------------------
+# Shared components
+# -------------------------------------------------------------------------
+def render_hero():
+    c1, c2 = st.columns([2, 1])
+    with c1:
         st.markdown('<div class="artist-title">TUESDAY<br>NIGHT<br>FREAK</div>', unsafe_allow_html=True)
         st.markdown(f"### LIVE HARDWARE ELECTRONICS {TNF_STAMP_LOGO}", unsafe_allow_html=True)
         st.markdown(f"<h5 style='color:{TT_CREAM} !important'>MELBOURNE // BERLIN // UNDERGROUND</h5>", unsafe_allow_html=True)
         st.markdown(f"## TUESDAYNIGHTFREAK {TNF_LOGO_SVG}", unsafe_allow_html=True)
         st.markdown("#### DEFINING THE FUTURE OF LIVE HARDWARE ELECTRONICS")
         st.markdown("""
-        Tuesdaynightfreak represents a new era in electronic music performance. 
-        Bridging the gap between studio precision and live improvisation, we construct 
-        immersive soundscapes using only modular synthesis and drum machines. 
+        Tuesdaynightfreak is a new era in electronic music performance.
+        Bridging studio precision and live improvisation, crafting immersive soundscapes using only modular synthesis and drum machines.
 
         **No Laptops. No Sync. Pure Voltage.**
         """)
-        st.button("LISTEN TO LATEST RELEASE")
-
-    with col2:
+        cols = st.columns([1,1,1])
+        with cols[0]:
+            st.button("LISTEN", key="cta_listen")
+        with cols[1]:
+            st.button("SHOP VINYL", key="cta_shop")
+        with cols[2]:
+            st.button("TOUR DATES", key="cta_tour")
+    with c2:
         st.markdown("#### LATEST NEWS")
         st.markdown(f"""
         <div class="graphic-box">
         Tuesdaynightfreak is not just an artist; it's a <strong>sonic movement</strong>.
-        We are an independent electronic music project and culture crew bridging the gap between 
-        Berlin's concrete basements and Melbourne's warehouse soul.
         <div class="news-card">
         <strong>NEW EP ANNOUNCED</strong><br>
         <span class="muted">OCT 24, 2025</span><br>
@@ -195,78 +281,133 @@ if selected == "HOME":
         """, unsafe_allow_html=True)
         st.markdown(f"**CURRENT SYSTEM STATUS:** <span style='color:{CP_YELLOW}; font-family:monospace;'>ONLINE // STUDIO MODE</span>", unsafe_allow_html=True)
 
-    st.write("---")
+def render_gallery_grid(count=6):
+    st.markdown("### VISUAL FEED")
+    cols = st.columns(3)
+    for i, item in enumerate(st.session_state.gallery[:count]):
+        with cols[i % 3]:
+            # streamlit will lazy-load images by default when not used with use_column_width
+            st.image(item['url'], caption=item['caption'], use_column_width=True)
 
-# MUSIC
+def render_discography():
+    st.markdown("### DISCOGRAPHY")
+    for track in st.session_state.songs:
+        c1, c2, c3 = st.columns([1, 4, 2])
+        with c1:
+            st.markdown(f"<div style='width:42px;height:42px;background:{COLOR_ACCENT};border-radius:4px;'></div>", unsafe_allow_html=True)
+        with c2:
+            st.markdown(f"**{track['title']}**")
+            if track.get("label"):
+                st.caption(track.get("label"))
+        with c3:
+            if track.get("url") and track["url"].startswith("http"):
+                st.markdown(f"[Listen ▶]({track['url']})")
+            else:
+                st.button("STREAM", key=track['title'])
+
+# -------------------------------------------------------------------------
+# Simple broken link checker (admin)
+# -------------------------------------------------------------------------
+def check_links(links):
+    results = []
+    for u in links:
+        if not u:
+            continue
+        u = u.strip()
+        try:
+            # prefer HEAD then GET fallback
+            r = requests.head(u, allow_redirects=True, timeout=8)
+            status = r.status_code
+            if status >= 400:
+                # try full GET (some servers block HEAD)
+                r2 = requests.get(u, allow_redirects=True, timeout=8)
+                status = r2.status_code
+        except Exception as e:
+            status = f"ERR: {str(e)[:80]}"
+        results.append({"url": u, "status": status})
+    return results
+
+# -------------------------------------------------------------------------
+# PAGE ROUTES
+# -------------------------------------------------------------------------
+if selected == "HOME":
+    render_hero()
+    st.write("---")
+    render_gallery_grid(count=4)
+    st.write("---")
+    st.markdown("### FEATURED RELEASE")
+    c1, c2 = st.columns([2,1])
+    with c1:
+        st.image(st.session_state.gallery[0]['url'], caption="STATIC INTERFERENCE EP [12\" VINYL]", use_column_width=True)
+    with c2:
+        st.markdown("**STATIC INTERFERENCE EP**")
+        st.markdown("A limited pressing. Pressing available worldwide.")
+        st.button("BUY VINYL / DIGITAL", key="buy_vinyl")
+
 elif selected == "MUSIC":
     st.markdown("## SONIC ARCHIVE")
     st.markdown("### LIVE JAMS & STUDIO CUTS")
-
-    col1, col2 = st.columns(2)
-    with col1:
+    c1, c2 = st.columns(2)
+    with c1:
         st.markdown("#### UNTITLED_SEQ_04")
         st.image("https://images.unsplash.com/photo-1493225255756-d9584f8606e9?q=80&w=800&auto=format&fit=crop", caption="Live Recording")
-        st.markdown("[STREAM ON SOUNDCLOUD](#)")
-
-    with col2:
+        # embed soundcloud example (if url exists)
+        if st.session_state.songs and st.session_state.songs[0].get("url", "").startswith("http"):
+            url = st.session_state.songs[0]["url"]
+            # embed as link if not embedable
+            st.markdown(f"[Open track ▶]({url})")
+    with c2:
         st.markdown("#### ACID RAIN (DUB)")
         st.image("https://images.unsplash.com/photo-1514525253440-b393452e8d26?q=80&w=800&auto=format&fit=crop", caption="Studio Cut")
         st.markdown("[BUY ON BANDCAMP](#)")
-
     st.write("---")
-    st.markdown("### DISCOGRAPHY LIST")
-    for song in st.session_state.songs:
-        st.markdown(f"**{song['title']}** // {song.get('platform', song.get('label',''))}")
+    render_discography()
 
-# LABEL
 elif selected == "LABEL":
-    col1, col2 = st.columns([1, 1])
+    col1, col2 = st.columns([1,1])
     with col1:
         st.markdown("## HOUSE KEEPING RECORDS")
         st.markdown("**EST. 2023 // VINYL ONLY**")
         st.write("---")
-        st.markdown(f"""
+        st.markdown("""
         <div class="graphic-box">
-        House Keeping Records is our platform for the raw, the deep, and the functional. 
-        We release tools for DJs and explorations for heads. 
+        House Keeping Records is our platform for the raw, the deep, and the functional.
+        We release tools for DJs and explorations for heads.
         <br><br>
-        **PHILOSOPHY:**<br>
+        <strong>PHILOSOPHY:</strong><br>
         1. Respect the groove.<br>
         2. Hardware over software.<br>
         3. Community over clout.
         </div>
         """, unsafe_allow_html=True)
-
     with col2:
         st.markdown("### SUBMIT DEMO")
         with st.form("demo_form"):
-            st.text_input("ARTIST ALIAS")
-            st.text_input("SOUNDCLOUD LINK (PRIVATE ONLY)")
-            st.form_submit_button("TRANSMIT DATA")
+            alias = st.text_input("ARTIST ALIAS")
+            link = st.text_input("SOUNDCLOUD / PRIVATE LINK (PRIVATE ONLY)")
+            submitted = st.form_submit_button("TRANSMIT DATA")
+            if submitted:
+                valid = validators.url(link) if link else True
+                if not valid:
+                    st.error("Please provide a valid URL or leave blank for private SoundCloud.")
+                else:
+                    st.success("Demo transmitted. We'll review and respond.")
 
-# MEDIA
 elif selected == "MEDIA":
     st.markdown("## VISUAL FEED")
-    for item in st.session_state.gallery[:6]:
-        st.image(item['url'], caption=item['caption'])
+    render_gallery_grid(count=9)
+    st.write("---")
+    st.markdown("#### Press / Mixes")
+    # example embed placeholder for RA or SoundCloud
+    st.markdown("Embedded mixes and press links will appear here.")
 
-# EVENTS
 elif selected == "EVENTS":
     st.markdown("## UPCOMING DATES")
-    c1, c2 = st.columns(2)
-    for i, item in enumerate(st.session_state.gallery):
-        if i % 2 == 0:
-            with c1:
-                st.image(item['url'], caption=item['caption'])
-        else:
-            with c2:
-                st.image(item['url'], caption=item['caption'])
-
     events = [
-        {"date": "NOV 04", "city": "AMSTERDAM", "venue": "SHELTER", "status": "SELLING FAST"},
-        {"date": "NOV 11", "city": "LONDON", "venue": "FOLD", "status": "TICKETS"},
-        {"date": "NOV 18", "city": "MELBOURNE", "venue": "REVOLVER", "status": "SOLD OUT"},
-        {"date": "DEC 02", "city": "PARIS", "venue": "REX CLUB", "status": "TICKETS"},
+        {"date": "NOV 04", "city": "AMSTERDAM", "venue": "SHELTER", "status": "SELLING FAST", "link": "#"},
+        {"date": "NOV 11", "city": "LONDON", "venue": "FOLD", "status": "TICKETS", "link": "#"},
+        {"date": "NOV 18", "city": "MELBOURNE", "venue": "REVOLVER", "status": "SOLD OUT", "link": "#"},
+        {"date": "DEC 02", "city": "PARIS", "venue": "REX CLUB", "status": "TICKETS", "link": "#"},
     ]
     for event in events:
         c1, c2, c3, c4 = st.columns([1, 2, 2, 2])
@@ -274,15 +415,17 @@ elif selected == "EVENTS":
             st.markdown(f"<span style='color:{COLOR_ACCENT}; font-weight:900;'>{event['date']}</span>", unsafe_allow_html=True)
         with c2:
             st.markdown(f"**{event['city']}**")
+            st.caption(event['venue'])
         with c3:
             st.markdown(event['venue'])
         with c4:
             if event['status'] == "SOLD OUT":
                 st.markdown("<span class='muted'>SOLD OUT</span>", unsafe_allow_html=True)
             else:
-                st.button(f"BUY {event['status']}", key=event['city'])
+                st.markdown(f"[Buy Tickets ▶]({event['link']})")
+    st.write("---")
+    st.info("Add events via SYSTEM > UPLOAD VISUALS or contact management to list shows.")
 
-# STORE
 elif selected == "STORE":
     st.markdown("## SHOP MERCH & VINYL")
     c1, c2, c3 = st.columns(3)
@@ -291,16 +434,14 @@ elif selected == "STORE":
         st.markdown("### WORLDWIDE")
         st.write("Direct Management")
         st.markdown(f"<h2 style='border:none; color:{CP_YELLOW};'>tuesdaynightfreak@gmail.com</h2>", unsafe_allow_html=True)
-        st.image("https://images.unsplash.com/photo-1585227803927-2c24067b9416?q=80&w=600&auto=format&fit=crop", caption='HKR004 - VINYL 12"')
+        st.image("https://images.unsplash.com/photo-1585227803927-2c24067b9416?q=80&w=600&auto=format&fit=crop", caption='HKR004 - VINYL 12\"')
         st.markdown("**SYSTEM FAILURE EP**")
         st.caption("€14.00")
         st.button("ADD TO CART", key="p1")
-
         st.write("---")
         st.markdown("### MEDIA KIT")
         st.download_button("DOWNLOAD TECH RIDER (PDF)", "Rider Content", file_name="TNF_Rider_2025.pdf")
         st.download_button("DOWNLOAD PRESS PHOTOS (ZIP)", "Photo Content", file_name="TNF_Press_Photos.zip")
-
     with c2:
         st.markdown("### TRANSMIT MESSAGE")
         with st.form("contact_form"):
@@ -312,14 +453,12 @@ elif selected == "STORE":
         st.markdown("**OFFICIAL T-SHIRT**")
         st.caption("€35.00")
         st.button("ADD TO CART", key="p2")
-
     with c3:
         st.image("https://images.unsplash.com/photo-1529339077446-df732dfa062c?q=80&w=600&auto=format&fit=crop", caption="PATCH CABLE SET")
         st.markdown("**TNF CABLE PACK**")
         st.caption("€20.00")
         st.button("ADD TO CART", key="p3")
 
-# SYSTEM (ADMIN)
 elif selected == "SYSTEM":
     st.markdown("## SYSTEM ACCESS")
     st.caption("SECURE AREA. AUTHORIZED PERSONNEL ONLY.")
@@ -331,11 +470,18 @@ elif selected == "SYSTEM":
             st.markdown("### ADD AUDIO SOURCE")
             with st.form("add_song_admin"):
                 new_title = st.text_input("SONG TITLE")
-                new_url = st.text_input("URL (SoundCloud/Bandcamp)")
-                new_platform = st.selectbox("PLATFORM", ["SoundCloud", "Bandcamp", "Spotify", "RA"])
-                if st.form_submit_button("UPLOAD TRACK"):
-                    st.session_state.songs.append({"title": new_title, "url": new_url, "platform": new_platform})
-                    st.success(f"TRACK '{new_title}' ADDED TO ARCHIVE.")
+                new_url = st.text_input("URL (SoundCloud/Bandcamp/Spotify)")
+                new_platform = st.selectbox("PLATFORM", ["SoundCloud", "Bandcamp", "Spotify", "RA", "Other"])
+                submitted = st.form_submit_button("UPLOAD TRACK")
+                if submitted:
+                    if not new_title:
+                        st.error("Please provide a song title.")
+                    else:
+                        if new_url and not validators.url(new_url):
+                            st.error("Please provide a valid URL or leave blank.")
+                        else:
+                            st.session_state.songs.append({"title": new_title, "url": new_url or "#", "platform": new_platform})
+                            st.success(f"TRACK '{new_title}' ADDED TO ARCHIVE.")
             if st.button("PURGE AUDIO ARCHIVE"):
                 st.session_state.songs = []
                 st.warning("AUDIO ARCHIVE CLEARED.")
@@ -345,41 +491,69 @@ elif selected == "SYSTEM":
             with st.form("add_photo_admin"):
                 new_caption = st.text_input("CAPTION")
                 new_img_url = st.text_input("IMAGE URL")
-                if st.form_submit_button("UPLOAD VISUAL"):
-                    st.session_state.gallery.append({"caption": new_caption, "url": new_img_url})
-                    st.success("VISUAL ASSET ADDED TO FEED.")
-
+                uploaded = st.form_submit_button("UPLOAD VISUAL")
+                if uploaded:
+                    # allow either valid URL or local path
+                    if new_img_url and not validators.url(new_img_url) and not new_img_url.startswith("/mnt/"):
+                        st.error("Provide a valid http(s) URL or local server path (/mnt/...)")
+                    else:
+                        st.session_state.gallery.append({"caption": new_caption or "Untitled", "url": new_img_url or POSTER_IMG})
+                        st.success("VISUAL ASSET ADDED TO FEED.")
+            st.write("---")
+            st.markdown("### SITE DIAGNOSTICS")
+            if st.button("Run Broken Link Check"):
+                with st.spinner("Scanning links..."):
+                    links = []
+                    # collect images & song urls
+                    for s in st.session_state.songs:
+                        u = s.get("url")
+                        if u and u != "#":
+                            links.append(u)
+                    for g in st.session_state.gallery:
+                        links.append(g.get("url"))
+                    # dedupe
+                    links = list(dict.fromkeys([l for l in links if l]))
+                    results = check_links(links)
+                    df = pd.DataFrame(results)
+                    st.dataframe(df)
+                    csv_buf = io.StringIO()
+                    df.to_csv(csv_buf, index=False)
+                    st.download_button("Download link report", csv_buf.getvalue(), file_name="link_report.csv")
         with tab3:
             st.markdown("### INCOMING TRANSMISSIONS")
             if len(st.session_state.bookings) > 0:
                 st.dataframe(pd.DataFrame(st.session_state.bookings))
             else:
                 st.info("NO NEW MESSAGES.")
+    else:
+        st.info("Enter operator auth code to manage content (admin123).")
 
-# ABOUT / CONTACT
 elif selected == "ABOUT":
     col1, col2 = st.columns([1, 1], gap="large")
     with col1:
         st.markdown("## THE PROJECT")
         st.markdown("""
-        **Tuesdaynightfreak** is a dedicated exploration of electronic sound. 
-        Founded in Melbourne, the project focuses on the visceral experience of 
-        live hardware performance.
+        **Tuesdaynightfreak** is a dedicated exploration of electronic sound.
+        Founded in Melbourne, the project focuses on the visceral experience of live hardware performance.
         """)
         st.markdown("## CONTACT MANAGEMENT")
         st.code("mgmt@tuesdaynightfreak.com")
         st.markdown("## DEMOS")
         st.code("demos@housekeeping-rec.com")
-
     with col2:
         st.markdown("## NEWSLETTER")
         with st.form("newsletter"):
-            st.text_input("EMAIL ADDRESS")
-            st.form_submit_button("SUBSCRIBE")
+            email = st.text_input("EMAIL ADDRESS")
+            sub = st.form_submit_button("SUBSCRIBE")
+            if sub:
+                if not email or "@" not in email:
+                    st.error("Please provide a valid email address.")
+                else:
+                    st.success("Thanks — you're on the list.")
         st.write("---")
         st.markdown("#### PRESS KIT")
         st.button("DOWNLOAD EPK (ZIP)")
 
-# -----------------------------------------------------------------------------
-# END
-# -----------------------------------------------------------------------------
+# -------------------------------------------------------------------------
+# End of file
+# -------------------------------------------------------------------------
