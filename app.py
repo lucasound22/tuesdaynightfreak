@@ -13,14 +13,33 @@ COLOR_ACCENT = "#FF0033" # Acid Red (Primary Brand)
 COLOR_CYAN = "#00f7ff"   # Cyberpunk Splash (Secondary/Tech)
 COLOR_SECONDARY = "#141414" # Card Background
 
-# --- BRANDING: LOGO ---
+# --- BRANDING: NEW COOLER LOGOS ---
+
+# 1. TNF MAIN LOGO (Modern, Geometric, "Cyber-Sigil" Style)
 TNF_LOGO_SVG = f"""
-<svg width="140" height="40" viewBox="0 0 140 40" fill="none" xmlns="http://www.w3.org/2000/svg">
-<rect x="0" y="0" width="140" height="40" fill="none"/>
-<text x="0" y="32" font-family="Helvetica, Arial, sans-serif" font-weight="900" font-size="36" fill="{COLOR_TEXT}" letter-spacing="-3">TNF</text>
-<rect x="80" y="10" width="4" height="20" fill="{COLOR_ACCENT}"/>
-<rect x="90" y="10" width="4" height="20" fill="{COLOR_CYAN}"/>
-<circle cx="115" cy="20" r="6" stroke="{COLOR_TEXT}" stroke-width="2"/>
+<svg width="150" height="50" viewBox="0 0 150 50" fill="none" xmlns="http://www.w3.org/2000/svg">
+    <!-- Abstract Glitch Text Shape -->
+    <path d="M10 10 L30 10 L20 40 L0 40 Z" fill="{COLOR_TEXT}"/> <!-- T shape left -->
+    <rect x="35" y="10" width="10" height="30" fill="{COLOR_ACCENT}"/> <!-- N vertical -->
+    <path d="M35 10 L55 40" stroke="{COLOR_ACCENT}" stroke-width="3"/> <!-- N diagonal -->
+    <rect x="55" y="10" width="10" height="30" fill="{COLOR_ACCENT}"/> <!-- N right -->
+    <rect x="75" y="10" width="20" height="5" fill="{COLOR_CYAN}"/> <!-- F top -->
+    <rect x="75" y="20" width="15" height="5" fill="{COLOR_CYAN}"/> <!-- F mid -->
+    <rect x="75" y="10" width="5" height="30" fill="{COLOR_CYAN}"/> <!-- F vertical -->
+    <!-- Underline Element -->
+    <rect x="0" y="45" width="100" height="2" fill="{COLOR_TEXT}"/>
+</svg>
+"""
+
+# 2. HOUSE KEEPING RECORDS LOGO (Industrial, Bold)
+# This replaces the broken image link with a reliable SVG
+HKR_LOGO_SVG = f"""
+<svg width="100" height="100" viewBox="0 0 100 100" fill="none" xmlns="http://www.w3.org/2000/svg">
+    <rect x="5" y="5" width="90" height="90" stroke="{COLOR_TEXT}" stroke-width="4"/>
+    <path d="M10 40 L50 10 L90 40" stroke="{COLOR_ACCENT}" stroke-width="4" fill="none"/>
+    <circle cx="50" cy="65" r="20" stroke="{COLOR_CYAN}" stroke-width="3"/>
+    <rect x="48" y="60" width="4" height="10" fill="{COLOR_CYAN}"/>
+    <text x="50" y="90" font-family="monospace" font-size="10" fill="{COLOR_TEXT}" text-anchor="middle">EST. 2023</text>
 </svg>
 """
 
@@ -196,8 +215,20 @@ selected = option_menu(
 
 # --- HOME PAGE ---
 if selected == "HOME":
-    # HERO IMAGE: Eurorack Modular System
-    st.image("https://images.unsplash.com/photo-1550291652-6ea9114a47b1?q=80&w=1400&auto=format&fit=crop", use_column_width=True)
+    # REPLACED GUITAR IMAGE WITH EMBEDDED VIDEO LOOP (Youtube Embed with Autoplay params)
+    # This simulates the "scrolling video" background effect requested
+    video_html = """
+        <div style="position: relative; width: 100%; padding-bottom: 56.25%; height: 0; overflow: hidden; margin-bottom: 2rem; border: 1px solid #333;">
+            <iframe 
+                src="https://www.youtube.com/embed/2nu15ed5tk7?autoplay=1&mute=1&controls=0&loop=1&playlist=2nu15ed5tk7&showinfo=0&modestbranding=1" 
+                style="position: absolute; top: 0; left: 0; width: 100%; height: 100%;" 
+                frameborder="0" 
+                allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture" 
+                allowfullscreen>
+            </iframe>
+        </div>
+    """
+    st.markdown(video_html, unsafe_allow_html=True)
     
     col1, col2 = st.columns([2, 1])
     
@@ -242,7 +273,7 @@ if selected == "HOME":
     st.markdown("### LIVE TRANSMISSION")
     col1, col2 = st.columns(2)
     with col1:
-        # Image: Close up of synth knobs
+        # Replaced Guitar Image with Modular Synth Close-up
         st.image("https://images.unsplash.com/photo-1619967657960-983b6329c370?q=80&w=800&auto=format&fit=crop", caption="LIVE RIG CONFIGURATION")
     with col2:
         st.markdown("""
@@ -276,10 +307,10 @@ elif selected == "MUSIC":
         st.markdown(f"<hr style='margin: 10px 0; border-color: #1a1a1a;'>", unsafe_allow_html=True)
 
     st.markdown("### HOUSE KEEPING RECORDS")
-    c1, c2 = st.columns([1, 1])
+    c1, c2 = st.columns([1, 3])
     with c1:
-        # Image: Studio with modular gear
-        st.image("https://images.unsplash.com/photo-1598275529124-b1c4b786f1e2?q=80&w=1200&auto=format&fit=crop", caption="HKR HQ / SIGNAL CHAIN")
+        # NEW: HKR SVG LOGO (Fixed broken image)
+        st.markdown(HKR_LOGO_SVG, unsafe_allow_html=True)
     with c2:
         st.markdown("""
         <div class="content-card">
