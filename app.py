@@ -2,7 +2,6 @@ import streamlit as st
 from streamlit_option_menu import option_menu
 import pandas as pd
 from datetime import datetime
-import random
 import time
 
 # --- CONFIGURATION & PALETTE ---
@@ -14,7 +13,6 @@ COLOR_CYAN = "#00f7ff"   # Cyberpunk Splash (Secondary/Tech)
 COLOR_SECONDARY = "#141414" # Card Background
 
 # --- BRANDING: NEW GLITCH LOGO ---
-# Updated for a "Glitch" effect with offset layers
 TNF_LOGO_SVG = f"""
 <svg width="160" height="50" viewBox="0 0 160 50" fill="none" xmlns="http://www.w3.org/2000/svg">
     <!-- Glitch Layers -->
@@ -43,6 +41,12 @@ HKR_LOGO_SVG = f"""
 </svg>
 """
 
+# --- HELPER FUNCTION FOR ADDING TO CART ---
+def add_to_cart(item_name):
+    """Adds an item to the cart and triggers a rerun."""
+    st.session_state.cart.append(item_name)
+    st.rerun()
+
 # -----------------------------------------------------------------------------
 # 1. PAGE CONFIGURATION
 # -----------------------------------------------------------------------------
@@ -54,12 +58,8 @@ st.set_page_config(
 )
 
 # -----------------------------------------------------------------------------
-# 2. SESSION STATE VALIDATION (Updated for robust navigation)
+# 2. SESSION STATE VALIDATION (Simplified for stability)
 # -----------------------------------------------------------------------------
-if 'songs' in st.session_state:
-    if len(st.session_state.songs) > 0 and 'label' not in st.session_state.songs[0]:
-        del st.session_state.songs
-
 if 'songs' not in st.session_state:
     st.session_state.songs = [
         {"title": "System Failure (Original Mix)", "label": "House Keeping Rec", "cat": "HKR004"},
@@ -128,9 +128,9 @@ st.markdown(f"""
 
     /* --- UI ELEMENTS --- */
     
-    /* Primary Action Button (Now Cyan - addressing "don't like the red button") */
+    /* Primary Action Button (Cyan) */
     .stButton>button {{
-        background-color: {COLOR_CYAN}; /* New Primary Button Color */
+        background-color: {COLOR_CYAN}; 
         color: {COLOR_BG};
         border: 1px solid {COLOR_TEXT};
         font-family: 'Inter', sans-serif;
@@ -141,7 +141,7 @@ st.markdown(f"""
         transition: all 0.3s;
     }}
     .stButton>button:hover {{
-        background-color: {COLOR_ACCENT}; /* Red on hover for high contrast accent */
+        background-color: {COLOR_ACCENT}; /* Red on hover */
         color: {COLOR_TEXT};
         border-color: {COLOR_ACCENT};
         box-shadow: 0 0 15px rgba(255, 0, 51, 0.4);
@@ -246,10 +246,10 @@ st.markdown(f"""
     }}
     
     #audio-activation-button {{
-        background: {COLOR_CYAN}; /* Changed to Cyan */
+        background: {COLOR_CYAN}; 
         color: {COLOR_BG};
         padding: 20px 40px;
-        border: 2px solid {COLOR_ACCENT}; /* Border is now Acid Red */
+        border: 2px solid {COLOR_ACCENT}; 
         font-size: 1.8rem;
         font-weight: 700;
         margin-top: 20px;
@@ -325,7 +325,7 @@ st.markdown(f"""
                 activationDiv.style.display = 'none';
             }}, 500); // Wait for transition
         }}
-    }}
+    }
 </script>
 """, unsafe_allow_html=True)
 
@@ -347,19 +347,19 @@ selected = option_menu(
         "container": {"padding": "0!important", "background-color": "rgba(8,8,8,0.95)", "border-bottom": "1px solid #333"},
         "icon": {"color": "#fff", "font-size": "14px"}, 
         "nav-link": {
-            "font-size": "20px", # Increased size
+            "font-size": "20px", 
             "text-align": "center", 
             "margin": "0px", 
-            "color": "#ffffff", # Brighter white
+            "color": "#ffffff", 
             "font-family": "Inter", 
             "text-transform": "uppercase", 
             "font-weight": "700"
         },
         "nav-link-selected": {
             "background-color": "rgba(255,255,255,0.1)", 
-            "color": COLOR_CYAN, # Cyberpunk Cyan highlight
+            "color": COLOR_CYAN, 
             "border-bottom": f"3px solid {COLOR_CYAN}",
-            "text-shadow": f"0 0 10px {COLOR_CYAN}" # Glow effect
+            "text-shadow": f"0 0 10px {COLOR_CYAN}" 
         },
     }
 )
@@ -373,7 +373,6 @@ st.session_state.current_page_index = menu_options.index(selected)
 # --- HOME PAGE ---
 if selected == "HOME":
     # --- FIXED FULL-SCREEN BACKGROUND VIDEO ---
-    # This element is fixed behind all content by CSS and remains across all pages.
     st.markdown(f"""
         <div class="video-background-fixed">
             <iframe 
@@ -405,14 +404,13 @@ if selected == "HOME":
         st.markdown("<br>", unsafe_allow_html=True)
         c1, c2 = st.columns(2)
         
-        # FIXED: Home page buttons now update state to navigate
         with c1:
             if st.button("LATEST RELEASE"):
-                st.session_state.current_page_index = 1 # Index for "MUSIC"
+                st.session_state.current_page_index = 1 
                 st.rerun()
         with c2:
             if st.button("VIEW TOUR DATES"):
-                st.session_state.current_page_index = 2 # Index for "EVENTS"
+                st.session_state.current_page_index = 2 
                 st.rerun()
 
     with col2:
@@ -446,7 +444,6 @@ elif selected == "MUSIC":
             cat = track.get('cat', '000')
             st.caption(f"{lbl} // {cat}")
         with c4:
-            # FIXED: Added a placeholder action for the STREAM button
             if st.button("STREAM", key=track['title']):
                 st.info(f"Initiating stream for **{track['title']}**. Please wait for transmission handshake.")
         st.markdown(f"<hr style='margin: 10px 0; border-color: #1a1a1a;'>", unsafe_allow_html=True)
@@ -495,7 +492,7 @@ elif selected == "EVENTS":
 elif selected == "STORE":
     st.markdown("## OFFICIAL MERCHANDISE")
     
-    # Cart Summary
+    # Cart Summary - Rendered first for immediate feedback
     if len(st.session_state.cart) > 0:
         st.info(f"CART: {len(st.session_state.cart)} ITEMS")
     
@@ -513,9 +510,9 @@ elif selected == "STORE":
         st.markdown("**TNF CORE TEE [BLACK]**")
         st.caption("Heavyweight Cotton / Screen Print")
         st.markdown(f"**€35.00**")
+        # CRITICAL FIX: Use helper function instead of immediate st.rerun() inline
         if st.button("ADD TO CART", key="m1"):
-            st.session_state.cart.append("Tee")
-            st.rerun()
+            add_to_cart("Tee")
         
     with c2:
         # Merch Item 2
@@ -530,8 +527,7 @@ elif selected == "STORE":
         st.caption("Oversized Fit / Embroidered")
         st.markdown(f"**€65.00**")
         if st.button("ADD TO CART", key="m2"):
-            st.session_state.cart.append("Hoodie")
-            st.rerun()
+            add_to_cart("Hoodie")
         
     with c3:
         # Merch Item 3
@@ -546,8 +542,7 @@ elif selected == "STORE":
         st.caption("High grade felt / Anti-static")
         st.markdown(f"**€20.00**")
         if st.button("ADD TO CART", key="m3"):
-            st.session_state.cart.append("Slipmats")
-            st.rerun()
+            add_to_cart("Slipmats")
 
 # --- ABOUT / CONTACT ---
 elif selected == "ABOUT":
