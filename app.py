@@ -28,7 +28,7 @@ TNF_LOGO_SVG = f"""
     <rect x="95" y="10" width="4" height="20" fill="{COLOR_CYAN}"/>
     <rect x="105" y="10" width="4" height="20" fill="{COLOR_TEXT}"/>
     <circle cx="130" cy="20" r="6" stroke="{COLOR_TEXT}" stroke-width="2"/>
-    <line x1="0" y1="45" x2="140" y2="45" stroke="{COLOR_CYAN}" stroke-width="1"/>
+    <line x1="0" y1="45" x2="140" x2="45" stroke="{COLOR_CYAN}" stroke-width="1"/>
 </svg>
 """
 
@@ -54,10 +54,9 @@ st.set_page_config(
 )
 
 # -----------------------------------------------------------------------------
-# 2. SESSION STATE VALIDATION
+# 2. SESSION STATE VALIDATION (Unchanged from previous turn)
 # -----------------------------------------------------------------------------
 if 'songs' in st.session_state:
-    # Reset if data format is outdated
     if len(st.session_state.songs) > 0 and 'label' not in st.session_state.songs[0]:
         del st.session_state.songs
 
@@ -69,7 +68,6 @@ if 'songs' not in st.session_state:
         {"title": "Modular State", "label": "Klockworks", "cat": "KW-22"}
     ]
 
-# UPDATED IMAGES: Strictly Eurorack / Modular Synth aesthetic
 if 'gallery' not in st.session_state:
     st.session_state.gallery = [
         {"caption": "OSCILLATOR BANK A", "url": "https://images.unsplash.com/photo-1621360841012-2357d27e02a4?q=80&w=800&auto=format&fit=crop"},
@@ -85,7 +83,7 @@ if 'cart' not in st.session_state:
     st.session_state.cart = []
 
 # -----------------------------------------------------------------------------
-# 3. CUSTOM CSS
+# 3. CUSTOM CSS & TONE.JS AUDIO SETUP
 # -----------------------------------------------------------------------------
 st.markdown(f"""
 <style>
@@ -185,42 +183,128 @@ st.markdown(f"""
     
     hr {{ border-color: #222; margin: 3rem 0; }}
     
-    /* BACKGROUND VIDEO STYLING */
-    .video-background {{
-        position: relative;
-        width: 100%;
-        padding-bottom: 56.25%; /* 16:9 Aspect Ratio */
-        height: 0;
-        overflow: hidden;
-        margin-bottom: 2rem;
-        border-bottom: 2px solid #333;
-    }}
-    .video-background iframe {{
-        position: absolute;
+    /* --- FULL-SCREEN VIDEO BACKGROUND (New) --- */
+    .video-background-fixed {{
+        position: fixed;
         top: 0;
         left: 0;
+        width: 100vw;
+        height: 100vh;
+        overflow: hidden;
+        z-index: -999; /* Push behind all content */
+    }}
+    .video-background-fixed iframe {{
         width: 100%;
         height: 100%;
-        /* Zoom in slightly to cover edges */
-        transform: scale(1.05); 
+        /* Ensure it covers the viewport, even if aspect ratios don't match */
+        min-width: 100vw; 
+        min-height: 100vh;
+        transform: scale(1.1); /* Zoom slightly to remove iframe borders */
     }}
     
-    /* Overlay to darken video slightly */
-    .video-overlay {{
-        position: absolute;
+    /* Overlay to darken video and ensure readability */
+    .video-overlay-fixed {{
+        position: fixed;
         top: 0;
         left: 0;
-        width: 100%;
-        height: 100%;
-        background: linear-gradient(to bottom, rgba(8,8,8,0.4) 0%, rgba(8,8,8,0.2) 50%, rgba(8,8,8,1) 100%);
+        width: 100vw;
+        height: 100vh;
+        background: rgba(8,8,8, 0.85); /* Darker overlay for text contrast */
         pointer-events: none;
+        z-index: -998;
+    }}
+
+    /* Audio Activation Button (Hidden after click) */
+    #audio-activation {{
+        position: fixed;
+        top: 0;
+        left: 0;
+        width: 100vw;
+        height: 100vh;
+        background: {COLOR_BG};
+        color: {COLOR_CYAN};
+        display: flex;
+        justify-content: center;
+        align-items: center;
+        font-size: 1.5rem;
+        font-family: 'Space Mono', monospace;
+        text-transform: uppercase;
+        cursor: pointer;
+        z-index: 1000;
+        transition: opacity 0.5s;
+    }}
+    #audio-activation:hover {{
+        background: #111;
     }}
 
 </style>
+
+<!-- TONE.JS AND BACKGROUND AUDIO SCRIPT -->
+<script src="https://cdnjs.cloudflare.com/ajax/libs/tone/14.8.49/Tone.min.js"></script>
+
+<div id="audio-activation" onclick="startAudio()">
+    [SYSTEM ACTIVE] CLICK TO INITIATE SONIC FEED
+</div>
+
+<script>
+    function startAudio() {{
+        // Check if Tone is ready
+        if (typeof Tone !== 'undefined') {{
+            // 1. Set the low, slow techno BPM
+            Tone.Transport.bpm.value = 110;
+            
+            // 2. Deep Kick Drum
+            const kick = new Tone.MembraneSynth({{
+                pitchDecay: 0.05,
+                octaves: 2,
+                envelope: {{
+                    attack: 0.001,
+                    decay: 0.4,
+                    sustain: 0.01,
+                    release: 0.8,
+                }}
+            }}).toDestination();
+
+            // 3. Dark, simple Sub Bass (Sine wave)
+            const bass = new Tone.Synth({{
+                oscillator: {{ type: "sine" }},
+                envelope: {{
+                    attack: 0.1,
+                    decay: 0.2,
+                    sustain: 0.8,
+                    release: 0.5
+                }}
+            }}).toDestination();
+            bass.volume.value = -12; // Keep bass subtle
+
+            // 4. Create the loops
+            // Kick loop: every beat
+            new Tone.Loop(time => {{
+                kick.triggerAttackRelease("C1", "8n", time);
+            }}, "4n").start(0);
+
+            // Bassline loop: simple, deep rhythm
+            new Tone.Sequence((time, note) => {{
+                bass.triggerAttackRelease(note, "4n", time);
+            }}, ["C2", ["C2", "G1"], "C2", "G1"], "4n").start(0);
+
+            // 5. Start the transport (sequencer) and context
+            Tone.Transport.start();
+            
+            // Hide the activation overlay after audio starts
+            const activationDiv = document.getElementById('audio-activation');
+            activationDiv.style.opacity = '0';
+            setTimeout(() => {{
+                activationDiv.style.display = 'none';
+            }}, 500); // Wait for transition
+        }}
+    }}
+</script>
 """, unsafe_allow_html=True)
 
+
 # -----------------------------------------------------------------------------
-# 4. NAVIGATION
+# 4. NAVIGATION (Menu styling preserved)
 # -----------------------------------------------------------------------------
 selected = option_menu(
     menu_title=None,
@@ -256,21 +340,21 @@ selected = option_menu(
 
 # --- HOME PAGE ---
 if selected == "HOME":
-    # --- BACKGROUND VIDEO (Behind Text) ---
-    # Using a reliable Abstract Techno Loop from YouTube (qC0vDKVPCrw)
-    # Embedding it full screen behind content
-    st.markdown("""
-        <div class="video-background">
+    # --- FIXED FULL-SCREEN BACKGROUND VIDEO ---
+    # This element is fixed behind all content by CSS and remains across all pages.
+    st.markdown(f"""
+        <div class="video-background-fixed">
             <iframe 
                 src="https://www.youtube.com/embed/qC0vDKVPCrw?controls=0&showinfo=0&rel=0&autoplay=1&loop=1&mute=1&playlist=qC0vDKVPCrw" 
                 frameborder="0" 
                 allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture" 
                 allowfullscreen>
             </iframe>
-            <div class="video-overlay"></div>
         </div>
+        <div class="video-overlay-fixed"></div>
     """, unsafe_allow_html=True)
     
+    # --- MAIN CONTENT ---
     col1, col2 = st.columns([2, 1])
     
     with col1:
@@ -308,24 +392,7 @@ if selected == "HOME":
         </div>
         """, unsafe_allow_html=True)
 
-    st.write("---")
-    
-    # --- 2. LIVE TRANSMISSION SECTION (Fixed Image) ---
-    st.markdown("### LIVE TRANSMISSION")
-    col1, col2 = st.columns(2)
-    with col1:
-        # Replaced broken image with a reliable modular synth Unsplash image
-        st.image("https://images.unsplash.com/photo-1550291652-6ea9114a47b1?q=80&w=800&auto=format&fit=crop", caption="LIVE RIG CONFIGURATION")
-    with col2:
-        st.markdown("""
-        **SESSION 001: MODULAR IMPROV**
-        
-        Recorded live in one take at The Warehouse Project. 
-        A journey through deep textures and driving rhythms.
-        
-        *Hardware: Eurorack system, TR-909, Moog Sub37.*
-        """)
-        st.button("WATCH FULL SET")
+    # The entire "LIVE TRANSMISSION" section has been removed as requested.
 
 # --- MUSIC ---
 elif selected == "MUSIC":
@@ -339,7 +406,6 @@ elif selected == "MUSIC":
         with c2:
             st.markdown(f"**{track['title']}**")
         with c3:
-            # Fallback if keys are missing (though session validation should catch this)
             lbl = track.get('label', 'HKR')
             cat = track.get('cat', '000')
             st.caption(f"{lbl} // {cat}")
@@ -350,7 +416,6 @@ elif selected == "MUSIC":
     st.markdown("### HOUSE KEEPING RECORDS")
     c1, c2 = st.columns([1, 3])
     with c1:
-        # NEW: HKR SVG LOGO (Fixed broken image)
         st.markdown(HKR_LOGO_SVG, unsafe_allow_html=True)
     with c2:
         st.markdown("""
