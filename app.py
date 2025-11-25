@@ -214,7 +214,13 @@ st.markdown(f"""
         z-index: -998;
     }}
 
-    /* Audio Activation Button (Hidden after click) */
+    /* Audio Activation Button (Updated for clarity) */
+    @keyframes pulse {{
+        0% {{ box-shadow: 0 0 0 0 rgba(0, 247, 255, 0.4); }}
+        70% {{ box-shadow: 0 0 0 20px rgba(0, 247, 255, 0); }}
+        100% {{ box-shadow: 0 0 0 0 rgba(0, 247, 255, 0); }}
+    }}
+
     #audio-activation {{
         position: fixed;
         top: 0;
@@ -222,19 +228,35 @@ st.markdown(f"""
         width: 100vw;
         height: 100vh;
         background: {COLOR_BG};
-        color: {COLOR_CYAN};
+        color: {COLOR_TEXT};
         display: flex;
+        flex-direction: column;
         justify-content: center;
         align-items: center;
-        font-size: 1.5rem;
         font-family: 'Space Mono', monospace;
         text-transform: uppercase;
         cursor: pointer;
         z-index: 1000;
         transition: opacity 0.5s;
+        
     }}
-    #audio-activation:hover {{
-        background: #111;
+    
+    #audio-activation-button {{
+        background: {COLOR_ACCENT};
+        color: {COLOR_TEXT};
+        padding: 20px 40px;
+        border: 2px solid {COLOR_CYAN};
+        font-size: 1.8rem;
+        font-weight: 700;
+        margin-top: 20px;
+        animation: pulse 2s infinite;
+    }}
+    
+    #audio-activation-text {{
+        color: {COLOR_CYAN};
+        font-size: 1.2rem;
+        margin-bottom: 10px;
+        text-shadow: 0 0 8px rgba(0, 247, 255, 0.5);
     }}
 
 </style>
@@ -243,7 +265,8 @@ st.markdown(f"""
 <script src="https://cdnjs.cloudflare.com/ajax/libs/tone/14.8.49/Tone.min.js"></script>
 
 <div id="audio-activation" onclick="startAudio()">
-    [SYSTEM ACTIVE] CLICK TO INITIATE SONIC FEED
+    <div id="audio-activation-text">[ SYSTEM ALERT: AUDIO INACTIVE ]</div>
+    <div id="audio-activation-button">INITIATE SONIC FEED</div>
 </div>
 
 <script>
@@ -321,7 +344,7 @@ selected = option_menu(
             "text-align": "center", 
             "margin": "0px", 
             "color": "#ffffff", # Brighter white
-            "font-family": "Inter, sans-serif", 
+            "font-family": "Inter", 
             "text-transform": "uppercase", 
             "font-weight": "700"
         },
