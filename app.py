@@ -1,296 +1,409 @@
 import streamlit as st
+from streamlit_option_menu import option_menu
 import pandas as pd
-import requests
+from datetime import datetime
+import random
 import time
-from io import StringIO
-from typing import List, Dict
 
-# -------------------- CONFIG --------------------
-st.set_page_config(page_title="Tuesday Night Freak", layout="wide")
-
-CP_YELLOW = "#fcee0a"
-CP_CYAN = "#00f0ff"
-CP_RED = "#ff003c"
+# --- CONFIGURATION & PALETTE ---
+# Premium Underground (Black/Red) + Cyberpunk Splash (Cyan)
 COLOR_BG = "#080808"
-COLOR_TEXT = "#F0F0F0"
-COLOR_ACCENT = "#FF0033"
-POSTER_IMG = "/mnt/data/32b1d44b-a37c-4c95-acdd-0c4ef6a11a99.png"  # developer-uploaded poster
+COLOR_TEXT = "#F0F0F0" 
+COLOR_ACCENT = "#FF0033" # Acid Red (Primary Brand)
+COLOR_CYAN = "#00f7ff"   # Cyberpunk Splash (Secondary/Tech)
+COLOR_SECONDARY = "#141414" # Card Background
 
-# -------------------- NAV / PAGES --------------------
-PAGES = ["home", "music", "gallery", "label", "events", "store", "admin", "about"]
+# --- BRANDING: LOGO ---
+TNF_LOGO_SVG = f"""
+<svg width="140" height="40" viewBox="0 0 140 40" fill="none" xmlns="http://www.w3.org/2000/svg">
+<rect x="0" y="0" width="140" height="40" fill="none"/>
+<text x="0" y="32" font-family="Helvetica, Arial, sans-serif" font-weight="900" font-size="36" fill="{COLOR_TEXT}" letter-spacing="-3">TNF</text>
+<rect x="80" y="10" width="4" height="20" fill="{COLOR_ACCENT}"/>
+<rect x="90" y="10" width="4" height="20" fill="{COLOR_CYAN}"/>
+<circle cx="115" cy="20" r="6" stroke="{COLOR_TEXT}" stroke-width="2"/>
+</svg>
+"""
 
-# -------------------- STATE INIT --------------------
-if 'page' not in st.session_state:
-    st.session_state.page = 'home'
-if 'dark' not in st.session_state:
-    st.session_state.dark = True
-if 'perf_log' not in st.session_state:
-    st.session_state.perf_log = []
+# -----------------------------------------------------------------------------
+# 1. PAGE CONFIGURATION
+# -----------------------------------------------------------------------------
+st.set_page_config(
+    page_title="TUESDAYNIGHTFREAK | OFFICIAL",
+    page_icon="⚫",
+    layout="wide",
+    initial_sidebar_state="collapsed"
+)
 
-# simple in-memory session lists
+# -----------------------------------------------------------------------------
+# 2. SESSION STATE VALIDATION (Fixes KeyError)
+# -----------------------------------------------------------------------------
+# This block ensures that if old data exists in the browser cache without 
+# the 'label' key, it gets overwritten with the new correct data.
+if 'songs' in st.session_state:
+    # Check if the first song has the 'label' key. If not, reset the data.
+    if len(st.session_state.songs) > 0 and 'label' not in st.session_state.songs[0]:
+        del st.session_state.songs
+
 if 'songs' not in st.session_state:
     st.session_state.songs = [
-        {"title":"UNTITLED_SEQ_04 [LIVE REC]","url":"#","platform":"SoundCloud"},
-        {"title":"MODULAR EXCURSION B (RAW)","url":"#","platform":"Bandcamp"},
+        {"title": "System Failure (Original Mix)", "label": "House Keeping Rec", "cat": "HKR004"},
+        {"title": "Analog Dreams", "label": "Tresor Records", "cat": "TR-291"},
+        {"title": "Voltage Control", "label": "Ostgut Ton", "cat": "OSTGUT-55"},
+        {"title": "Modular State", "label": "Klockworks", "cat": "KW-22"}
     ]
+
 if 'gallery' not in st.session_state:
     st.session_state.gallery = [
-        {"caption":"WAREHOUSE RAVE // BERLIN","url":"https://images.unsplash.com/photo-1517457375825-e578c799a74f?q=80&w=1200&auto=format&fit=crop"},
-        {"caption":"LIVE MODULAR RIG","url":"https://images.unsplash.com/photo-1550291652-6ea9114a47b1?q=80&w=1200&auto=format&fit=crop"},
+        {"caption": "MODULAR RIG SETUP A", "url": "https://images.unsplash.com/photo-1550291652-6ea9114a47b1?q=80&w=800&auto=format&fit=crop"},
+        {"caption": "LIVE SIGNAL PATH", "url": "https://images.unsplash.com/photo-1598275529124-b1c4b786f1e2?q=80&w=800&auto=format&fit=crop"},
+        {"caption": "WAREHOUSE CROWD", "url": "https://images.unsplash.com/photo-1571266028243-371695063ad6?q=80&w=800&auto=format&fit=crop"},
+        {"caption": "OSCILLATOR DETAIL", "url": "https://images.unsplash.com/photo-1619967657960-983b6329c370?q=80&w=800&auto=format&fit=crop"}
     ]
 
-# -------------------- UTILITIES --------------------
-def is_url(u: str) -> bool:
-    return bool(u and (u.startswith('http://') or u.startswith('https://')))
+if 'bookings' not in st.session_state:
+    st.session_state.bookings = []
 
-@st.cache_data(ttl=300)
-def http_status(u: str) -> int:
-    try:
-        r = requests.head(u, allow_redirects=True, timeout=6)
-        if r.status_code >= 400:
-            r = requests.get(u, allow_redirects=True, timeout=8)
-        return int(r.status_code)
-    except Exception:
-        return 0
+if 'cart' not in st.session_state:
+    st.session_state.cart = []
 
-# sanitize gallery on startup: replace dead urls with POSTER_IMG
-def sanitize_gallery():
-    fixed = []
-    for g in st.session_state.gallery:
-        url = g.get('url','')
-        if not is_url(url):
-            g['url'] = POSTER_IMG
-        else:
-            status = http_status(url)
-            if status == 0 or status >= 400:
-                g['url'] = POSTER_IMG
-        fixed.append(g)
-    st.session_state.gallery = fixed
+# -----------------------------------------------------------------------------
+# 3. CUSTOM CSS
+# -----------------------------------------------------------------------------
+st.markdown(f"""
+<style>
+    @import url('https://fonts.googleapis.com/css2?family=Inter:wght@400;600;900&family=Space+Mono:wght@400;700&display=swap');
 
-sanitize_gallery()
+    /* GLOBAL RESET */
+    .stApp {{
+        background-color: {COLOR_BG};
+        color: {COLOR_TEXT};
+        font-family: 'Inter', sans-serif;
+    }}
 
-# performance logging (append to /mnt/data/perf_log.csv)
-def log_perf(event: str, meta: Dict = None):
-    ts = time.time()
-    entry = {'timestamp': ts, 'event': event, 'meta': str(meta or {})}
-    st.session_state.perf_log.append(entry)
-    try:
-        # append to local CSV for persistence across sessions on Streamlit Cloud deploys
-        with open('/mnt/data/perf_log.csv','a') as f:
-            f.write(f"{ts},{event},{str(meta or {})}
-")
-    except Exception:
-        pass
+    /* UI CLEANUP */
+    #MainMenu {{visibility: hidden;}}
+    footer {{visibility: hidden;}}
+    header {{visibility: hidden;}}
+    .block-container {{ padding-top: 2rem !important; max-width: 1400px; }}
 
-# -------------------- STYLES: dark/light + bg video responsive --------------------
-def render_styles():
-    dark = st.session_state.dark
-    bg = COLOR_BG if dark else '#ffffff'
-    text = COLOR_TEXT if dark else '#111111'
-    accent = COLOR_ACCENT if dark else '#ff4400'
-    # two background video sources: desktop (higher quality) + mobile (480p) — both shown/hidden by CSS
-    VIDEO_DESKTOP = "https://assets.mixkit.co/videos/preview/mixkit-clubbing-dancers-loop-2387-large.mp4"
-    VIDEO_MOBILE = "https://assets.mixkit.co/videos/preview/mixkit-clubbing-dancers-loop-2387-small.mp4"
+    /* --- TYPOGRAPHY --- */
+    h1, h2, h3 {{
+        font-family: 'Inter', sans-serif;
+        text-transform: uppercase;
+        font-weight: 900;
+        color: {COLOR_TEXT};
+        letter-spacing: -1px;
+        margin-bottom: 0.5rem;
+    }}
+    
+    /* Subheaders with Cyberpunk Splash */
+    h4, h5 {{
+        font-family: 'Space Mono', monospace; /* Tech font */
+        font-weight: 700;
+        color: {COLOR_CYAN} !important;
+        text-transform: uppercase;
+        letter-spacing: 1px;
+        font-size: 0.9rem;
+    }}
 
-    css = f"""
-    <style>
-    :root{{--bg:{bg}; --text:{text}; --accent:{accent}; --yellow:{CP_YELLOW};}}
-    body, .stApp{{background:var(--bg); color:var(--text);}}
-    .artist-title{{font-family:Tomorrow, sans-serif; font-size:clamp(2rem,5vw,4rem); font-weight:900; color:var(--yellow); text-shadow:4px 4px 0 #00f0ff;}}
-    .logo-anim{{width:80px;height:80px;}}
-    .bg-video-wrap{{position:fixed; inset:0; z-index:-1; overflow:hidden; pointer-events:none}}
-    .bg-desktop{{display:block; min-width:100%; min-height:100%; object-fit:cover; filter:brightness(.45) contrast(1.05)}}
-    .bg-mobile{{display:none; min-width:100%; min-height:100%; object-fit:cover; filter:brightness(.45) contrast(1.05)}}
-    @media (max-width:700px){{ .bg-desktop{{display:none}}; .bg-mobile{{display:block}}; }}
-    </style>
-    <div class="bg-video-wrap">
-      <video autoplay muted loop playsinline class="bg-desktop" poster="{POSTER_IMG}">
-        <source src="{VIDEO_DESKTOP}" type="video/mp4">
-      </video>
-      <video autoplay muted loop playsinline class="bg-mobile" poster="{POSTER_IMG}">
-        <source src="{VIDEO_MOBILE}" type="video/mp4">
-      </video>
-    </div>
-    """
-    st.markdown(css, unsafe_allow_html=True)
+    /* --- UI ELEMENTS --- */
+    
+    /* Primary Action Button (Red) */
+    .stButton>button {{
+        background-color: {COLOR_TEXT};
+        color: {COLOR_BG};
+        border: 1px solid {COLOR_TEXT};
+        font-family: 'Inter', sans-serif;
+        font-weight: 900;
+        text-transform: uppercase;
+        padding: 12px 28px;
+        border-radius: 0px;
+        transition: all 0.3s;
+    }}
+    .stButton>button:hover {{
+        background-color: {COLOR_ACCENT};
+        color: {COLOR_TEXT};
+        border-color: {COLOR_ACCENT};
+        box-shadow: 0 0 15px rgba(255, 0, 51, 0.4);
+    }}
 
-render_styles()
+    /* Cards / Containers */
+    .content-card {{
+        background-color: {COLOR_SECONDARY};
+        padding: 25px;
+        border-left: 3px solid {COLOR_ACCENT};
+        margin-bottom: 20px;
+        border-right: 1px solid #222;
+        border-top: 1px solid #222;
+        border-bottom: 1px solid #222;
+    }}
+    
+    /* Tech/System Cards (Cyan Splash) */
+    .tech-card {{
+        background-color: #0f0f0f;
+        padding: 15px;
+        border: 1px solid #222;
+        border-top: 3px solid {COLOR_CYAN};
+        font-family: 'Space Mono', monospace;
+        font-size: 0.85rem;
+        color: #aaa;
+    }}
 
-# -------------------- Animated SVG logo --------------------
-ANIM_SVG = '''
-<svg class="logo-anim" viewBox="0 0 100 100" xmlns="http://www.w3.org/2000/svg">
-  <circle cx="50" cy="50" r="40" stroke="#fcee0a" stroke-width="4" fill="none">
-    <animate attributeName="r" from="35" to="40" dur="1s" repeatCount="indefinite" />
-  </circle>
-  <text x="50%" y="55%" text-anchor="middle" font-family="monospace" font-weight="700" font-size="18" fill="#fcee0a">TNF</text>
-</svg>
-'''
+    /* Inputs */
+    .stTextInput>div>div>input, .stTextArea>div>div>textarea {{
+        background-color: {COLOR_SECONDARY};
+        color: {COLOR_TEXT};
+        border: 1px solid #333;
+        border-radius: 0;
+    }}
+    .stTextInput>div>div>input:focus {{
+        border-color: {COLOR_CYAN};
+        box-shadow: 0 0 8px rgba(0, 247, 255, 0.2);
+    }}
 
-# -------------------- Header / Navigation UI --------------------
-cols = st.columns([1,4,1])
-with cols[0]:
-    st.markdown(ANIM_SVG, unsafe_allow_html=True)
-with cols[1]:
-    st.markdown('<div style="text-align:center"><h1 style="margin:0">TUESDAY NIGHT FREAK</h1><div style="font-size:12px">Live Hardware Electronics — Melbourne // Berlin</div></div>', unsafe_allow_html=True)
-with cols[2]:
-    toggle = st.checkbox('Dark mode', value=st.session_state.dark, key='dark_toggle')
-    if toggle != st.session_state.dark:
-        st.session_state.dark = toggle
-        render_styles()
+    /* Links */
+    a {{ color: {COLOR_TEXT} !important; text-decoration: none; font-weight: 600; transition: color 0.2s; }}
+    a:hover {{ color: {COLOR_CYAN} !important; }}
+    
+    hr {{ border-color: #222; margin: 3rem 0; }}
 
-# breadcrumbs / page selector
-page = st.selectbox('Navigate', PAGES, index=PAGES.index(st.session_state.page))
-st.session_state.page = page
-log_perf('navigate', {'page': page})
+</style>
+""", unsafe_allow_html=True)
 
-# -------------------- HOME --------------------
-if st.session_state.page == 'home':
-    st.markdown('''
-    <div style="display:flex;gap:12px;align-items:center">
-      <div class="artist-title">TUESDAY<br/>NIGHT<br/>FREAK</div>
-      <div style="margin-left:18px">'''+ANIM_SVG+'''</div>
-    </div>
-    ''', unsafe_allow_html=True)
-    st.markdown('### Immersive live modular sets — no laptops, pure voltage.')
-    st.button('Listen — Latest Release')
-    st.write('---')
-    # featured media
-    if st.session_state.gallery:
-        g = st.session_state.gallery[0]
-        st.image(g.get('url', POSTER_IMG), caption=g.get('caption'))
+# -----------------------------------------------------------------------------
+# 4. NAVIGATION
+# -----------------------------------------------------------------------------
+selected = option_menu(
+    menu_title=None,
+    options=["HOME", "MUSIC", "EVENTS", "STORE", "ABOUT"],
+    icons=["house-fill", "disc-fill", "calendar-event-fill", "bag-fill", "info-circle-fill"],
+    menu_icon="cast",
+    default_index=0,
+    orientation="horizontal",
+    styles={
+        "container": {"padding": "0!important", "background-color": COLOR_BG, "border-bottom": "1px solid #333"},
+        "icon": {"color": "#666", "font-size": "12px"}, 
+        "nav-link": {
+            "font-size": "14px", "text-align": "center", "margin": "0px", 
+            "color": "#888", "font-family": "Inter, sans-serif", "text-transform": "uppercase", "font-weight": "600"
+        },
+        "nav-link-selected": {"background-color": COLOR_BG, "color": COLOR_TEXT, "border-bottom": f"2px solid {COLOR_ACCENT}"},
+    }
+)
 
-# -------------------- MUSIC (Dedicated player) --------------------
-elif st.session_state.page == 'music':
-    st.header('Music Player')
-    st.markdown('A dedicated player for mp3/wav and SoundCloud embeds.')
-    for idx, track in enumerate(st.session_state.songs):
-        st.subheader(track.get('title','Untitled'))
-        url = track.get('url','')
-        if url.endswith('.mp3') or url.endswith('.wav'):
-            st.audio(url)
-        elif 'soundcloud.com' in url:
-            embed = f"<iframe width='100%' height='140' scrolling='no' frameborder='no' allow='autoplay' src='https://w.soundcloud.com/player/?url={url}&auto_play=false'></iframe>"
-            st.components.v1.html(embed, height=160)
-        elif 'open.spotify.com' in url:
-            # spotify embed
-            sp = url.replace('open.spotify.com','open.spotify.com/embed')
-            iframe = f"<iframe src='{sp}' width='100%' height='152' frameborder='0' allowtransparency='true' allow='encrypted-media'></iframe>"
-            st.components.v1.html(iframe, height=160)
-        else:
-            st.write('No embeddable source. Provide mp3/wav/SoundCloud/Spotify link in ADMIN.')
-        st.write('---')
+# -----------------------------------------------------------------------------
+# 5. PAGE CONTENT
+# -----------------------------------------------------------------------------
 
-# -------------------- GALLERY (AI visuals + grid) --------------------
-elif st.session_state.page == 'gallery':
-    st.header('Visual Feed — AI visuals & Live photos')
-    col1, col2 = st.columns([3,1])
-    with col2:
-        st.markdown('### AI Visuals')
-        if st.button('Add 6 AI visuals (sample)'):
-            # In place of real AI generation we add curated techno-style images (user can replace later)
-            sample = [
-                'https://images.unsplash.com/photo-1492684223066-81342ee5ff30?q=80&w=1200&auto=format&fit=crop',
-                'https://images.unsplash.com/photo-1542736667-069246bdbc76?q=80&w=1200&auto=format&fit=crop',
-                'https://images.unsplash.com/photo-1504384308090-c894fdcc538d?q=80&w=1200&auto=format&fit=crop',
-            ]
-            for s in sample:
-                st.session_state.gallery.append({'caption':'AI VISUAL', 'url': s})
-            sanitize_gallery()
-            st.success('Sample AI visuals added to gallery (replace with your generated images as desired).')
-    # grid
-    cols = st.columns(3)
-    for i, g in enumerate(st.session_state.gallery):
-        with cols[i % 3]:
-            st.image(g.get('url', POSTER_IMG), caption=g.get('caption',''), use_column_width=True)
-
-# -------------------- LABEL --------------------
-elif st.session_state.page == 'label':
-    st.header('House Keeping Records')
-    st.markdown('Vinyl-first label — releases, promos, demos.')
-    with st.expander('Submit Demo'):
-        alias = st.text_input('Artist alias')
-        link = st.text_input('SoundCloud / Private link')
-        if st.button('Submit demo'):
-            st.success('Demo received — we will review.')
-
-# -------------------- EVENTS --------------------
-elif st.session_state.page == 'events':
-    st.header('Tour Dates')
-    events = [
-        {'date':'2025-11-04','city':'AMSTERDAM','venue':'SHELTER','tickets':'https://example.com'},
-        {'date':'2025-11-11','city':'LONDON','venue':'FOLD','tickets':'https://example.com'},
-    ]
-    for e in events:
-        c1,c2,c3 = st.columns([1,3,2])
-        with c1: st.markdown(f"**{e['date']}**")
+# --- HOME PAGE ---
+if selected == "HOME":
+    # HERO IMAGE: Tech/Abstract
+    st.image("https://images.unsplash.com/photo-1558584673-c834fb1cc3ca?q=80&w=1400&auto=format&fit=crop", use_column_width=True)
+    
+    col1, col2 = st.columns([2, 1])
+    
+    with col1:
+        st.markdown(f"## TUESDAYNIGHTFREAK {TNF_LOGO_SVG}", unsafe_allow_html=True)
+        st.markdown("#### ARCHITECTS OF THE ANALOGUE SIGNAL")
+        
+        st.markdown("""
+        <div style="font-size: 1.1rem; line-height: 1.6;">
+        Tuesdaynightfreak operates at the intersection of <strong>studio precision</strong> and <strong>live improvisation</strong>. 
+        We construct immersive sonic environments using modular synthesis, exploring the tension between mechanical repetition and human error.
+        <br><br>
+        A sonic movement born in Melbourne, refined in Berlin.
+        </div>
+        """, unsafe_allow_html=True)
+        
+        st.markdown("<br>", unsafe_allow_html=True)
+        c1, c2 = st.columns(2)
+        with c1:
+            st.button("LATEST RELEASE")
         with c2:
-            st.markdown(f"**{e['city']} — {e['venue']}**")
+            st.button("VIEW TOUR DATES")
+
+    with col2:
+        st.markdown("#### SYSTEM UPDATES")
+        
+        st.markdown(f"""
+        <div class="tech-card">
+        <span style="color:{COLOR_ACCENT}">●</span> <strong>NEW RELEASE</strong><br>
+        'VOLTAGE CONTROL' EP OUT NOW VIA OSTGUT TON.
+        </div>
+        <br>
+        <div class="tech-card">
+        <span style="color:{COLOR_CYAN}">●</span> <strong>TOUR ANNOUNCEMENT</strong><br>
+        EUROPEAN DATES CONFIRMED FOR WINTER 2025.
+        </div>
+        """, unsafe_allow_html=True)
+
+    st.write("---")
+    
+    # FEATURED VIDEO
+    st.markdown("### LIVE TRANSMISSION")
+    col1, col2 = st.columns(2)
+    with col1:
+        st.image("https://images.unsplash.com/photo-1550291652-6ea9114a47b1?q=80&w=800&auto=format&fit=crop", caption="LIVE RIG CONFIGURATION")
+    with col2:
+        st.markdown("""
+        **SESSION 001: MODULAR IMPROV**
+        
+        Recorded live in one take at The Warehouse Project. 
+        A journey through deep textures and driving rhythms.
+        
+        *Hardware: Eurorack system, TR-909, Moog Sub37.*
+        """)
+        st.button("WATCH FULL SET")
+
+# --- MUSIC ---
+elif selected == "MUSIC":
+    st.markdown("## DISCOGRAPHY")
+    
+    # Track List
+    for track in st.session_state.songs:
+        c1, c2, c3, c4 = st.columns([1, 4, 2, 2])
+        with c1:
+            st.markdown(f"<div style='width:50px; height:50px; background-color:{COLOR_SECONDARY}; border:1px solid #333; display:flex; align-items:center; justify-content:center; color:#666; font-size:0.7rem;'>ART</div>", unsafe_allow_html=True)
+        with c2:
+            st.markdown(f"**{track['title']}**")
         with c3:
-            st.markdown(f"[Buy Tickets ▶]({e['tickets']})")
+            st.caption(track['label'] + " // " + track['cat'])
+        with c4:
+            st.button("STREAM", key=track['title'])
+        st.markdown(f"<hr style='margin: 10px 0; border-color: #1a1a1a;'>", unsafe_allow_html=True)
 
-# -------------------- STORE --------------------
-elif st.session_state.page == 'store':
-    st.header('Shop — Vinyl & Merch')
-    st.markdown('Contact for wholesale and stockists.')
+    st.markdown("### HOUSE KEEPING RECORDS")
+    c1, c2 = st.columns([1, 1])
+    with c1:
+        st.image("https://images.unsplash.com/photo-1605218427306-022648d42d32?q=80&w=1200&auto=format&fit=crop", caption="HKR HQ")
+    with c2:
+        st.markdown("""
+        <div class="content-card">
+        Our dedicated platform for the raw and the deep.
+        <br><br>
+        House Keeping Records focuses on functional tools for DJs and sonic explorations for heads. 
+        Strictly vinyl releases for select projects.
+        </div>
+        """, unsafe_allow_html=True)
 
-# -------------------- ADMIN (uploads + spotify/beatport embeds) --------------------
-elif st.session_state.page == 'admin':
-    st.header('Admin — Uploads & Embeds')
-    with st.form('add_track'):
-        t = st.text_input('Title')
-        u = st.text_input('URL (mp3/wav/SoundCloud/Spotify)')
-        submit = st.form_submit_button('Add track')
-        if submit:
-            st.session_state.songs.append({'title':t,'url':u})
-            st.success('Track added')
-            log_perf('add_track', {'title': t})
-    with st.form('add_visual'):
-        cap = st.text_input('Caption')
-        img = st.text_input('Image URL (http(s) or /mnt/...)')
-        addv = st.form_submit_button('Add visual')
-        if addv:
-            if img and not is_url(img) and not img.startswith('/mnt/'):
-                st.error('Provide a valid http(s) URL or /mnt/... path')
+# --- EVENTS ---
+elif selected == "EVENTS":
+    st.markdown("## UPCOMING DATES")
+    
+    events = [
+        {"date": "NOV 04", "city": "AMSTERDAM", "venue": "SHELTER", "status": "SELLING FAST"},
+        {"date": "NOV 11", "city": "LONDON", "venue": "FOLD", "status": "TICKETS"},
+        {"date": "NOV 18", "city": "MELBOURNE", "venue": "REVOLVER", "status": "SOLD OUT"},
+        {"date": "DEC 02", "city": "PARIS", "venue": "REX CLUB", "status": "TICKETS"},
+    ]
+    
+    for event in events:
+        c1, c2, c3, c4 = st.columns([1, 2, 2, 2])
+        with c1:
+            st.markdown(f"<span style='color:{COLOR_ACCENT}; font-family:Space Mono; font-weight:bold;'>{event['date']}</span>", unsafe_allow_html=True)
+        with c2:
+            st.markdown(f"**{event['city']}**")
+        with c3:
+            st.markdown(event['venue'])
+        with c4:
+            if event['status'] == "SOLD OUT":
+                st.markdown(f"<span style='color:#666; font-family:Space Mono;'>SOLD OUT</span>", unsafe_allow_html=True)
             else:
-                st.session_state.gallery.append({'caption':cap or 'Untitled','url': img or POSTER_IMG})
-                sanitize_gallery()
-                st.success('Visual added')
-    st.write('---')
-    st.markdown('### Embed Beatport release (link)')
-    beat = st.text_input('Beatport release URL (optional)')
-    if beat and is_url(beat):
-        # Beatport doesn't offer a consistent public embed; provide link and try iframe fallback
-        st.markdown(f"[Open on Beatport]({beat})")
-        try:
-            iframe = f"<iframe src='{beat}' width='100%' height='300'></iframe>"
-            st.components.v1.html(iframe, height=320)
-        except Exception:
-            st.info('Beatport embed may not be supported — link provided.')
+                st.button(f"BUY {event['status']}", key=event['city'])
+        st.markdown(f"<hr style='margin: 10px 0; border-color: #1a1a1a;'>", unsafe_allow_html=True)
 
-# -------------------- ABOUT / DOMAIN & SSL INSTRUCTIONS --------------------
-elif st.session_state.page == 'about':
-    st.header('About & Deployment Notes')
-    st.markdown('''
-    ### Custom domain & SSL (quick guide)
-    1. Deploy your app on Streamlit Cloud (or any VPS).  
-    2. Add your custom domain in the hosting provider settings (e.g., Cloudflare) and point DNS to Streamlit's provided CNAME / A records.  
-    3. Enable Cloudflare (optional) and turn on "Always Use HTTPS". Streamlit Cloud provides HTTPS automatically for apps deployed there.  
-    4. If self-hosting: configure a reverse proxy (Nginx) and obtain certificates with Let's Encrypt (certbot) — serve on port 443.  
+# --- STORE (MERCH) ---
+elif selected == "STORE":
+    st.markdown("## OFFICIAL MERCHANDISE")
+    
+    # Cart Summary
+    if len(st.session_state.cart) > 0:
+        st.info(f"CART: {len(st.session_state.cart)} ITEMS")
+    
+    c1, c2, c3 = st.columns(3)
+    
+    with c1:
+        # Merch Item 1
+        st.markdown(f"""
+        <div style="background:{COLOR_SECONDARY}; padding:10px; margin-bottom:10px;">
+            <div style="height:200px; background:#000; display:flex; align-items:center; justify-content:center;">
+                <span style="color:{COLOR_TEXT}; font-weight:900; font-size:2rem;">TNF</span>
+            </div>
+        </div>
+        """, unsafe_allow_html=True)
+        st.markdown("**TNF CORE TEE [BLACK]**")
+        st.caption("Heavyweight Cotton / Screen Print")
+        st.markdown(f"**€35.00**")
+        if st.button("ADD TO CART", key="m1"):
+            st.session_state.cart.append("Tee")
+            st.rerun()
+        
+    with c2:
+        # Merch Item 2
+        st.markdown(f"""
+        <div style="background:{COLOR_SECONDARY}; padding:10px; margin-bottom:10px;">
+            <div style="height:200px; background:#000; display:flex; align-items:center; justify-content:center;">
+                <span style="color:{COLOR_ACCENT}; font-weight:900; font-size:2rem;">HKR</span>
+            </div>
+        </div>
+        """, unsafe_allow_html=True)
+        st.markdown("**HKR LABEL HOODIE**")
+        st.caption("Oversized Fit / Embroidered")
+        st.markdown(f"**€65.00**")
+        if st.button("ADD TO CART", key="m2"):
+            st.session_state.cart.append("Hoodie")
+            st.rerun()
+        
+    with c3:
+        # Merch Item 3
+        st.markdown(f"""
+        <div style="background:{COLOR_SECONDARY}; padding:10px; margin-bottom:10px;">
+            <div style="height:200px; background:#000; display:flex; align-items:center; justify-content:center;">
+                <span style="color:{COLOR_CYAN}; font-weight:900; font-size:2rem;">◎</span>
+            </div>
+        </div>
+        """, unsafe_allow_html=True)
+        st.markdown("**PROFESSIONAL SLIPMATS (PAIR)**")
+        st.caption("High grade felt / Anti-static")
+        st.markdown(f"**€20.00**")
+        if st.button("ADD TO CART", key="m3"):
+            st.session_state.cart.append("Slipmats")
+            st.rerun()
 
-    If you'd like I can produce exact DNS records for your registrar and a sample Nginx config.
-    ''')
-    st.write('---')
-    st.markdown('### Performance logging')
-    st.markdown('We log lightweight interactions to `/mnt/data/perf_log.csv` for offline analysis. Request the file if you need it.')
-    try:
-        with open('/mnt/data/perf_log.csv','r') as f:
-            st.download_button('Download perf log', f.read(), file_name='perf_log.csv')
-    except Exception:
-        st.info('No perf log present yet.')
+# --- ABOUT / CONTACT ---
+elif selected == "ABOUT":
+    col1, col2 = st.columns([1.5, 1], gap="large")
+    
+    with col1:
+        st.markdown("## BIOGRAPHY")
+        st.markdown("""
+        **Tuesdaynightfreak** is an electronic music project established in Melbourne, Australia.
+        
+        Drawing influence from the stark industrialism of Berlin and the soulful rhythms of Detroit, 
+        the project explores the boundaries of hardware sequencing. It is a reaction against the 
+        predictability of digital production—a celebration of the machine's inherent instability.
+        
+        From the smoky basements of *Revolver* to the concrete halls of *Tresor*, Tuesdaynightfreak 
+        delivers a sound that is distinct, raw, and uncompromising. 
+        
+        Alongside the live act, the **House Keeping Records** imprint serves as a vessel for 
+        like-minded artists pushing the envelope of functional dance music.
+        """)
+        
+        st.markdown("<br>", unsafe_allow_html=True)
+        st.markdown("#### CONTACT MANAGEMENT")
+        st.markdown(f"<div class='tech-card'>mgmt@tuesdaynightfreak.com</div>", unsafe_allow_html=True)
+        
+        st.markdown("#### DEMO POLICY")
+        st.markdown(f"<div class='tech-card'>demos@housekeeping-rec.com (Private SC Links Only)</div>", unsafe_allow_html=True)
 
-# -------------------- Diagnostics: quick link scanner available on admin page --------------------
-
-# final perf entry
-log_perf('page_view', {'page': st.session_state.page})
-
-# EOF
+    with col2:
+        st.markdown("## NEWSLETTER")
+        st.write("Join our community for early access to vinyl drops and guestlist spots.")
+        with st.form("newsletter"):
+            st.text_input("EMAIL ADDRESS")
+            st.form_submit_button("SUBSCRIBE")
+            
+        st.write("---")
+        st.markdown("#### PRESS KIT")
+        st.button("DOWNLOAD EPK (ZIP)")
