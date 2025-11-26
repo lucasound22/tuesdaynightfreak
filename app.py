@@ -226,7 +226,7 @@ st.markdown(f"""
 <script src="https://cdnjs.cloudflare.com/ajax/libs/tone/14.8.49/Tone.min.js"></script>
 
 <script>
-    // Auto-start audio on first user interaction (click)
+    // Auto-start audio on first user interaction (click) - NO OVERLAY
     document.addEventListener('click', async () => {{
         if (typeof Tone !== 'undefined' && Tone.context.state !== 'running') {{
             await Tone.start();
