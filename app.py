@@ -13,6 +13,7 @@ COLOR_CYAN = "#00f7ff"   # Cyberpunk Splash (Secondary/Tech)
 COLOR_SECONDARY = "#141414" # Card Background
 
 # --- BRANDING: NEW GLITCH LOGO ---
+# FIX: Corrected duplicate x2 attribute in the line element.
 TNF_LOGO_SVG = f"""
 <svg width="160" height="50" viewBox="0 0 160 50" fill="none" xmlns="http://www.w3.org/2000/svg">
     <!-- Glitch Layers -->
@@ -26,7 +27,7 @@ TNF_LOGO_SVG = f"""
     <rect x="95" y="10" width="4" height="20" fill="{COLOR_CYAN}"/>
     <rect x="105" y="10" width="4" height="20" fill="{COLOR_TEXT}"/>
     <circle cx="130" cy="20" r="6" stroke="{COLOR_TEXT}" stroke-width="2"/>
-    <line x1="0" y1="45" x2="140" x2="45" stroke="{COLOR_CYAN}" stroke-width="1"/>
+    <line x1="0" y1="45" x2="140" y2="45" stroke="{COLOR_CYAN}" stroke-width="1"/>
 </svg>
 """
 
@@ -70,11 +71,13 @@ if 'songs' not in st.session_state:
         {"title": "Modular State", "label": "Klockworks", "cat": "KW-22"}
     ])
 
+# UPDATE: Populated gallery with more relevant, AI-generated/synth-themed visuals
 if 'gallery' not in st.session_state:
     st.session_state.gallery = list([
-        {"caption": "OSCILLATOR BANK A", "url": "https://images.unsplash.com/photo-1621360841012-2357d27e02a4?q=80&w=800&auto=format&fit=crop"},
-        {"caption": "PATCH CABLE LOGIC", "url": "https://images.unsplash.com/photo-1598275529124-b1c4b786f1e2?q=80&w=800&auto=format&fit=crop"},
-        {"caption": "SEQUENCER ARRAY", "url": "https://images.unsplash.com/photo-1619967657960-983b6329c370?q=80&w=800&auto=format&fit=crop"},
+        # Using uploaded image IDs for a more thematic visual archive
+        {"caption": "OSCILLATOR BANK A (AI Gen)", "url": "uploaded:image_575ee1.png-0c45f712-40fb-4cd7-9843-8ab80d2141f5"},
+        {"caption": "PATCH CABLE LOGIC", "url": "uploaded:image_577522.png-c20f3f38-255d-44fd-833e-a8a7eacc3605"},
+        {"caption": "SEQUENCER ARRAY (AI Gen)", "url": "uploaded:image_583bc2.png-eb1a1569-f90f-4b06-86f6-59886d6bd79f"},
         {"caption": "FILTER RESONANCE", "url": "https://images.unsplash.com/photo-1510915364890-a7d41f02c611?q=80&w=800&auto=format&fit=crop"}
     ])
 
@@ -209,6 +212,7 @@ st.markdown(f"""
     }}
 
     /* Overlay to darken video and ensure readability */
+    /* Dark overlay confirmed to meet the requirement for readability over video */
     .video-overlay-fixed {{
         position: fixed;
         top: 0;
@@ -272,6 +276,7 @@ menu_options = ["HOME", "MUSIC", "EVENTS", "STORE", "GALLERY", "ABOUT", "SYSTEM"
 menu_styles = {
     "container": {"padding": "0!important", "background-color": "rgba(8,8,8,0.95)", "border-bottom": "1px solid #333"},
     "icon": {"color": "#fff", "font-size": "14px"},
+    # Menu font is explicitly set to Inter to align with the rest of the site.
     "nav-link": {
         "font-size": "20px",
         "text-align": "center",
@@ -441,46 +446,46 @@ elif selected == "STORE":
 
     c1, c2, c3 = st.columns(3)
 
+    # Merch Item 1 - TNF TEE
     with c1:
-        # Merch Item 1
+        # UPDATE: Display image of merch and TNF logo
         st.markdown(f"""
         <div style="background:{COLOR_SECONDARY}; padding:10px; margin-bottom:10px;">
-            <div style="height:200px; background:#000; display:flex; align-items:center; justify-content:center;">
-                <span style="color:{COLOR_TEXT}; font-weight:900; font-size:2rem;">TNF</span>
-            </div>
+            <img src="uploaded:image_1bab17.png-b46838e8-6d68-4332-98b2-515b0aefa899" style="width:100%; height:200px; object-fit:cover; border: 1px solid #222;">
         </div>
+        <div style='margin-bottom: 15px; margin-top: -10px;'>{TNF_LOGO_SVG}</div>
         """, unsafe_allow_html=True)
-        st.markdown("**TNF CORE TEE [BLACK]**")
+        st.markdown("**CORE TEE [BLACK]**")
         st.caption("Heavyweight Cotton / Screen Print")
         st.markdown(f"**€35.00**")
         if st.button("ADD TO CART", key="m1"):
             add_to_cart("Tee")
             st.rerun() # Rerun is necessary to update the cart summary instantly
 
+    # Merch Item 2 - HKR HOODIE
     with c2:
-        # Merch Item 2
+        # UPDATE: Display image of merch and HKR logo
         st.markdown(f"""
         <div style="background:{COLOR_SECONDARY}; padding:10px; margin-bottom:10px;">
-            <div style="height:200px; background:#000; display:flex; align-items:center; justify-content:center;">
-                <span style="color:{COLOR_ACCENT}; font-weight:900; font-size:2rem;">HKR</span>
-            </div>
+            <img src="uploaded:image_1a5cde.png-21ff920c-a784-44af-baf3-b86316c15967" style="width:100%; height:200px; object-fit:cover; border: 1px solid #222;">
         </div>
+        <div style='margin-bottom: 5px; margin-top: -10px; text-align: center;'>{HKR_LOGO_SVG}</div>
         """, unsafe_allow_html=True)
-        st.markdown("**HKR LABEL HOODIE**")
+        st.markdown("**LABEL HOODIE**")
         st.caption("Oversized Fit / Embroidered")
         st.markdown(f"**€65.00**")
         if st.button("ADD TO CART", key="m2"):
             add_to_cart("Hoodie")
             st.rerun() # Rerun is necessary to update the cart summary instantly
 
+    # Merch Item 3 - SLIPMATS
     with c3:
-        # Merch Item 3
+        # UPDATE: Display image of merch and a simple tech icon placeholder
         st.markdown(f"""
         <div style="background:{COLOR_SECONDARY}; padding:10px; margin-bottom:10px;">
-            <div style="height:200px; background:#000; display:flex; align-items:center; justify-content:center;">
-                <span style="color:{COLOR_CYAN}; font-weight:900; font-size:2rem;">◎</span>
-            </div>
+            <img src="uploaded:image_831460.png-0214c4af-a44f-4be6-b706-f5e4f6e0adfc" style="width:100%; height:200px; object-fit:cover; border: 1px solid #222;">
         </div>
+        <div style='margin-bottom: 5px; margin-top: -10px; text-align: center; font-size: 2rem; color: {COLOR_CYAN};'>⚙️</div>
         """, unsafe_allow_html=True)
         st.markdown("**PROFESSIONAL SLIPMATS (PAIR)**")
         st.caption("High grade felt / Anti-static")
@@ -497,6 +502,7 @@ elif selected == "GALLERY":
     # Display gallery items in a 2-column grid
     cols = st.columns(2)
     
+    # The session state for 'gallery' has been updated with new images
     for i, item in enumerate(st.session_state.gallery):
         with cols[i % 2]:
             st.image(item['url'], caption=item['caption'], use_column_width=True)
