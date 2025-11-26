@@ -1,3 +1,4 @@
 streamlit
 stripe
 requests
+streamlit-option-menu
