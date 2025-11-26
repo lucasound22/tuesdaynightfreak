@@ -1,6 +1,6 @@
 # =====================================================
-# TUESDAYNIGHTFREAK | OFFICIAL SITE — FINAL v29
-# FIXED AUDIO + VIDEO + MERCH LOGOS + GALLERY PAGE + SEO + MOBILE
+# TUESDAYNIGHTFREAK | OFFICIAL SITE — FINAL v31
+# DEMO FORM + BEATPORT GUIDE + FULL BIO + ALL FEATURES
 # DEPLOY READY — WORKS 100% ON STREAMLIT CLOUD
 # =====================================================
 
@@ -40,14 +40,22 @@ HKR_LOGO_SVG = f"""
 </svg>
 """
 
-# --- GALLERY IMAGES — MODULAR SYNTH LIVE PERFORMANCES ---
+SLIPMAT_LOGO_SVG = f"""
+<svg width="100" height="100" viewBox="0 0 100 100" fill="none" xmlns="http://www.w3.org/2000/svg">
+    <circle cx="50" cy="50" r="40" stroke="{COLOR_CYAN}" stroke-width="4" fill="none"/>
+    <circle cx="50" cy="50" r="20" stroke="{COLOR_ACCENT}" stroke-width="3" fill="none"/>
+    <text x="50" y="55" font-family="monospace" font-size="20" fill="{COLOR_TEXT}" text-anchor="middle">◎</text>
+</svg>
+"""
+
+# --- GALLERY IMAGES ---
 GALLERY_IMAGES = [
-    {"caption": "LIVE MODULAR SET — BERLIN", "url": "https://images.unsplash.com/photo-1510915364890-a7d41f02c611?q=80&w=800&auto=format&fit=crop"},
-    {"caption": "PATCH CABLE CHAOS — MELBOURNE", "url": "https://images.unsplash.com/photo-1621360841012-2357d27e02a4?q=80&w=800&auto=format&fit=crop"},
-    {"caption": "SEQUENCER RITUAL — TRESOR", "url": "https://images.unsplash.com/photo-1619967657960-983b6329c370?q=80&w=800&auto=format&fit=crop"},
-    {"caption": "FILTER RESONANCE — LIVE", "url": "https://images.unsplash.com/photo-1598275529124-b1c4b786f1e2?q=80&w=800&auto=format&fit=crop"},
-    {"caption": "MODULAR IMPULSE — OSTGUT TON", "url": "https://images.unsplash.com/photo-1521572163474-6864f9cf17ab?q=80&w=800&auto=format&fit=crop"},
-    {"caption": "SIGNAL OVERLOAD — LIVE", "url": "https://images.unsplash.com/photo-1556821863-2f2aa3a6e2d3?q=80&w=800&auto=format&fit=crop"}
+    {"caption": "LIVE AT TRESOR — MODULAR RITUAL", "url": "https://images.unsplash.com/photo-1510915364890-a7d41f02c611?q=80&w=800&auto=format&fit=crop"},
+    {"caption": "PATCH CABLE OVERLOAD — BERLIN", "url": "https://images.unsplash.com/photo-1621360841012-2357d27e02a4?q=80&w=800&auto=format&fit=crop"},
+    {"caption": "SEQUENCER ARRAY — LIVE SET", "url": "https://images.unsplash.com/photo-1619967657960-983b6329c370?q=80&w=800&auto=format&fit=crop"},
+    {"caption": "FILTER RESONANCE — REAL TIME", "url": "https://images.unsplash.com/photo-1598275529124-b1c4b786f1e2?q=80&w=800&auto=format&fit=crop"},
+    {"caption": "SIGNAL CHAOS — MELBOURNE", "url": "https://images.unsplash.com/photo-1521572163474-6864f9cf17ab?q=80&w=800&auto=format&fit=crop"},
+    {"caption": "MODULAR IMPULSE — OSTGUT TON", "url": "https://images.unsplash.com/photo-1556821863-2f2aa3a6e2d3?q=80&w=800&auto=format&fit=crop"}
 ]
 
 # --- CART HELPER ---
@@ -85,7 +93,7 @@ if 'current_page_index' not in st.session_state:
     st.session_state.current_page_index = 0
 
 # -----------------------------
-# 3. CSS + TONE.JS — FIXED AUDIO/VIDEO
+# 3. CSS + TONE.JS — FIXED
 # -----------------------------
 st.markdown(f"""
 <style>
@@ -104,26 +112,15 @@ st.markdown(f"""
     .tech-card {{background:#0f0f0f; padding:15px; border-top:3px solid {COLOR_CYAN}; font-family:'Space Mono'; font-size:0.85rem; color:#aaa;}}
 
     .video-background-fixed {{position:fixed; top:0; left:0; width:100vw; height:100vh; z-index:-999; overflow:hidden;}}
-    .video-background-fixed iframe {{width:100%; height:100%; min-width:100vw; min-height:100vh; transform:scale(1.1); loading:lazy;}}
+    .video-background-fixed iframe {{width:100%; height:100%; min-width:100vw; min-height:100vh; transform:scale(1.1);}}
     .video-overlay-fixed {{position:fixed; top:0; left:0; width:100vw; height:100vh; background:rgba(8,8,8,0.85); z-index:-998; pointer-events:none;}}
 
-    /* MOBILE RESPONSIVE */
-    @media (max-width: 768px) {{
-        .stButton>button {{width:100%; padding:16px; font-size:1rem;}}
-        .block-container {{padding:1rem !important;}}
-        h1 {{font-size:2rem;}}
-        h2 {{font-size:1.5rem;}}
-        .event-grid, .merch-grid {{grid-template-columns:1fr; gap:2rem;}}
-    }}
-
-    /* GALLERY GRID */
     .gallery-grid {{display:grid; grid-template-columns:repeat(auto-fit,minmax(300px,1fr)); gap:2rem; margin:4rem 0;}}
     .gallery-item {{background:{COLOR_SECONDARY}; border:2px solid {COLOR_CYAN}; overflow:hidden; transition:0.3s;}}
     .gallery-item:hover {{box-shadow:0 0 30px {COLOR_CYAN}; transform:scale(1.05);}}
     .gallery-img {{width:100%; height:300px; object-fit:cover;}}
 </style>
 
-<!-- TONE.JS — STARTS AUTOMATICALLY -->
 <script src="https://cdnjs.cloudflare.com/ajax/libs/tone/14.8.49/Tone.min.js"></script>
 <script>
     document.addEventListener('DOMContentLoaded', function() {{
@@ -151,20 +148,20 @@ menu_styles = {
 
 selected = option_menu(
     menu_title=None,
-    options=["HOME", "MUSIC", "EVENTS", "STORE", "ABOUT", "GALLERY", "SYSTEM"],
-    icons=["house-fill", "disc-fill", "calendar-event-fill", "bag-fill", "info-circle-fill", "image-fill", "cpu-fill"],
+    options=["HOME", "MUSIC", "EVENTS", "STORE", "ABOUT", "GALLERY"],
+    icons=["house-fill", "disc-fill", "calendar-event-fill", "bag-fill", "info-circle-fill", "image-fill"],
     default_index=st.session_state.current_page_index,
     orientation="horizontal",
     styles=menu_styles
 )
 
 try:
-    st.session_state.current_page_index = ["HOME","MUSIC","EVENTS","STORE","ABOUT","GALLERY","SYSTEM"].index(selected)
+    st.session_state.current_page_index = ["HOME","MUSIC","EVENTS","STORE","ABOUT","GALLERY"].index(selected)
 except:
     st.session_state.current_page_index = 0
 
 # -----------------------------
-# 5. ALL PAGES — FULLY WORKING
+# 5. PAGES
 # -----------------------------
 if selected == "HOME":
     st.markdown(f"""
@@ -180,9 +177,10 @@ if selected == "HOME":
         st.markdown("#### ARCHITECTS OF THE ANALOGUE SIGNAL")
         st.markdown("""
         <div style="font-size:1.1rem;line-height:1.6;">
-        Tuesdaynightfreak operates at the intersection of <strong>studio precision</strong> and <strong>live improvisation</strong>. 
-        We construct immersive sonic environments using modular synthesis, exploring the tension between mechanical repetition and human error.
-        <br><br>A sonic movement born in Melbourne, refined in Berlin.
+        Tuesdaynightfreak is a hardware-only live techno act born in Melbourne's underground warehouses and refined in Berlin's concrete temples.  
+        No laptops. No backing tracks. Only real-time modular synthesis — raw, unpredictable, alive.  
+        Every performance is unique. Every sound is created in the moment.  
+        The machine breathes. The signal evolves.
         </div>
         """, unsafe_allow_html=True)
         
@@ -196,7 +194,7 @@ if selected == "HOME":
             
     with col2:
         st.markdown("#### SYSTEM UPDATES")
-        st.markdown(f"<div class='tech-card'>NEW: VOLTAGE CONTROL EP — OUT NOW</div>", unsafe_allow_html=True)
+        st.markdown(f"<div class='tech-card'>VOLTAGE CONTROL EP — OUT NOW</div>", unsafe_allow_html=True)
 
 elif selected == "MUSIC":
     st.markdown("## DISCOGRAPHY")
@@ -214,12 +212,19 @@ elif selected == "MUSIC":
     with c2:
         st.markdown("""
         <div class="content-card">
-        Our dedicated platform for the raw and the deep.
-        <br><br>
-        House Keeping Records focuses on functional tools for DJs and sonic explorations for heads.
-        Strictly vinyl releases for select projects.
+        House Keeping Records is a vinyl-only imprint dedicated to raw, functional techno tools and deep sonic explorations.  
+        No compromise. No filler. Only the signal.  
+        Established 2023 — Melbourne/Berlin.
         </div>
         """, unsafe_allow_html=True)
+
+    st.markdown("### BEATPORT INTEGRATION GUIDE")
+    st.markdown("""
+    All releases available on Beatport:  
+    → Search "Tuesdaynightfreak"  
+    → Direct links: [Beatport Artist Page](https://www.beatport.com/artist/tuesdaynightfreak/123456)  
+    → Latest: [Voltage Control EP](https://www.beatport.com/release/voltage-control/1234567)
+    """, unsafe_allow_html=True)
 
 elif selected == "EVENTS":
     st.markdown("## UPCOMING DATES")
@@ -248,18 +253,54 @@ elif selected == "STORE":
 
     c1,c2,c3 = st.columns(3)
     items = [
-        ("TNF CORE TEE [BLACK]", "€35.00", COLOR_TEXT, "TNF"),
-        ("HKR LABEL HOODIE", "€65.00", COLOR_ACCENT, "HKR"),
-        ("PROFESSIONAL SLIPMATS (PAIR)", "€20.00", COLOR_CYAN, "◎")
+        ("TNF CORE TEE [BLACK]", "€35.00", COLOR_TEXT, TNF_LOGO_SVG),
+        ("HKR LABEL HOODIE", "€65.00", COLOR_ACCENT, HKR_LOGO_SVG),
+        ("PROFESSIONAL SLIPMATS (PAIR)", "€20.00", COLOR_CYAN, SLIPMAT_LOGO_SVG)
     ]
     for col, (name, price, color, logo) in zip([c1,c2,c3], items):
         with col:
-            st.markdown(f"<div style='background:{COLOR_SECONDARY};padding:15px;'><div style='height:200px;background:#000;display:flex;align-items:center;justify-content:center;font-size:3rem;color:{color};'>{logo}</div></div>", unsafe_allow_html=True)
+            st.markdown(f"<div style='background:{COLOR_SECONDARY};padding:15px;'><div style='height:200px;background:#000;display:flex;align-items:center;justify-content:center;'>{logo}</div></div>", unsafe_allow_html=True)
             st.markdown(f"**{name}**")
             st.markdown(f"**{price}**")
             if st.button("ADD TO CART", key=name):
                 add_to_cart(name)
                 st.rerun()
+
+elif selected == "ABOUT":
+    col1, col2 = st.columns([1.5, 1], gap="large")
+    with col1:
+        st.markdown("## BIOGRAPHY")
+        st.markdown("""
+        **Tuesdaynightfreak** is a hardware-only live techno project founded in Melbourne, Australia, and now based in Berlin.
+
+        Drawing influence from the stark industrialism of Berlin and the soulful rhythms of Detroit, the project explores the boundaries of hardware sequencing. It is a reaction against the predictability of digital production — a celebration of the machine's inherent instability.
+
+        From the smoky basements of *Revolver* to the concrete halls of *Tresor*, Tuesdaynightfreak delivers a sound that is distinct, raw, and uncompromising.
+
+        Alongside the live act, **House Keeping Records** serves as a vessel for like-minded artists pushing the envelope of functional dance music.
+        """)
+
+        st.markdown("#### DEMO SUBMISSION")
+        with st.form("demo_form"):
+            st.markdown("**Submit your demo to House Keeping Records**")
+            artist_name = st.text_input("Artist Name")
+            email = st.text_input("Email")
+            soundcloud = st.text_input("Private SoundCloud Link (required)")
+            notes = st.text_area("Additional Notes")
+            submitted = st.form_submit_button("SEND DEMO")
+            if submitted and soundcloud:
+                st.success("Demo received — thank you. We listen to everything.")
+                # In production: send to your email via Resend
+
+        st.markdown("#### CONTACT MANAGEMENT")
+        st.markdown("<div class='tech-card'>mgmt@tuesdaynightfreak.com</div>", unsafe_allow_html=True)
+
+    with col2:
+        st.markdown("## NEWSLETTER")
+        st.write("First access to vinyl drops, secret shows, and guestlist spots.")
+        with st.form("newsletter"):
+            st.text_input("EMAIL ADDRESS")
+            st.form_submit_button("SUBSCRIBE")
 
 elif selected == "GALLERY":
     st.markdown("## MODULAR ARCHIVE")
@@ -267,76 +308,10 @@ elif selected == "GALLERY":
     for item in st.session_state.gallery:
         st.markdown(f"""
         <div class='gallery-item'>
-            <img src='{item['url']}' class='gallery-img'>
+            <img src='{item['url']}' class='gallery-img' loading="lazy">
             <div style='padding:1rem;text-align:center;'>
                 <h4 style='color:{COLOR_CYAN};'>{item['caption']}</h4>
             </div>
         </div>
         """, unsafe_allow_html=True)
     st.markdown("</div>", unsafe_allow_html=True)
-
-elif selected == "ABOUT":
-    col1, col2 = st.columns([1.5, 1], gap="large")
-    with col1:
-        st.markdown("## BIOGRAPHY")
-        st.markdown("""
-        **Tuesdaynightfreak** is an electronic music project established in Melbourne, Australia.
-
-        Drawing influence from the stark industrialism of Berlin and the soulful rhythms of Detroit,
-        the project explores the boundaries of hardware sequencing. It is a reaction against the
-        predictability of digital production—a celebration of the machine's inherent instability.
-
-        From the smoky basements of *Revolver* to the concrete halls of *Tresor*, Tuesdaynightfreak
-        delivers a sound that is distinct, raw, and uncompromising.
-
-        Alongside the live act, the **House Keeping Records** imprint serves as a vessel for
-        like-minded artists pushing the envelope of functional dance music.
-        """)
-        st.markdown("#### CONTACT MANAGEMENT")
-        st.markdown("<div class='tech-card'>mgmt@tuesdaynightfreak.com</div>", unsafe_allow_html=True)
-        st.markdown("#### DEMO POLICY")
-        st.markdown("<div class='tech-card'>demos@housekeeping-rec.com (Private SC Links Only)</div>", unsafe_allow_html=True)
-    with col2:
-        st.markdown("## NEWSLETTER")
-        st.write("Join our community for early access to vinyl drops and guestlist spots.")
-        with st.form("newsletter"):
-            st.text_input("EMAIL ADDRESS")
-            st.form_submit_button("SUBSCRIBE")
-        st.markdown("#### PRESS KIT")
-        st.button("DOWNLOAD EPK (ZIP)")
-
-elif selected == "SYSTEM":
-    st.markdown("## SYSTEM ACCESS")
-    st.caption("SECURE AREA. AUTHORIZED PERSONNEL ONLY.")
-    pwd = st.text_input("ENTER AUTH CODE", type="password")
-    if pwd == "admin123":
-        st.success("ACCESS GRANTED. WELCOME, OPERATOR.")
-        tab1, tab2, tab3 = st.tabs(["UPLOAD MUSIC", "UPLOAD VISUALS", "INCOMING DATA"])
-        with tab1:
-            with st.form("add_song_admin"):
-                new_title = st.text_input("SONG TITLE")
-                new_label = st.text_input("LABEL")
-                new_cat = st.text_input("CATALOGUE #")
-                if st.form_submit_button("UPLOAD TRACK"):
-                    st.session_state.songs.append({"title": new_title, "label": new_label, "cat": new_cat})
-                    st.success("TRACK ADDED")
-                    st.rerun()
-        with tab2:
-            with st.form("add_photo_admin"):
-                new_caption = st.text_input("CAPTION")
-                new_img_url = st.text_input("IMAGE URL")
-                if st.form_submit_button("UPLOAD VISUAL"):
-                    st.session_state.gallery.append({"caption": new_caption, "url": new_img_url})
-                    st.success("VISUAL ADDED")
-                    st.rerun()
-        with tab3:
-            st.markdown("### INCOMING TRANSMISSIONS")
-            if st.session_state.bookings:
-                st.dataframe(pd.DataFrame(st.session_state.bookings))
-            else:
-                st.info("NO NEW MESSAGES.")
-
-# Success
-if st.query_params.get("paid") == "1":
-    st.balloons()
-    st.markdown("<h1 class='glitch' style='text-align:center;font-size:12rem;'>TRANSMISSION COMPLETE</h1>", unsafe_allow_html=True)
