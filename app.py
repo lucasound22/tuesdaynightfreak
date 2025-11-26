@@ -264,7 +264,7 @@ st.markdown(f"""
 # 4. NAVIGATION
 # -----------------------------------------------------------------------------
 # DEFENSIVE: Re-declare the options list robustly right before use.
-menu_options = ["HOME", "MUSIC", "EVENTS", "STORE", "ABOUT", "SYSTEM"]
+menu_options = ["HOME", "MUSIC", "EVENTS", "STORE", "GALLERY", "ABOUT", "SYSTEM"]
 
 # NEW FIX: Define the styles dictionary outside the function call to prevent 
 # the Python parser from incorrectly interpreting the nested dictionary structure 
@@ -292,7 +292,7 @@ menu_styles = {
 selected = option_menu(
     menu_title=None,
     options=menu_options,
-    icons=["house-fill", "disc-fill", "calendar-event-fill", "bag-fill", "info-circle-fill", "cpu-fill"],
+    icons=["house-fill", "disc-fill", "calendar-event-fill", "bag-fill", "images-fill", "info-circle-fill", "cpu-fill"],
     menu_icon="cast",
     default_index=st.session_state.current_page_index,
     orientation="horizontal",
@@ -349,11 +349,11 @@ if selected == "HOME":
 
         with c1:
             if st.button("LATEST RELEASE"):
-                st.session_state.current_page_index = 1
+                st.session_state.current_page_index = menu_options.index("MUSIC")
                 st.rerun()
         with c2:
             if st.button("VIEW TOUR DATES"):
-                st.session_state.current_page_index = 2
+                st.session_state.current_page_index = menu_options.index("EVENTS")
                 st.rerun()
 
     with col2:
@@ -488,6 +488,19 @@ elif selected == "STORE":
         if st.button("ADD TO CART", key="m3"):
             add_to_cart("Slipmats")
             st.rerun() # Rerun is necessary to update the cart summary instantly
+
+# --- GALLERY ---
+elif selected == "GALLERY":
+    st.markdown("## VISUAL ARCHIVE")
+    st.caption("CAPTURED LIVE AND IN STUDIO")
+
+    # Display gallery items in a 2-column grid
+    cols = st.columns(2)
+    
+    for i, item in enumerate(st.session_state.gallery):
+        with cols[i % 2]:
+            st.image(item['url'], caption=item['caption'], use_column_width=True)
+            st.markdown("---") # Separator between items
 
 # --- ABOUT / CONTACT ---
 elif selected == "ABOUT":
