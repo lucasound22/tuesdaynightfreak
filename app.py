@@ -138,16 +138,19 @@ if not st.session_state.loader_done:
         <div class="scanline"></div>
     </div>
     <script>
-            document.addEventListener('DOMContentLoaded', () => {
-                const loader = document.getElementById('loader');
-                if (loader) {
-                    setTimeout(() => {
-                        loader.style.opacity = '0';
-                        setTimeout(() => loader.remove(), 800);
-                    }, 2000);
-                }
-            });
-        </script>
+// Wrapped to avoid breaking Python parsing
+(function() {
+    document.addEventListener('DOMContentLoaded', function() {
+        var loader = document.getElementById('loader');
+        if (loader) {
+            setTimeout(function() {
+                loader.style.opacity = '0';
+                setTimeout(function(){ loader.remove(); }, 800);
+            }, 2000);
+        }
+    });
+})();
+</script>
     """, unsafe_allow_html=True)
     # prevent the loader from being re-rendered on subsequent reruns
     st.session_state.loader_done = True
