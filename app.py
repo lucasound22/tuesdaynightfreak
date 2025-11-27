@@ -1,7 +1,6 @@
 import streamlit as st
 from streamlit_option_menu import option_menu
 import pandas as pd
-import time
 
 # ──────────────────────────────────────────────────────────────
 # CONFIG & COLORS
@@ -35,104 +34,110 @@ HKR_LOGO_SVG = """
 """
 
 # ──────────────────────────────────────────────────────────────
-# SESSION STATE
+# PAGE CONFIG & SESSION STATE
 # ──────────────────────────────────────────────────────────────
 st.set_page_config(page_title="TUESDAYNIGHTFREAK", page_icon="Black Circle", layout="wide", initial_sidebar_state="collapsed")
 
 if 'cart' not in st.session_state:               st.session_state.cart = []
 if 'current_page_index' not in st.session_state: st.session_state.current_page_index = 0
 if 'checkout' not in st.session_state:           st.session_state.checkout = False
-if 'show_loader' not in st.session_state:        st.session_state.show_loader = True
+if 'first_load' not in st.session_state:         st.session_state.first_load = True
 
 # ──────────────────────────────────────────────────────────────
-# GLOBAL CSS + LOADING SCREEN + PLAYER + VISUALIZER
+# CSS + LOADING SCREEN + PLAYER + VISUALIZER (NO F-STRING BRACES!)
 # ──────────────────────────────────────────────────────────────
-st.markdown(f"""
+st.markdown("""
 <style>
     @import url('https://fonts.googleapis.com/css2?family=Inter:wght@400;700;900&family=Space+Mono:wght@400;700&display=swap');
-    .stApp {{background:{COLOR_BG}; color:{COLOR_TEXT}; font-family:'Inter',sans-serif;}}
-    #MainMenu, footer, header {{visibility:hidden;}}
-    .block-container {{max-width:1400px; padding:2rem 1rem;}}
-    h1,h2,h3,h4,h5 {{font-family:'Inter',sans-serif; font-weight:900; text-transform:uppercase; letter-spacing:-1px;}}
-    h4,h5 {{color:{COLOR_CYAN};}}
-    .stButton>button {{background:{COLOR_CYAN}; color:black; border:none; padding:14px 32px; font-weight:900; text-transform:uppercase;}}
-    .stButton>button:hover {{background:{COLOR_ACCENT}; color:white; box-shadow:0 0 20px rgba(255,0,51,0.5);}}
+    .stApp {background:#080808; color:#F0F0F0; font-family:'Inter',sans-serif;}
+    #MainMenu, footer, header {visibility:hidden;}
+    .block-container {max-width:1400px; padding:2rem 1rem;}
+    h1,h2,h3,h4,h5 {font-family:'Inter',sans-serif; font-weight:900; text-transform:uppercase; letter-spacing:-1px;}
+    h4,h5 {color:#00f7ff;}
+    .stButton>button {background:#00f7ff; color:black; border:none; padding:14px 32px; font-weight:900; text-transform:uppercase;}
+    .stButton>button:hover {background:#FF0033; color:white; box-shadow:0 0 20px rgba(255,0,51,0.5);}
 
-    .loading-overlay {{
+    .loading-overlay {
         position:fixed; top:0; left:0; width:100vw; height:100vh; background:rgba(8,8,8,0.98);
         z-index:9999; display:flex; flex-direction:column; justify-content:center; align-items:center;
         transition:opacity 0.8s ease-out;
-    }}
-    .glitch-text {{
+    }
+    .glitch-text {
         font-family:'Space Mono',monospace; font-size:2.8rem; font-weight:900;
-        color:{COLOR_CYAN}; text-transform:uppercase; letter-spacing:6px;
+        color:#00f7ff; text-transform:uppercase; letter-spacing:6px;
         animation:glitch 2s infinite;
-    }}
-    .scanline {{
+    }
+    .scanline {
         position:absolute; top:0; width:100%; height:4px;
-        background:linear-gradient(to bottom,transparent,{COLOR_ACCENT}50,transparent);
+        background:linear-gradient(to bottom,transparent,#FF003350,transparent);
         animation:scan 3s linear infinite;
-    }}
-    @keyframes glitch {{
-        0%,100% {{text-shadow:3px 0 {COLOR_ACCENT},-3px 0 {COLOR_CYAN};}}
-        25% {{text-shadow:-4px 0 {COLOR_ACCENT},4px 0 {COLOR_CYAN};}}
-        50% {{text-shadow:5px 0 {COLOR_CYAN},-5px 0 {COLOR_ACCENT};}}
-        75% {{text-shadow:-3px 0 {COLOR_CYAN},3px 0 {COLOR_ACCENT};}}
-    }}
-    @keyframes scan {{0%{{top:-10px;opacity:0;}}50%{{opacity:1;}}100%{{top:100vh;opacity:0;}}}
+    }
+    @keyframes glitch {
+        0%,100% {text-shadow:3px 0 #FF0033,-3px 0 #00f7ff;}
+        25% {text-shadow:-4px 0 #FF0033,4px 0 #00f7ff;}
+        50% {text-shadow:5px 0 #00f7ff,-5px 0 #FF0033;}
+        75% {text-shadow:-3px 0 #00f7ff,3px 0 #FF0033;}
+    }
+    @keyframes scan {0%{top:-10px;opacity:0;}50%{opacity:1;}100%{top:100vh;opacity:0;}}
 
-    .live-mix-player {{
+    .live-mix-player {
         position:fixed; bottom:0; left:0; right:0; height:80px; background:rgba(20,20,20,0.98);
-        padding:12px 16px; border-top:3px solid {COLOR_ACCENT}; display:flex; align-items:center;
+        padding:12px 16px; border-top:3px solid #FF0033; display:flex; align-items:center;
         justify-content:space-between; z-index:9998; box-shadow:0 -4px 20px rgba(255,0,51,0.3);
-    }}
-    .visualizer {{width:100%; height:40px; background:#000; border:1px solid #333;}}
+    }
+    .visualizer {width:100%; height:40px; background:#000; border:1px solid #333;}
+    .video-bg {position:fixed; top:0; left:0; width:100vw; height:100vh; z-index:-999; overflow:hidden;}
+    .video-bg iframe {width:100%; height:100%; min-width:100vw; min-height:100vh; transform:scale(1.1);}
+    .overlay {position:fixed; top:0; left:0; width:100vw; height:100vh; background:rgba(8,8,8,0.88); z-index:-998; pointer-events:none;}
 </style>
 
-<!-- LOADING SCREEN (controlled by session state) -->
-<div class="loading-overlay" id="loader" style="display: {'block' if st.session_state.show_loader else 'none'};">
-    <div class="glitch-text">TNF SYSTEM BOOT</div>
+<!-- LOADING SCREEN -->
+<div class="loading-overlay" id="loader">
+    <div class="glitch-text">TNF SYSTEMBOOT</div>
     <div style="margin-top:20px; font-family:'Space Mono',monospace; color:#666; text-align:center;">
         Initializing modular core...<br>
         Loading analog signal chain...<br>
-        <span style="color:{COLOR_CYAN}">Connected to Melbourne Transmission</span>
+        <span style="color:#00f7ff">Connected to Melbourne Transmission</span>
     </div>
     <div class="scanline"></div>
 </div>
 
 <!-- Background Video -->
-<div style="position:fixed; top:0; left:0; width:100vw; height:100vh; z-index:-999; overflow:hidden;">
+<div class="video-bg">
     <iframe src="https://www.youtube.com/embed/qC0vDKVPCrw?controls=0&showinfo=0&rel=0&autoplay=1&loop=1&mute=1&playlist=qC0vDKVPCrw"
-            frameborder="0" allow="autoplay" style="width:100%; height:100%; min-width:100vw; min-height:100vh; transform:scale(1.1);"></iframe>
+            frameborder="0" allow="autoplay"></iframe>
 </div>
-<div style="position:fixed; top:0; left:0; width:100vw; height:100vh; background:rgba(8,8,8,0.88); z-index:-998; pointer-events:none;"></div>
+<div class="overlay"></div>
 
 <!-- FIXED BOTTOM PLAYER -->
 <div class="live-mix-player">
     <div style="display:flex; align-items:center; gap:12px;">
-        <strong style="color:{COLOR_CYAN}">LIVE: STARGAZING</strong>
+        <strong style="color:#00f7ff">LIVE: STARGAZING</strong>
         <small style="color:#aaa;">House Keeping Records — Modular from Melbourne</small>
     </div>
     <iframe width="220" height="40" src="https://www.mixcloud.com/widget/iframe/?hide_cover=1&light=1&feed=%2FHouse_Keeping%2Fstargazing%2F" frameborder="0"></iframe>
     <canvas id="visualizer" class="visualizer"></canvas>
-    <div style="font-size:0.7rem; opacity:0.8;"><span style="color:{COLOR_ACCENT}">REC</span></div>
+    <div style="font-size:0.7rem; opacity:0.8;"><span style="color:#FF0033">REC</span></div>
 </div>
 """, unsafe_allow_html=True)
 
 # ──────────────────────────────────────────────────────────────
-# JAVASCRIPT (outside f-string, safe)
+# JAVASCRIPT – NO F-STRINGS!
 # ──────────────────────────────────────────────────────────────
 st.markdown("""
 <script>
-// Hide loader after 2 seconds on first load only
-if (performance.navigation.type === 0) {  // Only on fresh load
+// Hide loader after first load
+if (sessionStorage.getItem('visited') !== 'true') {
+    sessionStorage.setItem('visited', 'true');
     setTimeout(() => {
         const loader = document.getElementById('loader');
         if (loader) {
             loader.style.opacity = '0';
             setTimeout(() => loader.style.display = 'none', 800);
         }
-    }, 2200);
+    }, 2400);
+} else {
+    document.getElementById('loader').style.display = 'none';
 }
 
 // Web Audio Visualizer
@@ -181,12 +186,11 @@ selected = option_menu(
     key="nav",
     styles={"container": {"padding":"0","background":"#000","border-bottom":"1px solid #333"},
             "nav-link": {"font-size":"18px","font-weight":"700","text-transform":"uppercase","color":"#aaa"},
-            "nav-link-selected": {"background":"transparent","color":COLOR_CYAN,"border-bottom":f"3px solid {COLOR_CYAN}"}}
+            "nav-link-selected": {"background":"transparent","color":"#00f7ff","border-bottom":"3px solid #00f7ff"}}
 )
 
 if selected != menu_options[st.session_state.current_page_index]:
     st.session_state.current_page_index = menu_options.index(selected)
-    st.session_state.show_loader = False  # Ensure loader is off during navigation
     st.rerun()
 
 # ──────────────────────────────────────────────────────────────
@@ -212,8 +216,8 @@ if idx == 0:  # HOME
                 st.session_state.current_page_index = 3; st.rerun()
     with col2:
         st.markdown("#### SYSTEM UPDATES")
-        st.markdown(f"<div style='background:#0a0a0a;padding:16px;border-top:3px solid {COLOR_CYAN};font-family:Space Mono;'>NEW RELEASE<br>'Voltage Control' EP — Ostgut Ton</div>", unsafe_allow_html=True)
-        st.markdown(f"<div style='background:#0a0a0a;padding:16px;border-top:3px solid {COLOR_CYAN};font-family:Space Mono;'>TOUR<br>Europe Winter 2025 confirmed</div>", unsafe_allow_html=True)
+        st.markdown("<div style='background:#0a0a0a;padding:16px;border-top:3px solid #00f7ff;font-family:Space Mono;'>NEW RELEASE<br>'Voltage Control' EP — Ostgut Ton</div>", unsafe_allow_html=True)
+        st.markdown("<div style='background:#0a0a0a;padding:16px;border-top:3px solid #00f7ff;font-family:Space Mono;'>TOUR<br>Europe Winter 2025 confirmed</div>", unsafe_allow_html=True)
 
 elif idx == 1:  # MUSIC
     st.markdown("## TUESDAYNIGHTFREAK DISCOGRAPHY")
@@ -242,7 +246,7 @@ elif idx == 2:  # HKR
         {"cat":"HKR003","title":"Grid Sequencer","artist":"Acid Junkie"}
     ]:
         c1,c2,c3 = st.columns([1,4,2])
-        with c1: st.markdown(f"<div style='background:{COLOR_ACCENT};color:white;padding:10px 16px;font-weight:bold;'>VINYL</div>", unsafe_allow_html=True)
+        with c1: st.markdown("<div style='background:#FF0033;color:white;padding:10px 16px;font-weight:bold;'>VINYL</div>", unsafe_allow_html=True)
         with c2: st.markdown(f"**{r['title']}**<br><small>{r['artist']}</small>", unsafe_allow_html=True)
         with c3: st.markdown(f"<small>{r['cat']}</small>"); st.button("BUY", key=r['cat'])
         st.audio("https://cdn.freesound.org/previews/620/620483_5674468-lq.mp3", format="audio/mp3")
@@ -257,7 +261,7 @@ elif idx == 3:  # EVENTS
         {"date":"DEC 02","city":"PARIS","venue":"REX CLUB","status":"TICKETS"}
     ]:
         c1,c2,c3,c4 = st.columns([1,2,2,2])
-        with c1: st.markdown(f"<span style='color:{COLOR_ACCENT}'>{e['date']}</span>", unsafe_allow_html=True)
+        with c1: st.markdown(f"<span style='color:#FF0033'>{e['date']}</span>", unsafe_allow_html=True)
         with c2: st.markdown(f"**{e['city']}**")
         with c3: st.markdown(e['venue'])
         with c4:
@@ -300,7 +304,7 @@ elif idx == 4:  # STORE
     for i, (name, desc, price, img) in enumerate(items):
         with cols[i]:
             st.image(img, use_column_width=True)
-            st.markdown(f"**{name}**<br>< wich<small>{desc}</small><br>**{price}**", unsafe_allow_html=True)
+            st.markdown(f"**{name}**<br><small>{desc}</small><br>**{price}**", unsafe_allow_html=True)
             if st.button("ADD TO CART", key=f"item_{i}"):
                 st.session_state.cart.append(name); st.rerun()
 
