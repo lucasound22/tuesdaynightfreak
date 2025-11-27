@@ -12,25 +12,31 @@ COLOR_CYAN    = "#00f7ff"
 COLOR_CARD    = "#141414"
 
 # ──────────────────────────────────────────────────────────────
-# FULLY COMPLETE HKR LOGO SVG
+# COMPLETE HKR LOGO SVG
 # ──────────────────────────────────────────────────────────────
 HKR_LOGO_SVG = """
-<svg width="140" height="140" viewBox="0 0 140 140" xmlns="http://www.w3.org/2000/svg">
+<svg width="160" height="160" viewBox="0 0 160 160" xmlns="http://www.w3.org/2000/svg">
+  <defs>
+    <linearGradient id="grad1" x1="0%" y1="0%" x2="100%" y2="100%">
+      <stop offset="0%" stop-color="#00f7ff"/>
+      <stop offset="100%" stop-color="#FF0033"/>
+    </linearGradient>
+  </defs>
   <!-- Outer frame -->
-  <rect x="10" y="10" width="120" height="120" fill="none" stroke="#F0F0F0" stroke-width="4"/>
+  <rect x="15" y="15" width="130" height="130" fill="none" stroke="url(#grad1)" stroke-width="5"/>
   <!-- Roof -->
-  <path d="M20 60 L70 20 L120 60" fill="none" stroke="#FF0033" stroke-width="6"/>
+  <path d="M25 75 L80 30 L135 75" fill="none" stroke="#FF0033" stroke-width="7"/>
   <!-- Door -->
-  <rect x="55" y="80" width="30" height="50" fill="none" stroke="#00f7ff" stroke-width="4"/>
+  <rect x="65" y="95" width="30" height="50" fill="none" stroke="#00f7ff" stroke-width="5"/>
   <!-- Windows -->
-  <circle cx="45" cy="50" r="12" fill="none" stroke="#00f7ff" stroke-width="3"/>
-  <circle cx="95" cy="50" r="12" fill="none" stroke="#00f7ff" stroke-width="3"/>
+  <circle cx="50" cy="60" r="15" fill="none" stroke="#00f7ff" stroke-width="4"/>
+  <circle cx="110" cy="60" r="15" fill="none" stroke="#00f7ff" stroke-width="4"/>
   <!-- Knob -->
-  <circle cx="78" cy="105" r="4" fill="#00f7ff"/>
+  <circle cx="88" cy="120" r="5" fill="#00f7ff"/>
+  <!-- HKR Text -->
+  <text x="80" y="115" font-family="Arial Black, sans-serif" font-weight="900" font-size="38" fill="#F0F0F0" text-anchor="middle">HKR</text>
   <!-- EST. 2023 -->
-  <text x="70" y="128" font-family="Space Mono, monospace" font-size="11" fill="#666" text-anchor="middle" letter-spacing="2">EST. 2023</text>
-  <!-- HKR text -->
-  <text x="70" y="100" font-family="Arial Black, sans-serif" font-weight="900" font-size="32" fill="#F0F0F0" text-anchor="middle" letter-spacing="-2">HKR</text>
+  <text x="80" y="142" font-family="Space Mono, monospace" font-size="12" fill="#666" text-anchor="middle" letter-spacing="3">EST. 2023</text>
 </svg>
 """
 
@@ -56,65 +62,61 @@ if 'current_page_index' not in st.session_state: st.session_state.current_page_i
 if 'checkout' not in st.session_state:           st.session_state.checkout = False
 
 # ──────────────────────────────────────────────────────────────
-# GLOBAL CSS + RESPONSIVE + LOADER (FIXED)
+# GLOBAL CSS + ANIMATED LOGO + LOADER + PLAYER
 # ──────────────────────────────────────────────────────────────
-st.markdown("""
+st.markdown(f"""
 <style>
     @import url('https://fonts.googleapis.com/css2?family=Inter:wght@400;700;900&family=Space+Mono:wght@400;700&display=swap');
-    .stApp {background:#080808; color:#F0F0F0; font-family:'Inter',sans-serif;}
-    #MainMenu, footer, header {visibility:hidden;}
-    .block-container {max-width:1400px; padding:2rem 1rem;}
-    h1,h2,h3,h4,h5 {font-family:'Inter',sans-serif; font-weight:900; text-transform:uppercase; letter-spacing:-1px;}
-    h4,h5 {color:#00f7ff;}
-    .stButton>button {background:#00f7ff; color:black; border:none; padding:14px 32px; font-weight:900; text-transform:uppercase;}
-    .stButton>button:hover {background:#FF0033; color:white; box-shadow:0 0 20px rgba(255,0,51,0.5);}
+    .stApp {{background:{COLOR_BG}; color:{COLOR_TEXT}; font-family:'Inter',sans-serif;}}
+    #MainMenu, footer, header {{visibility:hidden;}}
+    .block-container {{max-width:1400px; padding:2rem 1rem;}}
+    h1,h2,h3,h4,h5 {{font-family:'Inter',sans-serif; font-weight:900; text-transform:uppercase; letter-spacing:-1px;}}
+    h4,h5 {{color:{COLOR_CYAN};}}
+    .stButton>button {{background:{COLOR_CYAN}; color:black; border:none; padding:14px 32px; font-weight:900; text-transform:uppercase;}}
+    .stButton>button:hover {{background:{COLOR_ACCENT}; color:white; box-shadow:0 0 20px rgba(255,0,51,0.5);}}
 
-    /* RESPONSIVE */
-    @media (max-width: 768px) {
-        .block-container {padding:1rem;}
-        h1 {font-size:2.8rem !important;}
-        h2 {font-size:1.8rem !important;}
-        .live-mix-player {height:70px; padding:8px;}
-    }
+    /* Animated Logo */
+    .animated-logo {{animation: logoPulse 4s infinite;}}
+    @keyframes logoPulse {{0%,100% {{transform:scale(1);}} 50% {{transform:scale(1.05);}}}}
 
-    .loading-overlay {
+    .loading-overlay {{
         position:fixed; top:0; left:0; width:100vw; height:100vh; background:rgba(8,8,8,0.98);
         z-index:9999; display:flex; flex-direction:column; justify-content:center; align-items:center;
         transition:opacity 0.8s ease-out;
-    }
-    .glitch-text {
+    }}
+    .glitch-text {{
         font-family:'Space Mono',monospace; font-size:2.8rem; font-weight:900;
-        color:#00f7ff; text-transform:uppercase; letter-spacing:6px;
+        color:{COLOR_CYAN}; text-transform:uppercase; letter-spacing:6px;
         animation:glitch 2s infinite;
-    }
-    .scanline {
+    }}
+    .scanline {{
         position:absolute; top:0; width:100%; height:4px;
         background:linear-gradient(to bottom,transparent,#FF003350,transparent);
         animation:scan 3s linear infinite;
-    }
-    @keyframes glitch {
-        0%,100% {text-shadow:3px 0 #FF0033,-3px 0 #00f7ff;}
-        25% {text-shadow:-4px 0 #FF0033,4px 0 #00f7ff;}
-        50% {text-shadow:5px 0 #00f7ff,-5px 0 #FF0033;}
-        75% {text-shadow:-3px 0 #00f7ff,3px 0 #FF0033;}
-    }
-    @keyframes scan {0%{top:-10px;opacity:0;}50%{opacity:1;}100%{top:100vh;opacity:0;}}
+    }}
+    @keyframes glitch {{
+        0%,100% {{text-shadow:3px 0 #FF0033,-3px 0 #00f7ff;}}
+        25% {{text-shadow:-4px 0 #FF0033,4px 0 #00f7ff;}}
+        50% {{text-shadow:5px 0 #00f7ff,-5px 0 #FF0033;}}
+        75% {{text-shadow:-3px 0 #00f7ff,3px 0 #FF0033;}}
+    }}
+    @keyframes scan {{0%{{top:-10px;opacity:0;}}50%{{opacity:1;}}100%{{top:100vh;opacity:0;}}}}
 
-    .live-mix-player {
+    .live-mix-player {{
         position:fixed; bottom:0; left:0; right:0; height:80px; background:rgba(20,20,20,0.98);
-        padding:12px 16px; border-top:3px solid #FF0033; display:flex; align-items:center;
+        padding:12px 16px; border-top:3px solid {COLOR_ACCENT}; display:flex; align-items:center;
         justify-content:space-between; z-index:9998; box-shadow:0 -4px 20px rgba(255,0,51,0.3);
-    }
-    .visualizer {width:100%; height:40px; background:#000; border:1px solid #333;}
+    }}
+    .visualizer {{width:100%; height:40px; background:#000; border:1px solid #333;}}
 </style>
 
 <!-- LOADING SCREEN -->
 <div class="loading-overlay" id="loader">
-    <div class="glitch-text">TNF SYSTEMBOOT</div>
+    <div class="glitch-text animated-logo">{TNF_LOGO_SVG}</div>
     <div style="margin-top:20px; font-family:'Space Mono',monospace; color:#666; text-align:center;">
         Initializing modular core...<br>
         Loading analog signal chain...<br>
-        <span style="color:#00f7ff">Connected to Melbourne Transmission</span>
+        <span style="color:{COLOR_CYAN}">Connected to Melbourne Transmission</span>
     </div>
     <div class="scanline"></div>
 </div>
@@ -129,12 +131,12 @@ st.markdown("""
 <!-- FIXED BOTTOM PLAYER -->
 <div class="live-mix-player">
     <div style="display:flex; align-items:center; gap:12px;">
-        <strong style="color:#00f7ff">LIVE: STARGAZING</strong>
+        <strong style="color:{COLOR_CYAN}">LIVE: STARGAZING</strong>
         <small style="color:#aaa;">House Keeping Records — Modular from Melbourne</small>
     </div>
     <iframe width="220" height="40" src="https://www.mixcloud.com/widget/iframe/?hide_cover=1&light=1&feed=%2FHouse_Keeping%2Fstargazing%2F" frameborder="0"></iframe>
     <canvas id="visualizer" class="visualizer"></canvas>
-    <div style="font-size:0.7rem; opacity:0.8;"><span style="color:#FF0033">REC</span></div>
+    <div style="font-size:0.7rem; opacity:0.8;"><span style="color:{COLOR_ACCENT}">REC</span></div>
 </div>
 """, unsafe_allow_html=True)
 
@@ -143,7 +145,7 @@ st.markdown("""
 # ──────────────────────────────────────────────────────────────
 st.markdown("""
 <script>
-// Force hide loader after 2 seconds — works every time
+// Force hide loader after exactly 2 seconds
 setTimeout(() => {
     const loader = document.getElementById('loader');
     if (loader) {
@@ -189,10 +191,10 @@ document.addEventListener('click', () => { if (!audioContext) initVisualizer(); 
 # ──────────────────────────────────────────────────────────────
 # NAVIGATION
 # ──────────────────────────────────────────────────────────────
-menu_options = ["HOME", "MUSIC", "HKR", "EVENTS", "STORE", "GALLERY", "ABOUT", "SYSTEM"]
+menu_options = ["HOME", "MUSIC", "HKR", "EVENTS", "STORE", "GALLERY", "CONTACT", "ABOUT", "SYSTEM"]
 selected = option_menu(
     None, menu_options,
-    icons=["house", "music-note-list", "vinyl", "calendar3", "cart4", "image", "info-circle", "gear"],
+    icons=["house", "music-note-list", "vinyl", "calendar3", "cart4", "image", "envelope", "info-circle", "gear"],
     default_index=st.session_state.current_page_index,
     orientation="horizontal",
     key="nav",
@@ -213,7 +215,7 @@ idx = st.session_state.current_page_index
 if idx == 0:  # HOME
     col1, col2 = st.columns([2, 1])
     with col1:
-        st.markdown(f"<div style='font-size:5rem; line-height:1;'>{TNF_LOGO_SVG}</div>", unsafe_allow_html=True)
+        st.markdown(f"<div class='animated-logo'>{TNF_LOGO_SVG}</div>", unsafe_allow_html=True)
         st.markdown("#### ARCHITECTS OF THE ANALOGUE SIGNAL")
         st.markdown("""<div style="font-size:1.2rem; line-height:1.8; opacity:0.9;">
         Tuesdaynightfreak operates at the intersection of <strong>studio precision</strong> and <strong>live improvisation</strong>.<br>
@@ -247,7 +249,7 @@ elif idx == 1:  # MUSIC
         st.markdown("---")
 
 elif idx == 2:  # HKR
-    st.markdown(f"<div style='text-align:center; margin:2rem 0;'>{HKR_LOGO_SVG}</div>", unsafe_allow_html=True)
+    st.markdown(f"<div style='text-align:center; margin:2rem 0;' class='animated-logo'>{HKR_LOGO_SVG}</div>", unsafe_allow_html=True)
     st.markdown("## HOUSE KEEPING RECORDS")
     st.markdown("#### DEEP HOUSE · FUNCTIONAL TOOLS · VINYL ONLY")
     st.markdown("<div style='background:#141414;padding:28px;border-left:4px solid #FF0033;'>Dedicated vinyl imprint for raw, hypnotic, hardware-driven deep house & techno.<br>Inspired by Guidance, Peacefrog, Mojuba, Workshop, PIV, Knee Deep In Sound, Fuse London, Get Physical, Defected, Soulistic.</div>", unsafe_allow_html=True)
@@ -322,7 +324,7 @@ elif idx == 4:  # STORE
 
 elif idx == 5:  # GALLERY
     st.markdown("## VISUAL ARCHIVE")
-    st caption("Analog synth live · Modular DJ setups · Hardware performances")
+    st.caption("Analog synth live · Modular DJ setups · Hardware performances")
     cols = st.columns(2)
     gallery = [
         ("https://i.imgur.com/3f8kL2m.jpg","Eurorack Live Rig · Melbourne 2024"),
@@ -334,7 +336,18 @@ elif idx == 5:  # GALLERY
     for i, (url, cap) in enumerate(gallery):
         with cols[i%2]: st.image(url, caption=cap, use_column_width=True)
 
-elif idx == 6:  # ABOUT
+elif idx == 6:  # CONTACT
+    st.markdown("## CONTACT")
+    st.markdown("### MANAGEMENT & BOOKING")
+    st.markdown("mgmt@tuesdaynightfreak.com")
+    st.markdown("### DEMOS (HKR)")
+    st.markdown("demos@housekeeping-rec.com<br><small>Private SoundCloud links only</small>", unsafe_allow_html=True)
+    st.markdown("### PRESS")
+    st.markdown("press@tuesdaynightfreak.com")
+    st.markdown("### SOCIAL")
+    st.markdown("[Instagram](https://instagram.com/tuesdaynightfreak) · [SoundCloud](https://soundcloud.com/tuesdaynightfreak) · [Mixcloud](https://mixcloud.com/House_Keeping)")
+
+elif idx == 7:  # ABOUT
     col1, col2 = st.columns([2,1])
     with col1:
         st.markdown("## TUESDAYNIGHTFREAK")
@@ -346,7 +359,7 @@ elif idx == 6:  # ABOUT
             st.text_input("Email")
             st.form_submit_button("Subscribe")
 
-elif idx == 7:  # SYSTEM
+elif idx == 8:  # SYSTEM
     st.markdown("## SYSTEM ACCESS")
     pwd = st.text_input("Auth Code", type="password")
     if pwd == "analog2025":
