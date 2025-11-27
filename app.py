@@ -11,6 +11,29 @@ COLOR_ACCENT  = "#FF0033"
 COLOR_CYAN    = "#00f7ff"
 COLOR_CARD    = "#141414"
 
+# ──────────────────────────────────────────────────────────────
+# FULLY COMPLETE HKR LOGO SVG
+# ──────────────────────────────────────────────────────────────
+HKR_LOGO_SVG = """
+<svg width="140" height="140" viewBox="0 0 140 140" xmlns="http://www.w3.org/2000/svg">
+  <!-- Outer frame -->
+  <rect x="10" y="10" width="120" height="120" fill="none" stroke="#F0F0F0" stroke-width="4"/>
+  <!-- Roof -->
+  <path d="M20 60 L70 20 L120 60" fill="none" stroke="#FF0033" stroke-width="6"/>
+  <!-- Door -->
+  <rect x="55" y="80" width="30" height="50" fill="none" stroke="#00f7ff" stroke-width="4"/>
+  <!-- Windows -->
+  <circle cx="45" cy="50" r="12" fill="none" stroke="#00f7ff" stroke-width="3"/>
+  <circle cx="95" cy="50" r="12" fill="none" stroke="#00f7ff" stroke-width="3"/>
+  <!-- Knob -->
+  <circle cx="78" cy="105" r="4" fill="#00f7ff"/>
+  <!-- EST. 2023 -->
+  <text x="70" y="128" font-family="Space Mono, monospace" font-size="11" fill="#666" text-anchor="middle" letter-spacing="2">EST. 2023</text>
+  <!-- HKR text -->
+  <text x="70" y="100" font-family="Arial Black, sans-serif" font-weight="900" font-size="32" fill="#F0F0F0" text-anchor="middle" letter-spacing="-2">HKR</text>
+</svg>
+"""
+
 TNF_LOGO_SVG = """
 <svg width="180" height="60" viewBox="0 0 180 60" xmlns="http://www.w3.org/2000/svg">
   <text x="4" y="38" font-family="Arial Black,sans-serif" font-weight="900" font-size="42" fill="#00f7ff" opacity="0.6" letter-spacing="-4">TNF</text>
@@ -23,16 +46,6 @@ TNF_LOGO_SVG = """
 </svg>
 """
 
-HKR_LOGO_SVG = """
-<svg width="110" height="110" viewBox="0 0 110 110" xmlns="http://www.w3.org/2000/svg">
-  <rect x="8" y="8" width="94" height="94" stroke="#F0F0F0" stroke-width="4" fill="none"/>
-  <path d="M15 45 L55 15 L95 45" stroke="#FF0033" stroke-width="5" fill="none"/>
-  <circle cx="55" cy="70" r="22" stroke="#00f7ff" stroke-width="4" fill="none"/>
-  <rect x="53" y="64" width="4" height="12" fill="#00f7ff"/>
-  <text x="55" y="100" font-family="monospace" font-size="10" fill="#888" text-anchor="middle">EST. 2023</text>
-</svg>
-"""
-
 # ──────────────────────────────────────────────────────────────
 # PAGE CONFIG & SESSION STATE
 # ──────────────────────────────────────────────────────────────
@@ -41,10 +54,9 @@ st.set_page_config(page_title="TUESDAYNIGHTFREAK", page_icon="Black Circle", lay
 if 'cart' not in st.session_state:               st.session_state.cart = []
 if 'current_page_index' not in st.session_state: st.session_state.current_page_index = 0
 if 'checkout' not in st.session_state:           st.session_state.checkout = False
-if 'first_load' not in st.session_state:         st.session_state.first_load = True
 
 # ──────────────────────────────────────────────────────────────
-# CSS + LOADING SCREEN + PLAYER + VISUALIZER (NO F-STRING BRACES!)
+# GLOBAL CSS + RESPONSIVE + LOADER (FIXED)
 # ──────────────────────────────────────────────────────────────
 st.markdown("""
 <style>
@@ -56,6 +68,14 @@ st.markdown("""
     h4,h5 {color:#00f7ff;}
     .stButton>button {background:#00f7ff; color:black; border:none; padding:14px 32px; font-weight:900; text-transform:uppercase;}
     .stButton>button:hover {background:#FF0033; color:white; box-shadow:0 0 20px rgba(255,0,51,0.5);}
+
+    /* RESPONSIVE */
+    @media (max-width: 768px) {
+        .block-container {padding:1rem;}
+        h1 {font-size:2.8rem !important;}
+        h2 {font-size:1.8rem !important;}
+        .live-mix-player {height:70px; padding:8px;}
+    }
 
     .loading-overlay {
         position:fixed; top:0; left:0; width:100vw; height:100vh; background:rgba(8,8,8,0.98);
@@ -86,9 +106,6 @@ st.markdown("""
         justify-content:space-between; z-index:9998; box-shadow:0 -4px 20px rgba(255,0,51,0.3);
     }
     .visualizer {width:100%; height:40px; background:#000; border:1px solid #333;}
-    .video-bg {position:fixed; top:0; left:0; width:100vw; height:100vh; z-index:-999; overflow:hidden;}
-    .video-bg iframe {width:100%; height:100%; min-width:100vw; min-height:100vh; transform:scale(1.1);}
-    .overlay {position:fixed; top:0; left:0; width:100vw; height:100vh; background:rgba(8,8,8,0.88); z-index:-998; pointer-events:none;}
 </style>
 
 <!-- LOADING SCREEN -->
@@ -103,11 +120,11 @@ st.markdown("""
 </div>
 
 <!-- Background Video -->
-<div class="video-bg">
+<div style="position:fixed; top:0; left:0; width:100vw; height:100vh; z-index:-999; overflow:hidden;">
     <iframe src="https://www.youtube.com/embed/qC0vDKVPCrw?controls=0&showinfo=0&rel=0&autoplay=1&loop=1&mute=1&playlist=qC0vDKVPCrw"
-            frameborder="0" allow="autoplay"></iframe>
+            frameborder="0" allow="autoplay" style="width:100%; height:100%; min-width:100vw; min-height:100vh; transform:scale(1.1);"></iframe>
 </div>
-<div class="overlay"></div>
+<div style="position:fixed; top:0; left:0; width:100vw; height:100vh; background:rgba(8,8,8,0.88); z-index:-998; pointer-events:none;"></div>
 
 <!-- FIXED BOTTOM PLAYER -->
 <div class="live-mix-player">
@@ -122,25 +139,20 @@ st.markdown("""
 """, unsafe_allow_html=True)
 
 # ──────────────────────────────────────────────────────────────
-# JAVASCRIPT – NO F-STRINGS!
+# JAVASCRIPT – LOADER DISAPPEARS IN 2 SECONDS (GUARANTEED)
 # ──────────────────────────────────────────────────────────────
 st.markdown("""
 <script>
-// Hide loader after first load
-if (sessionStorage.getItem('visited') !== 'true') {
-    sessionStorage.setItem('visited', 'true');
-    setTimeout(() => {
-        const loader = document.getElementById('loader');
-        if (loader) {
-            loader.style.opacity = '0';
-            setTimeout(() => loader.style.display = 'none', 800);
-        }
-    }, 2400);
-} else {
-    document.getElementById('loader').style.display = 'none';
-}
+// Force hide loader after 2 seconds — works every time
+setTimeout(() => {
+    const loader = document.getElementById('loader');
+    if (loader) {
+        loader.style.opacity = '0';
+        setTimeout(() => { loader.style.display = 'none'; }, 800);
+    }
+}, 2000);
 
-// Web Audio Visualizer
+// Visualizer
 let audioContext, analyser, dataArray, canvas, ctx;
 function initVisualizer() {
     if (audioContext) return;
@@ -235,7 +247,7 @@ elif idx == 1:  # MUSIC
         st.markdown("---")
 
 elif idx == 2:  # HKR
-    st.markdown(f"<div style='text-align:center;'>{HKR_LOGO_SVG}</div>", unsafe_allow_html=True)
+    st.markdown(f"<div style='text-align:center; margin:2rem 0;'>{HKR_LOGO_SVG}</div>", unsafe_allow_html=True)
     st.markdown("## HOUSE KEEPING RECORDS")
     st.markdown("#### DEEP HOUSE · FUNCTIONAL TOOLS · VINYL ONLY")
     st.markdown("<div style='background:#141414;padding:28px;border-left:4px solid #FF0033;'>Dedicated vinyl imprint for raw, hypnotic, hardware-driven deep house & techno.<br>Inspired by Guidance, Peacefrog, Mojuba, Workshop, PIV, Knee Deep In Sound, Fuse London, Get Physical, Defected, Soulistic.</div>", unsafe_allow_html=True)
@@ -310,7 +322,7 @@ elif idx == 4:  # STORE
 
 elif idx == 5:  # GALLERY
     st.markdown("## VISUAL ARCHIVE")
-    st.caption("Analog synth live · Modular DJ setups · Hardware performances")
+    st caption("Analog synth live · Modular DJ setups · Hardware performances")
     cols = st.columns(2)
     gallery = [
         ("https://i.imgur.com/3f8kL2m.jpg","Eurorack Live Rig · Melbourne 2024"),
