@@ -35,17 +35,17 @@ HKR_LOGO_SVG = """
 """
 
 # ──────────────────────────────────────────────────────────────
-# PAGE CONFIG & SESSION STATE
+# SESSION STATE
 # ──────────────────────────────────────────────────────────────
 st.set_page_config(page_title="TUESDAYNIGHTFREAK", page_icon="Black Circle", layout="wide", initial_sidebar_state="collapsed")
 
 if 'cart' not in st.session_state:               st.session_state.cart = []
 if 'current_page_index' not in st.session_state: st.session_state.current_page_index = 0
 if 'checkout' not in st.session_state:           st.session_state.checkout = False
-if 'loading' not in st.session_state:            st.session_state.loading = False
+if 'show_loader' not in st.session_state:        st.session_state.show_loader = True
 
 # ──────────────────────────────────────────────────────────────
-# GLOBAL CSS + LOADING + PLAYER + VISUALIZER (NO JS IN F-STRING!)
+# GLOBAL CSS + LOADING SCREEN + PLAYER + VISUALIZER
 # ──────────────────────────────────────────────────────────────
 st.markdown(f"""
 <style>
@@ -58,46 +58,56 @@ st.markdown(f"""
     .stButton>button {{background:{COLOR_CYAN}; color:black; border:none; padding:14px 32px; font-weight:900; text-transform:uppercase;}}
     .stButton>button:hover {{background:{COLOR_ACCENT}; color:white; box-shadow:0 0 20px rgba(255,0,51,0.5);}}
 
-    .loading-overlay {{position:fixed; top:0; left:0; width:100vw; height:100vh; background:rgba(8,8,8,0.98);
+    .loading-overlay {{
+        position:fixed; top:0; left:0; width:100vw; height:100vh; background:rgba(8,8,8,0.98);
         z-index:9999; display:flex; flex-direction:column; justify-content:center; align-items:center;
-        transition:opacity 0.6s ease-out;}}
-    .glitch-text {{font-family:'Space Mono',monospace; font-size:2.5rem; font-weight:900;
-        color:{COLOR_CYAN}; text-transform:uppercase; letter-spacing:4px; animation:glitch 2s infinite;}}
-    .scanline {{position:absolute; top:0; width:100%; height:4px; background:linear-gradient(to bottom,transparent,{COLOR_ACCENT}40,transparent);
-        animation:scan 3s linear infinite;}}
-    @keyframes glitch {{0%,100%{{text-shadow:2px 0 {COLOR_ACCENT},-2px 0 {COLOR_CYAN};}}
-        20%{{text-shadow:-3px 0 {COLOR_ACCENT},3px 0 {COLOR_CYAN};}}
-        40%{{text-shadow:4px 0 {COLOR_CYAN},-4px 0 {COLOR_ACCENT};}}
-        60%{{text-shadow:-2px 0 {COLOR_CYAN},2px 0 {COLOR_ACCENT};}}}}
-    @keyframes scan {{0%{{top:-10px;opacity:0;}}50%{{opacity:1;}}100%{{top:100vh;opacity:0;}}}}
+        transition:opacity 0.8s ease-out;
+    }}
+    .glitch-text {{
+        font-family:'Space Mono',monospace; font-size:2.8rem; font-weight:900;
+        color:{COLOR_CYAN}; text-transform:uppercase; letter-spacing:6px;
+        animation:glitch 2s infinite;
+    }}
+    .scanline {{
+        position:absolute; top:0; width:100%; height:4px;
+        background:linear-gradient(to bottom,transparent,{COLOR_ACCENT}50,transparent);
+        animation:scan 3s linear infinite;
+    }}
+    @keyframes glitch {{
+        0%,100% {{text-shadow:3px 0 {COLOR_ACCENT},-3px 0 {COLOR_CYAN};}}
+        25% {{text-shadow:-4px 0 {COLOR_ACCENT},4px 0 {COLOR_CYAN};}}
+        50% {{text-shadow:5px 0 {COLOR_CYAN},-5px 0 {COLOR_ACCENT};}}
+        75% {{text-shadow:-3px 0 {COLOR_CYAN},3px 0 {COLOR_ACCENT};}}
+    }}
+    @keyframes scan {{0%{{top:-10px;opacity:0;}}50%{{opacity:1;}}100%{{top:100vh;opacity:0;}}}
 
-    .live-mix-player {{position:fixed; bottom:0; left:0; right:0; height:80px; background:rgba(20,20,20,0.98);
+    .live-mix-player {{
+        position:fixed; bottom:0; left:0; right:0; height:80px; background:rgba(20,20,20,0.98);
         padding:12px 16px; border-top:3px solid {COLOR_ACCENT}; display:flex; align-items:center;
-        justify-content:space-between; z-index:9998; box-shadow:0 -4px 20px rgba(255,0,51,0.3);}}
+        justify-content:space-between; z-index:9998; box-shadow:0 -4px 20px rgba(255,0,51,0.3);
+    }}
     .visualizer {{width:100%; height:40px; background:#000; border:1px solid #333;}}
-    .video-bg, .overlay {{position:fixed; top:0; left:0; width:100vw; height:100vh; z-index:-999;}}
-    .video-bg iframe {{width:100%; height:100%; min-width:100vw; min-height:100vh; transform:scale(1.1);}}
-    .overlay {{background:rgba(8,8,8,0.88); z-index:-998; pointer-events:none;}}
 </style>
 
-<!-- LOADING SCREEN -->
-<div class="loading-overlay" id="loader">
+<!-- LOADING SCREEN (controlled by session state) -->
+<div class="loading-overlay" id="loader" style="display: {'block' if st.session_state.show_loader else 'none'};">
     <div class="glitch-text">TNF SYSTEM BOOT</div>
-    <div style="margin-top:20px; font-family:'Space Mono',monospace; color:#666;">
-        Initializing modular core...<br>Loading analog signal chain...<br>
+    <div style="margin-top:20px; font-family:'Space Mono',monospace; color:#666; text-align:center;">
+        Initializing modular core...<br>
+        Loading analog signal chain...<br>
         <span style="color:{COLOR_CYAN}">Connected to Melbourne Transmission</span>
     </div>
     <div class="scanline"></div>
 </div>
 
 <!-- Background Video -->
-<div class="video-bg">
+<div style="position:fixed; top:0; left:0; width:100vw; height:100vh; z-index:-999; overflow:hidden;">
     <iframe src="https://www.youtube.com/embed/qC0vDKVPCrw?controls=0&showinfo=0&rel=0&autoplay=1&loop=1&mute=1&playlist=qC0vDKVPCrw"
-            frameborder="0" allow="autoplay"></iframe>
+            frameborder="0" allow="autoplay" style="width:100%; height:100%; min-width:100vw; min-height:100vh; transform:scale(1.1);"></iframe>
 </div>
-<div class="overlay"></div>
+<div style="position:fixed; top:0; left:0; width:100vw; height:100vh; background:rgba(8,8,8,0.88); z-index:-998; pointer-events:none;"></div>
 
-<!-- FIXED BOTTOM PLAYER – Melbourne Mixcloud -->
+<!-- FIXED BOTTOM PLAYER -->
 <div class="live-mix-player">
     <div style="display:flex; align-items:center; gap:12px;">
         <strong style="color:{COLOR_CYAN}">LIVE: STARGAZING</strong>
@@ -110,18 +120,20 @@ st.markdown(f"""
 """, unsafe_allow_html=True)
 
 # ──────────────────────────────────────────────────────────────
-# JAVASCRIPT (outside f-string → no syntax error)
+# JAVASCRIPT (outside f-string, safe)
 # ──────────────────────────────────────────────────────────────
 st.markdown("""
 <script>
-// Fade out loader
-setTimeout(() => {
-    const loader = document.getElementById('loader');
-    if (loader) {
-        loader.style.opacity = '0';
-        setTimeout(() => loader.style.display = 'none', 600);
-    }
-}, 2500);
+// Hide loader after 2 seconds on first load only
+if (performance.navigation.type === 0) {  // Only on fresh load
+    setTimeout(() => {
+        const loader = document.getElementById('loader');
+        if (loader) {
+            loader.style.opacity = '0';
+            setTimeout(() => loader.style.display = 'none', 800);
+        }
+    }, 2200);
+}
 
 // Web Audio Visualizer
 let audioContext, analyser, dataArray, canvas, ctx;
@@ -174,12 +186,7 @@ selected = option_menu(
 
 if selected != menu_options[st.session_state.current_page_index]:
     st.session_state.current_page_index = menu_options.index(selected)
-    st.session_state.loading = True
-    st.rerun()
-
-if st.session_state.loading:
-    time.sleep(0.9)
-    st.session_state.loading = False
+    st.session_state.show_loader = False  # Ensure loader is off during navigation
     st.rerun()
 
 # ──────────────────────────────────────────────────────────────
@@ -205,14 +212,16 @@ if idx == 0:  # HOME
                 st.session_state.current_page_index = 3; st.rerun()
     with col2:
         st.markdown("#### SYSTEM UPDATES")
-        st.markdown(f"<div class='tech-card'>NEW RELEASE<br>'Voltage Control' EP — Ostgut Ton</div>", unsafe_allow_html=True)
-        st.markdown(f"<div class='tech-card'>TOUR<br>Europe Winter 2025 confirmed</div>", unsafe_allow_html=True)
+        st.markdown(f"<div style='background:#0a0a0a;padding:16px;border-top:3px solid {COLOR_CYAN};font-family:Space Mono;'>NEW RELEASE<br>'Voltage Control' EP — Ostgut Ton</div>", unsafe_allow_html=True)
+        st.markdown(f"<div style='background:#0a0a0a;padding:16px;border-top:3px solid {COLOR_CYAN};font-family:Space Mono;'>TOUR<br>Europe Winter 2025 confirmed</div>", unsafe_allow_html=True)
 
 elif idx == 1:  # MUSIC
     st.markdown("## TUESDAYNIGHTFREAK DISCOGRAPHY")
-    for t in [{"title":"System Failure (Original Mix)","label":"House Keeping Rec","cat":"HKR004"},
-              {"title":"Voltage Control","label":"Ostgut Ton","cat":"OSTGUT-55"},
-              {"title":"Analog Dreams","label":"Tresor","cat":"TR-291"}]:
+    for t in [
+        {"title":"System Failure (Original Mix)", "label":"House Keeping Rec", "cat":"HKR004"},
+        {"title":"Voltage Control", "label":"Ostgut Ton", "cat":"OSTGUT-55"},
+        {"title":"Analog Dreams", "label":"Tresor", "cat":"TR-291"}
+    ]:
         c1,c2,c3 = st.columns([3,4,2])
         with c1: st.markdown(f"**{t['title']}**")
         with c2: st.caption(f"{t['label']} · {t['cat']}")
@@ -225,11 +234,13 @@ elif idx == 2:  # HKR
     st.markdown(f"<div style='text-align:center;'>{HKR_LOGO_SVG}</div>", unsafe_allow_html=True)
     st.markdown("## HOUSE KEEPING RECORDS")
     st.markdown("#### DEEP HOUSE · FUNCTIONAL TOOLS · VINYL ONLY")
-    st.markdown("<div class='content-card'>Dedicated vinyl imprint for raw, hypnotic, hardware-driven deep house & techno.<br>Inspired by Guidance, Peacefrog, Mojuba, Workshop, PIV, Knee Deep In Sound, Fuse London, Get Physical, Defected, Soulistic.</div>", unsafe_allow_html=True)
+    st.markdown("<div style='background:#141414;padding:28px;border-left:4px solid #FF0033;'>Dedicated vinyl imprint for raw, hypnotic, hardware-driven deep house & techno.<br>Inspired by Guidance, Peacefrog, Mojuba, Workshop, PIV, Knee Deep In Sound, Fuse London, Get Physical, Defected, Soulistic.</div>", unsafe_allow_html=True)
     st.markdown("### LATEST VINYL")
-    for r in [{"cat":"HKR005","title":"Rhythm Generator EP","artist":"Various Artists"},
-              {"cat":"HKR004","title":"Modular Loop 01","artist":"TUESDAYNIGHTFREAK"},
-              {"cat":"HKR003","title":"Grid Sequencer","artist":"Acid Junkie"}]:
+    for r in [
+        {"cat":"HKR005","title":"Rhythm Generator EP","artist":"Various Artists"},
+        {"cat":"HKR004","title":"Modular Loop 01","artist":"TUESDAYNIGHTFREAK"},
+        {"cat":"HKR003","title":"Grid Sequencer","artist":"Acid Junkie"}
+    ]:
         c1,c2,c3 = st.columns([1,4,2])
         with c1: st.markdown(f"<div style='background:{COLOR_ACCENT};color:white;padding:10px 16px;font-weight:bold;'>VINYL</div>", unsafe_allow_html=True)
         with c2: st.markdown(f"**{r['title']}**<br><small>{r['artist']}</small>", unsafe_allow_html=True)
@@ -239,10 +250,12 @@ elif idx == 2:  # HKR
 
 elif idx == 3:  # EVENTS
     st.markdown("## UPCOMING DATES")
-    for e in [{"date":"NOV 04","city":"AMSTERDAM","venue":"SHELTER","status":"SELLING FAST"},
-              {"date":"NOV 11","city":"LONDON","venue":"FOLD","status":"TICKETS"},
-              {"date":"NOV 18","city":"MELBOURNE","venue":"REVOLVER","status":"SOLD OUT"},
-              {"date":"DEC 02","city":"PARIS","venue":"REX CLUB","status":"TICKETS"}]:
+    for e in [
+        {"date":"NOV 04","city":"AMSTERDAM","venue":"SHELTER","status":"SELLING FAST"},
+        {"date":"NOV 11","city":"LONDON","venue":"FOLD","status":"TICKETS"},
+        {"date":"NOV 18","city":"MELBOURNE","venue":"REVOLVER","status":"SOLD OUT"},
+        {"date":"DEC 02","city":"PARIS","venue":"REX CLUB","status":"TICKETS"}
+    ]:
         c1,c2,c3,c4 = st.columns([1,2,2,2])
         with c1: st.markdown(f"<span style='color:{COLOR_ACCENT}'>{e['date']}</span>", unsafe_allow_html=True)
         with c2: st.markdown(f"**{e['city']}**")
@@ -265,8 +278,8 @@ elif idx == 4:  # STORE
     if st.session_state.checkout:
         st.markdown("## CHECKOUT")
         prices = {"CORE TEE":35, "LABEL HOODIE":65, "SLIPMATS":20}
-        total = sum(prices.get(i.split(" [")[0].split(" ")[0], 35) for i in st.session_state.cart)
-        df = pd.DataFrame([{"Item":i, "Price":f"€{prices.get(i.split(' [')[0].split(' ')[0],35)}"} for i in st.session_state.cart])
+        total = sum(prices.get(i.split(" [")[0], 35) for i in st.session_state.cart)
+        df = pd.DataFrame([{"Item":i, "Price":f"€{prices.get(i.split(' [')[0],35)}"} for i in st.session_state.cart])
         st.dataframe(df, use_container_width=True)
         st.markdown(f"**Total: €{total:.2f}**")
         with st.form("checkout_form"):
@@ -287,7 +300,7 @@ elif idx == 4:  # STORE
     for i, (name, desc, price, img) in enumerate(items):
         with cols[i]:
             st.image(img, use_column_width=True)
-            st.markdown(f"**{name}**<br><small>{desc}</small><br>**{price}**", unsafe_allow_html=True)
+            st.markdown(f"**{name}**<br>< wich<small>{desc}</small><br>**{price}**", unsafe_allow_html=True)
             if st.button("ADD TO CART", key=f"item_{i}"):
                 st.session_state.cart.append(name); st.rerun()
 
