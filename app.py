@@ -12,14 +12,11 @@ COLOR_ACCENT  = "#FF0033"
 COLOR_CYAN    = "#00f7ff"
 COLOR_CARD    = "#141414"
 
-# ──────────────────────────────────────────────────────────────
-# BRANDING SVGs
-# ──────────────────────────────────────────────────────────────
 TNF_LOGO_SVG = """
 <svg width="180" height="60" viewBox="0 0 180 60" xmlns="http://www.w3.org/2000/svg">
-  <text x="4" y="38" font-family="Arial Black, sans-serif" font-weight="900" font-size="42" fill="#00f7ff" opacity="0.6" letter-spacing="-4">TNF</text>
-  <text x="-2" y="38" font-family="Arial Black, sans-serif" font-weight="900" font-size="42" fill="#FF0033" opacity="0.7" letter-spacing="-4">TNF</text>
-  <text x="0" y="38" font-family="Arial Black, sans-serif" font-weight="900" font-size="42" fill="#F0F0F0" letter-spacing="-4">TNF</text>
+  <text x="4" y="38" font-family="Arial Black,sans-serif" font-weight="900" font-size="42" fill="#00f7ff" opacity="0.6" letter-spacing="-4">TNF</text>
+  <text x="-2" y="38" font-family="Arial Black,sans-serif" font-weight="900" font-size="42" fill="#FF0033" opacity="0.7" letter-spacing="-4">TNF</text>
+  <text x="0" y="38" font-family="Arial Black,sans-serif" font-weight="900" font-size="42" fill="#F0F0F0" letter-spacing="-4">TNF</text>
   <rect x="100" y="18" width="5" height="24" fill="#FF0033"/>
   <rect x="112" y="18" width="5" height="24" fill="#00f7ff"/>
   <circle cx="140" cy="30" r="8" stroke="#F0F0F0" stroke-width="2" fill="none"/>
@@ -48,98 +45,86 @@ if 'checkout' not in st.session_state:           st.session_state.checkout = Fal
 if 'loading' not in st.session_state:            st.session_state.loading = False
 
 # ──────────────────────────────────────────────────────────────
-# GLOBAL CSS + LOADING ANIMATION + FIXED PLAYER + VISUALIZER
+# GLOBAL CSS + LOADING + PLAYER + VISUALIZER (NO JS IN F-STRING!)
 # ──────────────────────────────────────────────────────────────
 st.markdown(f"""
 <style>
     @import url('https://fonts.googleapis.com/css2?family=Inter:wght@400;700;900&family=Space+Mono:wght@400;700&display=swap');
     .stApp {{background:{COLOR_BG}; color:{COLOR_TEXT}; font-family:'Inter',sans-serif;}}
     #MainMenu, footer, header {{visibility:hidden;}}
-    .block-container {{max-width:1400px; padding-top:2rem; padding-left:1rem; padding-right:1rem;}}
+    .block-container {{max-width:1400px; padding:2rem 1rem;}}
     h1,h2,h3,h4,h5 {{font-family:'Inter',sans-serif; font-weight:900; text-transform:uppercase; letter-spacing:-1px;}}
     h4,h5 {{color:{COLOR_CYAN};}}
     .stButton>button {{background:{COLOR_CYAN}; color:black; border:none; padding:14px 32px; font-weight:900; text-transform:uppercase;}}
     .stButton>button:hover {{background:{COLOR_ACCENT}; color:white; box-shadow:0 0 20px rgba(255,0,51,0.5);}}
-    .content-card {{background:{COLOR_CARD}; padding:28px; border-left:4px solid {COLOR_ACCENT};}}
-    .tech-card {{background:#0a0a0a; padding:16px; border-top:3px solid {COLOR_CYAN}; font-family:'Space Mono',monospace;}}
 
-    /* LOADING OVERLAY */
-    .loading-overlay {{
-        position:fixed; top:0; left:0; width:100vw; height:100vh;
-        background:rgba(8,8,8,0.98); z-index:9999; display:flex;
-        flex-direction:column; justify-content:center; align-items:center;
-        transition:opacity 0.6s ease-out;
-    }}
-    .glitch-text {{
-        font-family:'Space Mono',monospace; font-size:2.5rem; font-weight:900;
-        color:{COLOR_CYAN}; text-transform:uppercase; letter-spacing:4px;
-        animation: glitch 2s infinite;
-    }}
-    .scanline {{
-        position:absolute; top:0; width:100%; height:4px;
-        background:linear-gradient(to bottom, transparent, {COLOR_ACCENT}40, transparent);
-        animation: scan 3s linear infinite;
-    }}
-    @keyframes glitch {{
-        0%,100% {{text-shadow: 2px 0 {COLOR_ACCENT}, -2px 0 {COLOR_CYAN};}}
-        20% {{text-shadow: -3px 0 {COLOR_ACCENT}, 3px 0 {COLOR_CYAN};}}
-        40% {{text-shadow: 4px 0 {COLOR_CYAN}, -4px 0 {COLOR_ACCENT};}}
-        60% {{text-shadow: -2px 0 {COLOR_CYAN}, 2px 0 {COLOR_ACCENT};}}
-    }}
-    @keyframes scan {{0%{{top:-10px; opacity:0;}} 50%{{opacity:1;}} 100%{{top:100vh; opacity:0;}}}}
+    .loading-overlay {{position:fixed; top:0; left:0; width:100vw; height:100vh; background:rgba(8,8,8,0.98);
+        z-index:9999; display:flex; flex-direction:column; justify-content:center; align-items:center;
+        transition:opacity 0.6s ease-out;}}
+    .glitch-text {{font-family:'Space Mono',monospace; font-size:2.5rem; font-weight:900;
+        color:{COLOR_CYAN}; text-transform:uppercase; letter-spacing:4px; animation:glitch 2s infinite;}}
+    .scanline {{position:absolute; top:0; width:100%; height:4px; background:linear-gradient(to bottom,transparent,{COLOR_ACCENT}40,transparent);
+        animation:scan 3s linear infinite;}}
+    @keyframes glitch {{0%,100%{{text-shadow:2px 0 {COLOR_ACCENT},-2px 0 {COLOR_CYAN};}}
+        20%{{text-shadow:-3px 0 {COLOR_ACCENT},3px 0 {COLOR_CYAN};}}
+        40%{{text-shadow:4px 0 {COLOR_CYAN},-4px 0 {COLOR_ACCENT};}}
+        60%{{text-shadow:-2px 0 {COLOR_CYAN},2px 0 {COLOR_ACCENT};}}}}
+    @keyframes scan {{0%{{top:-10px;opacity:0;}}50%{{opacity:1;}}100%{{top:100vh;opacity:0;}}}}
 
-    /* FIXED BOTTOM PLAYER */
-    .live-mix-player {{
-        position:fixed; bottom:0; left:0; right:0; z-index:9998; height:80px;
-        background:rgba(20,20,20,0.98); padding:12px 16px; border-top:3px solid {COLOR_ACCENT};
-        display:flex; align-items:center; justify-content:space-between;
-        box-shadow:0 -4px 20px rgba(255,0,51,0.3);
-    }}
-    .visualizer {{width:100%; height:40px; background:#000; margin:0; border:1px solid #333;}}
-
-    .video-bg {{position:fixed; top:0; left:0; width:100vw; height:100vh; z-index:-999; overflow:hidden;}}
+    .live-mix-player {{position:fixed; bottom:0; left:0; right:0; height:80px; background:rgba(20,20,20,0.98);
+        padding:12px 16px; border-top:3px solid {COLOR_ACCENT}; display:flex; align-items:center;
+        justify-content:space-between; z-index:9998; box-shadow:0 -4px 20px rgba(255,0,51,0.3);}}
+    .visualizer {{width:100%; height:40px; background:#000; border:1px solid #333;}}
+    .video-bg, .overlay {{position:fixed; top:0; left:0; width:100vw; height:100vh; z-index:-999;}}
     .video-bg iframe {{width:100%; height:100%; min-width:100vw; min-height:100vh; transform:scale(1.1);}}
-    .overlay {{position:fixed; top:0; left:0; width:100vw; height:100vh; background:rgba(8,8,8,0.88); z-index:-998; pointer-events:none;}}
+    .overlay {{background:rgba(8,8,8,0.88); z-index:-998; pointer-events:none;}}
 </style>
 
 <!-- LOADING SCREEN -->
 <div class="loading-overlay" id="loader">
     <div class="glitch-text">TNF SYSTEM BOOT</div>
     <div style="margin-top:20px; font-family:'Space Mono',monospace; color:#666;">
-        Initializing modular core...<br>
-        Loading analog signal chain...<br>
+        Initializing modular core...<br>Loading analog signal chain...<br>
         <span style="color:{COLOR_CYAN}">Connected to Melbourne Transmission</span>
     </div>
     <div class="scanline"></div>
 </div>
 
-<!-- Ambient Background Video -->
+<!-- Background Video -->
 <div class="video-bg">
     <iframe src="https://www.youtube.com/embed/qC0vDKVPCrw?controls=0&showinfo=0&rel=0&autoplay=1&loop=1&mute=1&playlist=qC0vDKVPCrw"
             frameborder="0" allow="autoplay"></iframe>
 </div>
 <div class="overlay"></div>
 
-<!-- FIXED BOTTOM LIVE PLAYER – MELBOURNE MIXCLOUD -->
+<!-- FIXED BOTTOM PLAYER – Melbourne Mixcloud -->
 <div class="live-mix-player">
-    <div style="display:flex; align-items:center; gap:12px; flex:1;">
-        <strong style="color:{COLOR_CYAN}; font-size:0.9rem;">LIVE: STARGAZING</strong>
+    <div style="display:flex; align-items:center; gap:12px;">
+        <strong style="color:{COLOR_CYAN}">LIVE: STARGAZING</strong>
         <small style="color:#aaa;">House Keeping Records — Modular from Melbourne</small>
     </div>
     <iframe width="220" height="40" src="https://www.mixcloud.com/widget/iframe/?hide_cover=1&light=1&feed=%2FHouse_Keeping%2Fstargazing%2F" frameborder="0"></iframe>
     <canvas id="visualizer" class="visualizer"></canvas>
     <div style="font-size:0.7rem; opacity:0.8;"><span style="color:{COLOR_ACCENT}">REC</span></div>
 </div>
+""", unsafe_allow_html=True)
 
+# ──────────────────────────────────────────────────────────────
+# JAVASCRIPT (outside f-string → no syntax error)
+# ──────────────────────────────────────────────────────────────
+st.markdown("""
 <script>
-// Fade out loading screen
+// Fade out loader
 setTimeout(() => {
     const loader = document.getElementById('loader');
-    if (loader) { loader.style.opacity = '0'; setTimeout(() => loader.style.display = 'none', 600); }
+    if (loader) {
+        loader.style.opacity = '0';
+        setTimeout(() => loader.style.display = 'none', 600);
+    }
 }, 2500);
 
 // Web Audio Visualizer
-let audioContext, analyser, source, dataArray, canvas, ctx;
+let audioContext, analyser, dataArray, canvas, ctx;
 function initVisualizer() {
     if (audioContext) return;
     audioContext = new (window.AudioContext || window.webkitAudioContext)();
@@ -157,7 +142,7 @@ function draw() {
     requestAnimationFrame(draw);
     analyser.getByteTimeDomainData(dataArray);
     ctx.fillStyle = '#000'; ctx.fillRect(0, 0, canvas.width, canvas.height);
-    ctx.lineWidth = 1.5; ctx.strokeStyle = '{COLOR_CYAN}'; ctx.beginPath();
+    ctx.lineWidth = 1.5; ctx.strokeStyle = '#00f7ff'; ctx.beginPath();
     const sliceWidth = canvas.width / dataArray.length;
     let x = 0;
     for (let i = 0; i < dataArray.length; i++) {
@@ -173,7 +158,7 @@ document.addEventListener('click', () => { if (!audioContext) initVisualizer(); 
 """, unsafe_allow_html=True)
 
 # ──────────────────────────────────────────────────────────────
-# NAVIGATION – FIXED SINGLE CLICK
+# NAVIGATION
 # ──────────────────────────────────────────────────────────────
 menu_options = ["HOME", "MUSIC", "HKR", "EVENTS", "STORE", "GALLERY", "ABOUT", "SYSTEM"]
 selected = option_menu(
@@ -181,7 +166,7 @@ selected = option_menu(
     icons=["house", "music-note-list", "vinyl", "calendar3", "cart4", "image", "info-circle", "gear"],
     default_index=st.session_state.current_page_index,
     orientation="horizontal",
-    key="main_nav",
+    key="nav",
     styles={"container": {"padding":"0","background":"#000","border-bottom":"1px solid #333"},
             "nav-link": {"font-size":"18px","font-weight":"700","text-transform":"uppercase","color":"#aaa"},
             "nav-link-selected": {"background":"transparent","color":COLOR_CYAN,"border-bottom":f"3px solid {COLOR_CYAN}"}}
@@ -192,30 +177,25 @@ if selected != menu_options[st.session_state.current_page_index]:
     st.session_state.loading = True
     st.rerun()
 
-# Loading animation between pages
 if st.session_state.loading:
     time.sleep(0.9)
     st.session_state.loading = False
     st.rerun()
 
 # ──────────────────────────────────────────────────────────────
-# PAGES – FULL CONTENT
+# PAGES
 # ──────────────────────────────────────────────────────────────
-page_idx = st.session_state.current_page_index
+idx = st.session_state.current_page_index
 
-if page_idx == 0:  # HOME
+if idx == 0:  # HOME
     col1, col2 = st.columns([2, 1])
     with col1:
         st.markdown(f"<div style='font-size:5rem; line-height:1;'>{TNF_LOGO_SVG}</div>", unsafe_allow_html=True)
         st.markdown("#### ARCHITECTS OF THE ANALOGUE SIGNAL")
-        st.markdown("""
-        <div style="font-size:1.2rem; line-height:1.8; opacity:0.9;">
+        st.markdown("""<div style="font-size:1.2rem; line-height:1.8; opacity:0.9;">
         Tuesdaynightfreak operates at the intersection of <strong>studio precision</strong> and <strong>live improvisation</strong>.<br>
         We construct immersive sonic environments using modular synthesis — exploring the tension between mechanical repetition and human error.
-        <br><br><em>A sonic movement born in Melbourne. Refined in Berlin.</em>
-        </div>
-        """, unsafe_allow_html=True)
-        st.markdown("<br>", unsafe_allow_html=True)
+        <br><br><em>A sonic movement born in Melbourne. Refined in Berlin.</em></div>""", unsafe_allow_html=True)
         b1, b2 = st.columns(2)
         with b1:
             if st.button("LATEST RELEASE", use_container_width=True):
@@ -228,52 +208,41 @@ if page_idx == 0:  # HOME
         st.markdown(f"<div class='tech-card'>NEW RELEASE<br>'Voltage Control' EP — Ostgut Ton</div>", unsafe_allow_html=True)
         st.markdown(f"<div class='tech-card'>TOUR<br>Europe Winter 2025 confirmed</div>", unsafe_allow_html=True)
 
-elif page_idx == 1:  # MUSIC
+elif idx == 1:  # MUSIC
     st.markdown("## TUESDAYNIGHTFREAK DISCOGRAPHY")
-    for t in [
-        {"title":"System Failure (Original Mix)", "label":"House Keeping Rec", "cat":"HKR004"},
-        {"title":"Voltage Control", "label":"Ostgut Ton", "cat":"OSTGUT-55"},
-        {"title":"Analog Dreams", "label":"Tresor", "cat":"TR-291"},
-    ]:
-        c1, c2, c3 = st.columns([3, 4, 2])
+    for t in [{"title":"System Failure (Original Mix)","label":"House Keeping Rec","cat":"HKR004"},
+              {"title":"Voltage Control","label":"Ostgut Ton","cat":"OSTGUT-55"},
+              {"title":"Analog Dreams","label":"Tresor","cat":"TR-291"}]:
+        c1,c2,c3 = st.columns([3,4,2])
         with c1: st.markdown(f"**{t['title']}**")
         with c2: st.caption(f"{t['label']} · {t['cat']}")
         with c3:
-            if st.button("PREVIEW", key=f"prev_{t['title']}"):
+            if st.button("PREVIEW", key=t['title']):
                 st.audio("https://cdn.freesound.org/previews/620/620483_5674468-lq.mp3", format="audio/mp3")
         st.markdown("---")
 
-elif page_idx == 2:  # HKR
+elif idx == 2:  # HKR
     st.markdown(f"<div style='text-align:center;'>{HKR_LOGO_SVG}</div>", unsafe_allow_html=True)
     st.markdown("## HOUSE KEEPING RECORDS")
     st.markdown("#### DEEP HOUSE · FUNCTIONAL TOOLS · VINYL ONLY")
-    st.markdown("""
-    <div class="content-card">
-    Dedicated vinyl imprint for raw, hypnotic, hardware-driven deep house & techno.<br>
-    Inspired by Guidance, Peacefrog, Mojuba, Workshop, PIV, Knee Deep In Sound, Fuse London, Get Physical, Defected, Soulistic.
-    </div>
-    """, unsafe_allow_html=True)
+    st.markdown("<div class='content-card'>Dedicated vinyl imprint for raw, hypnotic, hardware-driven deep house & techno.<br>Inspired by Guidance, Peacefrog, Mojuba, Workshop, PIV, Knee Deep In Sound, Fuse London, Get Physical, Defected, Soulistic.</div>", unsafe_allow_html=True)
     st.markdown("### LATEST VINYL")
-    for r in [
-        {"cat":"HKR005","title":"Rhythm Generator EP","artist":"Various Artists"},
-        {"cat":"HKR004","title":"Modular Loop 01","artist":"TUESDAYNIGHTFREAK"},
-        {"cat":"HKR003","title":"Grid Sequencer","artist":"Acid Junkie"},
-    ]:
+    for r in [{"cat":"HKR005","title":"Rhythm Generator EP","artist":"Various Artists"},
+              {"cat":"HKR004","title":"Modular Loop 01","artist":"TUESDAYNIGHTFREAK"},
+              {"cat":"HKR003","title":"Grid Sequencer","artist":"Acid Junkie"}]:
         c1,c2,c3 = st.columns([1,4,2])
         with c1: st.markdown(f"<div style='background:{COLOR_ACCENT};color:white;padding:10px 16px;font-weight:bold;'>VINYL</div>", unsafe_allow_html=True)
         with c2: st.markdown(f"**{r['title']}**<br><small>{r['artist']}</small>", unsafe_allow_html=True)
-        with c3: st.markdown(f"<small>{r['cat']}</small>"); st.button("BUY", key=f"hkr_{r['cat']}")
+        with c3: st.markdown(f"<small>{r['cat']}</small>"); st.button("BUY", key=r['cat'])
         st.audio("https://cdn.freesound.org/previews/620/620483_5674468-lq.mp3", format="audio/mp3")
         st.markdown("---")
 
-elif page_idx == 3:  # EVENTS
+elif idx == 3:  # EVENTS
     st.markdown("## UPCOMING DATES")
-    for e in [
-        {"date":"NOV 04","city":"AMSTERDAM","venue":"SHELTER","status":"SELLING FAST"},
-        {"date":"NOV 11","city":"LONDON","venue":"FOLD","status":"TICKETS"},
-        {"date":"NOV 18","city":"MELBOURNE","venue":"REVOLVER","status":"SOLD OUT"},
-        {"date":"DEC 02","city":"PARIS","venue":"REX CLUB","status":"TICKETS"},
-    ]:
+    for e in [{"date":"NOV 04","city":"AMSTERDAM","venue":"SHELTER","status":"SELLING FAST"},
+              {"date":"NOV 11","city":"LONDON","venue":"FOLD","status":"TICKETS"},
+              {"date":"NOV 18","city":"MELBOURNE","venue":"REVOLVER","status":"SOLD OUT"},
+              {"date":"DEC 02","city":"PARIS","venue":"REX CLUB","status":"TICKETS"}]:
         c1,c2,c3,c4 = st.columns([1,2,2,2])
         with c1: st.markdown(f"<span style='color:{COLOR_ACCENT}'>{e['date']}</span>", unsafe_allow_html=True)
         with c2: st.markdown(f"**{e['city']}**")
@@ -281,10 +250,10 @@ elif page_idx == 3:  # EVENTS
         with c4:
             if e['status'] == "SOLD OUT":
                 st.markdown("<span style='color:#666'>SOLD OUT</span>", unsafe_allow_html=True)
-            else: st.button(f"BUY {e['status']}", key=f"event_{e['city']}")
+            else: st.button(f"BUY {e['status']}", key=e['city'])
         st.markdown("---")
 
-elif page_idx == 4:  # STORE
+elif idx == 4:  # STORE
     st.markdown("## OFFICIAL MERCHANDISE")
     if st.session_state.cart:
         st.success(f"CART: {len(st.session_state.cart)} item(s)")
@@ -296,8 +265,8 @@ elif page_idx == 4:  # STORE
     if st.session_state.checkout:
         st.markdown("## CHECKOUT")
         prices = {"CORE TEE":35, "LABEL HOODIE":65, "SLIPMATS":20}
-        total = sum(prices.get(i.split(" [")[0], 35) for i in st.session_state.cart)
-        df = pd.DataFrame([{"Item":i, "Price":f"€{prices.get(i.split(' [')[0],35)}"} for i in st.session_state.cart])
+        total = sum(prices.get(i.split(" [")[0].split(" ")[0], 35) for i in st.session_state.cart)
+        df = pd.DataFrame([{"Item":i, "Price":f"€{prices.get(i.split(' [')[0].split(' ')[0],35)}"} for i in st.session_state.cart])
         st.dataframe(df, use_container_width=True)
         st.markdown(f"**Total: €{total:.2f}**")
         with st.form("checkout_form"):
@@ -322,7 +291,7 @@ elif page_idx == 4:  # STORE
             if st.button("ADD TO CART", key=f"item_{i}"):
                 st.session_state.cart.append(name); st.rerun()
 
-elif page_idx == 5:  # GALLERY
+elif idx == 5:  # GALLERY
     st.markdown("## VISUAL ARCHIVE")
     st.caption("Analog synth live · Modular DJ setups · Hardware performances")
     cols = st.columns(2)
@@ -336,7 +305,7 @@ elif page_idx == 5:  # GALLERY
     for i, (url, cap) in enumerate(gallery):
         with cols[i%2]: st.image(url, caption=cap, use_column_width=True)
 
-elif page_idx == 6:  # ABOUT
+elif idx == 6:  # ABOUT
     col1, col2 = st.columns([2,1])
     with col1:
         st.markdown("## TUESDAYNIGHTFREAK")
@@ -348,7 +317,7 @@ elif page_idx == 6:  # ABOUT
             st.text_input("Email")
             st.form_submit_button("Subscribe")
 
-elif page_idx == 7:  # SYSTEM
+elif idx == 7:  # SYSTEM
     st.markdown("## SYSTEM ACCESS")
     pwd = st.text_input("Auth Code", type="password")
     if pwd == "analog2025":
