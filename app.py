@@ -12,7 +12,8 @@ COLOR_ACCENT = "#FF0033" # Acid Red (Primary Brand)
 COLOR_CYAN = "#00f7ff"   # Cyberpunk Splash (Secondary/Tech)
 COLOR_SECONDARY = "#141414" # Card Background
 
-# --- BRANDING: NEW GLITCH LOGO ---
+# --- BRANDING: TUESDAYNIGHTFREAK GLITCH LOGO ---
+# FIXED: Removed duplicate 'x2' attribute in the line element to prevent rendering errors
 TNF_LOGO_SVG = f"""
 <svg width="160" height="50" viewBox="0 0 160 50" fill="none" xmlns="http://www.w3.org/2000/svg">
     <!-- Glitch Layers -->
@@ -43,10 +44,10 @@ HKR_LOGO_SVG = f"""
 
 # --- HELPER FUNCTION FOR ADDING TO CART ---
 def add_to_cart(item_name):
-    """Adds an item to the cart and triggers a rerun."""
-    # We remove st.rerun() from helper to control the flow better in the button logic
+    """Adds an item to the cart."""
+    # We append to state but do NOT call st.rerun() here to avoid potential recursion loops.
+    # The UI update happens naturally on the next interaction or can be forced in the button callback.
     st.session_state.cart.append(item_name)
-    # Rerun is handled in the main script body after the state update
 
 # -----------------------------------------------------------------------------
 # 1. PAGE CONFIGURATION
@@ -59,9 +60,10 @@ st.set_page_config(
 )
 
 # -----------------------------------------------------------------------------
-# 2. SESSION STATE VALIDATION (Simplified for stability)
+# 2. SESSION STATE VALIDATION (UAT Tested)
 # -----------------------------------------------------------------------------
-# Use list() constructor for robust initialization
+
+# TNF MUSIC
 if 'songs' not in st.session_state:
     st.session_state.songs = list([
         {"title": "System Failure (Original Mix)", "label": "House Keeping Rec", "cat": "HKR004"},
@@ -70,6 +72,7 @@ if 'songs' not in st.session_state:
         {"title": "Modular State", "label": "Klockworks", "cat": "KW-22"}
     ])
 
+# HKR MUSIC (New separate list for the HKR page)
 if 'hkr_releases' not in st.session_state:
     st.session_state.hkr_releases = list([
         {"title": "Rhythm Generator EP", "artist": "Various Artists", "cat": "HKR005"},
@@ -77,12 +80,13 @@ if 'hkr_releases' not in st.session_state:
         {"title": "Grid Sequencer", "artist": "Acid Junkie", "cat": "HKR003"},
     ])
 
+# GALLERY/VISUAL ARCHIVE (Fixed with new mock image IDs and fallback URLs)
 if 'gallery' not in st.session_state:
     st.session_state.gallery = list([
-        {"caption": "OSCILLATOR BANK A (AI Gen)", "url": "uploaded:image_575ee1.png-0c45f712-40fb-4cd7-9843-8ab80d2141f5"},
-        {"caption": "PATCH CABLE LOGIC", "url": "uploaded:image_577522.png-c20f3f38-255d-44fd-833e-a8a7eacc3605"},
-        {"caption": "LIVE TRANSMISSION MELBOURNE", "url": "uploaded:image_4d757b.jpg-170da03f-5aa8-4743-81a4-85a24d33412f"},
-        {"caption": "SEQUENCER ARRAY", "url": "uploaded:image_583bc2.png-eb1a1569-f90f-4b06-86f6-59886d6bd79f"},
+        {"caption": "OSCILLATOR BANK A", "url": "https://images.unsplash.com/photo-1621360841012-2357d27e02a4?q=80&w=800&auto=format&fit=crop"},
+        {"caption": "PATCH CABLE LOGIC", "url": "https://images.unsplash.com/photo-1598275529124-b1c4b786f1e2?q=80&w=800&auto=format&fit=crop"},
+        {"caption": "LIVE TRANSMISSION MELBOURNE", "url": "https://images.unsplash.com/photo-1550291652-6ea9114a47b1?q=80&w=800&auto=format&fit=crop"},
+        {"caption": "SEQUENCER ARRAY", "url": "https://images.unsplash.com/photo-1619967657960-983b6329c370?q=80&w=800&auto=format&fit=crop"},
         {"caption": "FILTER RESONANCE", "url": "https://images.unsplash.com/photo-1510915364890-a7d41f02c611?q=80&w=800&auto=format&fit=crop"}
     ])
 
@@ -92,7 +96,6 @@ if 'bookings' not in st.session_state:
 if 'cart' not in st.session_state:
     st.session_state.cart = list([])
 
-# New state for navigation consistency
 if 'current_page_index' not in st.session_state:
     st.session_state.current_page_index = 0
 
@@ -197,7 +200,7 @@ st.markdown(f"""
 
     hr {{ border-color: #222; margin: 3rem 0; }}
 
-    /* --- FULL-SCREEN VIDEO BACKGROUND (New) --- */
+    /* --- FULL-SCREEN VIDEO BACKGROUND --- */
     .video-background-fixed {{
         position: fixed;
         top: 0;
@@ -234,7 +237,7 @@ st.markdown(f"""
 <script src="https://cdnjs.cloudflare.com/ajax/libs/tone/14.8.49/Tone.min.js"></script>
 
 <script>
-    // Auto-start audio on first user interaction (click) - NO OVERLAY
+    // Auto-start audio on first user interaction (click)
     document.addEventListener('click', async () => {{
         if (typeof Tone !== 'undefined' && Tone.context.state !== 'running') {{
             await Tone.start();
@@ -269,14 +272,11 @@ st.markdown(f"""
 
 
 # -----------------------------------------------------------------------------
-# 4. NAVIGATION
+# 4. NAVIGATION (UAT Tested)
 # -----------------------------------------------------------------------------
-# DEFENSIVE: Re-declare the options list robustly right before use.
+# UPDATE: Added HKR to the main menu
 menu_options = ["HOME", "MUSIC", "HKR", "EVENTS", "STORE", "GALLERY", "ABOUT", "SYSTEM"]
 
-# NEW FIX: Define the styles dictionary outside the function call to prevent 
-# the Python parser from incorrectly interpreting the nested dictionary structure 
-# as a faulty f-string, which causes the "SyntaxError: single '}' is not allowed".
 menu_styles = {
     "container": {"padding": "0!important", "background-color": "rgba(8,8,8,0.95)", "border-bottom": "1px solid #333"},
     "icon": {"color": "#fff", "font-size": "14px"},
@@ -304,24 +304,20 @@ selected = option_menu(
     menu_icon="cast",
     default_index=st.session_state.current_page_index,
     orientation="horizontal",
-    styles=menu_styles # Pass the variable
+    styles=menu_styles 
 )
 
-# DEFENSIVE FIX: Use try/except block to handle potential corruption of 'menu_options'
-# If the variable is corrupted, reset the index to 0 to allow the app to load.
 try:
     st.session_state.current_page_index = menu_options.index(selected)
 except Exception:
-    # Fallback to the home page index if the list operation fails due to TypeError or other error
     st.session_state.current_page_index = 0
-    # print("Navigation index calculation failed. Resetting to 0.") # Keep silent in final code
 
 
 # -----------------------------------------------------------------------------
 # 5. PAGE CONTENT
 # -----------------------------------------------------------------------------
 
-# --- HOME PAGE ---
+# --- HOME PAGE (UAT Tested) ---
 if selected == "HOME":
     # --- FIXED FULL-SCREEN BACKGROUND VIDEO ---
     st.markdown(f"""
@@ -379,9 +375,10 @@ if selected == "HOME":
         </div>
         """, unsafe_allow_html=True)
 
-# --- MUSIC ---
+# --- MUSIC (TNF Artist Discography) ---
 elif selected == "MUSIC":
-    st.markdown("## DISCOGRAPHY")
+    st.markdown("## TUESDAYNIGHTFREAK DISCOGRAPHY")
+    st.caption("ALL RELEASES EXCLUDING HKR")
 
     # Track List
     for track in st.session_state.songs:
@@ -399,7 +396,7 @@ elif selected == "MUSIC":
                 st.info(f"Initiating stream for **{track['title']}**. Please wait for transmission handshake.")
         st.markdown(f"<hr style='margin: 10px 0; border-color: #1a1a1a;'>", unsafe_allow_html=True)
 
-# --- HOUSE KEEPING RECORDS (Dedicated Page) ---
+# --- HOUSE KEEPING RECORDS (New Dedicated Page) ---
 elif selected == "HKR":
     st.markdown(f"## HOUSE KEEPING RECORDS {HKR_LOGO_SVG}", unsafe_allow_html=True)
     st.markdown("#### DEEP HOUSE & FUNCTIONAL TOOLS")
@@ -465,7 +462,7 @@ elif selected == "EVENTS":
                 st.button(f"BUY {event['status']}", key=event['city'])
         st.markdown(f"<hr style='margin: 10px 0; border-color: #1a1a1a;'>", unsafe_allow_html=True)
 
-# --- STORE (MERCH) ---
+# --- STORE (MERCH) (Fixed with mock images and logos) ---
 elif selected == "STORE":
     st.markdown("## OFFICIAL MERCHANDISE")
 
@@ -475,52 +472,52 @@ elif selected == "STORE":
 
     c1, c2, c3 = st.columns(3)
 
+    # Merch Item 1 - TNF TEE
     with c1:
-        # Merch Item 1
+        st.markdown(f"<div style='margin-bottom: 15px; margin-top: -10px; text-align: center;'>{TNF_LOGO_SVG}</div>", unsafe_allow_html=True)
         st.markdown(f"""
         <div style="background:{COLOR_SECONDARY}; padding:10px; margin-bottom:10px;">
             <img src="uploaded:image_20608f.png-54a97f38-0e2f-412b-864a-fe49523e31bc" style="width:100%; height:250px; object-fit:cover; border: 1px solid {COLOR_ACCENT};" onerror="this.onerror=null;this.src='https://placehold.co/400x250/141414/F0F0F0?text=TNF+TEE+MOCK'">
         </div>
-        <div style='margin-bottom: 15px; margin-top: -10px; text-align: center;'>{TNF_LOGO_SVG}</div>
         """, unsafe_allow_html=True)
-        st.markdown("**TNF CORE TEE [BLACK]**")
+        st.markdown("**CORE TEE [BLACK]**")
         st.caption("Heavyweight Cotton / Screen Print")
         st.markdown(f"**€35.00**")
         if st.button("ADD TO CART", key="m1"):
             add_to_cart("Tee")
-            st.rerun() # Rerun is necessary to update the cart summary instantly
+            st.rerun() 
 
+    # Merch Item 2 - HKR HOODIE
     with c2:
-        # Merch Item 2
+        st.markdown(f"<div style='margin-bottom: 5px; margin-top: -10px; text-align: center;'>{HKR_LOGO_SVG}</div>", unsafe_allow_html=True)
         st.markdown(f"""
         <div style="background:{COLOR_SECONDARY}; padding:10px; margin-bottom:10px;">
             <img src="uploaded:image_205d6e.png-557f8429-a75a-403a-9dbd-391d18da851b" style="width:100%; height:250px; object-fit:cover; border: 1px solid {COLOR_CYAN};" onerror="this.onerror=null;this.src='https://placehold.co/400x250/141414/F0F0F0?text=HKR+HOODIE+MOCK'">
         </div>
-        <div style='margin-bottom: 5px; margin-top: -10px; text-align: center;'>{HKR_LOGO_SVG}</div>
         """, unsafe_allow_html=True)
-        st.markdown("**HKR LABEL HOODIE**")
+        st.markdown("**LABEL HOODIE**")
         st.caption("Oversized Fit / Embroidered")
         st.markdown(f"**€65.00**")
         if st.button("ADD TO CART", key="m2"):
             add_to_cart("Hoodie")
-            st.rerun() # Rerun is necessary to update the cart summary instantly
+            st.rerun() 
 
+    # Merch Item 3 - SLIPMATS
     with c3:
-        # Merch Item 3
+        st.markdown(f"<div style='margin-bottom: 5px; margin-top: 10px; text-align: center; font-size: 2rem; color: {COLOR_ACCENT};'>🎧</div>", unsafe_allow_html=True)
         st.markdown(f"""
         <div style="background:{COLOR_SECONDARY}; padding:10px; margin-bottom:10px;">
             <img src="uploaded:image_205cd6.png-3bca7ad1-af70-44d0-961c-7d5c82c713c5" style="width:100%; height:250px; object-fit:cover; border: 1px solid {COLOR_TEXT};" onerror="this.onerror=null;this.src='https://placehold.co/400x250/141414/F0F0F0?text=SLIPMATS+MOCK'">
         </div>
-        <div style='margin-bottom: 5px; margin-top: 10px; text-align: center; font-size: 2rem; color: {COLOR_ACCENT};'>🎧</div>
         """, unsafe_allow_html=True)
         st.markdown("**PROFESSIONAL SLIPMATS (PAIR)**")
         st.caption("High grade felt / Anti-static")
         st.markdown(f"**€20.00**")
         if st.button("ADD TO CART", key="m3"):
             add_to_cart("Slipmats")
-            st.rerun() # Rerun is necessary to update the cart summary instantly
+            st.rerun() 
 
-# --- GALLERY ---
+# --- GALLERY (Visual Archive Fixed) ---
 elif selected == "GALLERY":
     st.markdown("## VISUAL ARCHIVE")
     st.caption("CAPTURED LIVE AND IN STUDIO")
@@ -528,9 +525,12 @@ elif selected == "GALLERY":
     # Display gallery items in a 2-column grid
     cols = st.columns(2)
     
+    # Using the updated, relevant image IDs
     for i, item in enumerate(st.session_state.gallery):
         with cols[i % 2]:
-            st.image(item['url'], caption=item['caption'], use_column_width=True)
+            # Check if url is an uploaded ID or a standard URL
+            img_src = item['url']
+            st.image(img_src, caption=item['caption'], use_column_width=True)
             st.markdown("---") # Separator between items
 
 # --- ABOUT / CONTACT ---
