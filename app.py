@@ -52,8 +52,8 @@ if 'cart' not in st.session_state:
     st.session_state.cart = []
 if 'page_index' not in st.session_state:
     st.session_state.page_index = 0
-if 'enlarged_image' not in st.session_state:
-    st.session_state.enlarged_image = None
+# Removed 'enlarged_image' state as per request
+
 
 def set_page(index):
     st.session_state.page_index = index
@@ -61,13 +61,6 @@ def set_page(index):
 def add_to_cart(item):
     st.session_state.cart.append(item)
     st.toast(f"Added {item} to cart!", icon="🛒")
-    
-def set_enlarged_image(url, caption):
-    st.session_state.enlarged_image = {"url": url, "caption": caption}
-    
-def clear_enlarged_image():
-    st.session_state.enlarged_image = None
-
 
 # --- CUSTOM CSS (STREAMLIT UI REMOVAL & STYLING) ---
 st.markdown(f"""
@@ -114,18 +107,6 @@ st.markdown(f"""
         box-shadow: 0 0 15px {COLOR_ACCENT};
     }}
     
-    /* Enlarged Image Return Button */
-    .return-button>button {{
-        background: {COLOR_SECONDARY};
-        color: {COLOR_TEXT};
-        border: 2px solid {COLOR_TEXT};
-    }}
-    .return-button>button:hover {{
-        background: {COLOR_ACCENT};
-        color: {COLOR_TEXT};
-        border: 2px solid {COLOR_ACCENT};
-    }}
-
     /* Menu Styling */
     .st-emotion-cache-163lq9m {{ /* Target the option_menu container */
         border-bottom: 3px solid {COLOR_CYAN};
@@ -143,15 +124,16 @@ st.markdown(f"""
         overflow: hidden;
     }}
     .video-bg iframe {{
-        /* These properties ensure the video covers the entire viewport */
+        /* These properties ensure the video covers the entire viewport, maintaining aspect ratio */
         position: absolute;
         top: 50%;
         left: 50%;
         min-width: 100%;
         min-height: 100%;
-        width: auto;
-        height: auto;
+        width: 100vw;
+        height: 100vh;
         transform: translate(-50%, -50%);
+        object-fit: cover; /* FIX: Ensures it covers the screen without distortion/drop */
         opacity: 0.6; /* Darken for readability */
     }}
     .video-overlay {{
@@ -191,13 +173,12 @@ st.markdown(f"""
         filter: drop-shadow(0 0 10px rgba(0,0,0,0.8));
     }}
     
-    /* Gallery Clickable Image Style */
+    /* Gallery Image Style (Static, not clickable) */
     .stImage > img {{
-        cursor: pointer;
-        transition: transform 0.3s ease;
+        transition: opacity 0.3s;
     }}
     .stImage > img:hover {{
-        transform: scale(1.02);
+        opacity: 0.8;
     }}
     
 </style>
@@ -337,17 +318,16 @@ elif selected == "HKR":
 elif selected == "EVENTS":
     st.title("UPCOMING DATES")
     
-    # Using reliable placeholder images for events
+    # Using reliable high-quality Unsplash URLs for events
     events_data = [
-        {"date": "NOV 04", "city": "AMSTERDAM", "venue": "SHELTER", "image": "https://placehold.co/600x400/FF0033/000?text=SHELTER+NOV+04"},
-        {"date": "NOV 11", "city": "LONDON", "venue": "FOLD", "image": "https://placehold.co/600x400/00f7ff/000?text=FOLD+NOV+11"},
-        {"date": "NOV 18", "city": "MELBOURNE", "venue": "REVOLVER", "image": "https://placehold.co/600x400/FF0033/000?text=REVOLVER+NOV+18"},
+        {"date": "NOV 04", "city": "AMSTERDAM", "venue": "SHELTER", "image": "https://images.unsplash.com/photo-1555513264-a690e542d997?q=80&w=800&auto=format&fit=crop"},
+        {"date": "NOV 11", "city": "LONDON", "venue": "FOLD", "image": "https://images.unsplash.com/photo-1522037576203-516d3f237554?q=80&w=800&auto=format&fit=crop"},
+        {"date": "NOV 18", "city": "MELBOURNE", "venue": "REVOLVER", "image": "https://images.unsplash.com/photo-1514525253161-0f4b3602f01f?q=80&w=800&auto=format&fit=crop"},
     ]
     
     for event in events_data:
         c1, c2, c3 = st.columns([2, 3, 1])
         with c1:
-            # Using st.image to ensure display, with a reliable URL
             st.image(event['image'], caption=f"{event['city']} - {event['venue']}", use_column_width=True)
         with c2:
             st.markdown(f"### {event['date']}")
@@ -406,48 +386,27 @@ elif selected == "STORE":
             add_to_cart("Slipmats")
 
 elif selected == "GALLERY":
+    st.title("VISUAL ARCHIVE // HARDWARE SOUL")
+    st.caption("RAW VOLTAGE. RAW RHYTHM.")
     
-    # Full-Screen Enlarged View
-    if st.session_state.enlarged_image:
-        img_data = st.session_state.enlarged_image
-        
-        # Styled return button
-        st.markdown('<div class="return-button">', unsafe_allow_html=True)
-        st.button("← RETURN TO ARCHIVE", on_click=clear_enlarged_image)
-        st.markdown('</div>', unsafe_allow_html=True)
+    # Using reliable high-quality Unsplash URLs for the gallery
+    gallery_images = [
+        {"url": "https://images.unsplash.com/photo-1456073104642-cf67d716886e?q=80&w=800&auto=format&fit=crop", "cap": "MODULAR SYNTHESIS"},
+        {"url": "https://images.unsplash.com/photo-1547477123-dc90e2118af2?q=80&w=800&auto=format&fit=crop", "cap": "LIVE PERFORMANCE SETUP"},
+        {"url": "https://images.unsplash.com/photo-1534723455919-4820297f6426?q=80&w=800&auto=format&fit=crop", "cap": "DRUM MACHINE SEQUENCE"},
+        {"url": "https://images.unsplash.com/photo-1563841930606-67e26ce48428?q=80&w=800&auto=format&fit=crop", "cap": "VINYL MIXING"},
+        {"url": "https://images.unsplash.com/photo-1517457371957-c7385e05a769?q=80&w=800&auto=format&fit=crop", "cap": "DANCEFLOOR ENERGY"},
+        {"url": "https://images.unsplash.com/photo-1563841930606-67e26ce48428?q=80&w=800&auto=format&fit=crop", "cap": "STUDIO GEAR CLOSE-UP"}
+    ]
+    
+    # Use columns to create the static grid
+    c1, c2, c3 = st.columns(3)
+    cols = [c1, c2, c3]
+    for i, item in enumerate(gallery_images):
+        with cols[i % 3]:
+            # No interactive component for enlargement now
+            st.image(item['url'], caption=item['cap'], use_column_width=True)
 
-        st.markdown(f"### {img_data['caption']}")
-        st.image(img_data['url'], use_column_width=True)
-    
-    # Grid View (Default)
-    else:
-        st.title("VISUAL ARCHIVE // HARDWARE FOCUS")
-        st.caption("RAW VOLTAGE. RAW RHYTHM.")
-        
-        gallery_images = [
-            {"url": "https://placehold.co/800x600/181818/FF0033?text=MODULAR+RIG", "cap": "MODULAR SYNTHESIS"},
-            {"url": "https://placehold.co/800x600/181818/00f7ff?text=LIVE+IN+BERLIN", "cap": "LIVE PERFORMANCE IN BERLIN"},
-            {"url": "https://placehold.co/800x600/181818/FFFFFF?text=DRUM+MACHINE", "cap": "DRUM MACHINE SEQUENCE"},
-            {"url": "https://placehold.co/800x600/181818/FF0033?text=CROWD+MOMENT", "cap": "CROWD MOMENTS"},
-            {"url": "https://placehold.co/800x600/181818/00f7ff?text=VINYL+SETUP", "cap": "VINYL MIXING"},
-            {"url": "https://placehold.co/800x600/181818/FFFFFF?text=STUDIO+GEAR", "cap": "STUDIO SESSION"}
-        ]
-        
-        # Use columns to create the clickable grid
-        c1, c2, c3 = st.columns(3)
-        cols = [c1, c2, c3]
-        for i, item in enumerate(gallery_images):
-            with cols[i % 3]:
-                # Use a button hidden behind the image to capture the click
-                st.image(item['url'], caption=item['cap'], use_column_width=True)
-                
-                # Hidden button to trigger the state change
-                st.button("ENLARGE", key=f"img_btn_{i}", 
-                          on_click=set_enlarged_image, 
-                          args=(item['url'], item['cap']), 
-                          use_container_width=True)
-                # Hide the actual button visibility using CSS if possible, 
-                # but for simplicity in Streamlit, it remains for functionality.
 
 elif selected == "ABOUT":
     # Content remains the same as it was functional
