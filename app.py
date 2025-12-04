@@ -10,6 +10,7 @@ COLOR_CYAN = "#00f7ff"    # Cyberpunk Splash
 COLOR_SECONDARY = "#141414"
 
 # --- BRANDING SVGs (SCALABLE & CENTERED) ---
+# (SVGs are reliable and do not need a fix)
 TNF_LOGO_SVG = f"""
 <svg width="300" height="90" viewBox="0 0 300 90" xmlns="http://www.w3.org/2000/svg">
     <text x="4" y="65" font-family="Arial, sans-serif" font-weight="900" font-size="72" fill="{COLOR_CYAN}" opacity="0.6" letter-spacing="-4">TNF</text>
@@ -111,7 +112,7 @@ st.markdown(f"""
         padding: 0 2rem;
     }}
     
-    /* FULL-SCREEN VIDEO FIX: Container covers viewport */
+    /* BACKGROUND STATIC VIDEO REPLACEMENT */
     .video-bg {{
         position: fixed;
         top: 0;
@@ -120,27 +121,27 @@ st.markdown(f"""
         height: 100vh;
         z-index: -1;
         overflow: hidden;
+        background-color: #000; /* Solid black fallback */
+        border: none !important;
     }}
-    /* IFRAME ensures video content covers the entire container and is visible */
-    .video-bg iframe {{
-        position: absolute; /* Added: Absolute positioning */
-        top: 50%; /* Added: Center horizontally/vertically */
+    .video-placeholder {{
+        position: absolute;
+        top: 50%;
         left: 50%;
-        min-width: 100%; /* Ensure coverage */
-        min-height: 100%; /* Ensure coverage */
-        width: 100%; 
-        height: 100%;
-        transform: translate(-50%, -50%); /* Center trick */
-        object-fit: cover; 
-        opacity: 0.55; 
+        transform: translate(-50%, -50%);
+        color: #555;
+        font-size: 2rem;
+        font-family: 'Space Mono', monospace;
+        text-align: center;
     }}
+    
     .video-overlay {{
         position: fixed;
         top: 0;
         left: 0;
         width: 100vw;
         height: 100vh;
-        background: rgba(0,0,0,0.85); 
+        background: rgba(0,0,0,0.85); /* Heavy overlay */
         z-index: -1;
     }}
     
@@ -185,11 +186,12 @@ st.markdown(f"""
 </style>
 """, unsafe_allow_html=True)
 
-# --- BACKGROUND VIDEO & AUDIO ---
-# Using minimal, robust YouTube embed code
-st.markdown("""
+# --- BACKGROUND STATIC BLOCK (REPLACES BROKEN VIDEO) ---
+st.markdown(f"""
 <div class="video-bg">
-    <iframe src="https://www.youtube.com/embed/qC0vDKVPCrw?controls=0&showinfo=0&rel=0&autoplay=1&loop=1&mute=1&playlist=qC0vDKVPCrw" frameborder="0" allow="autoplay; encrypted-media" allowfullscreen></iframe>
+    <div class="video-placeholder">
+        [VIDEO STREAM FAILURE] <br> **TNF SYSTEM ONLINE**
+    </div>
 </div>
 <div class="video-overlay"></div>
 """, unsafe_allow_html=True)
@@ -285,7 +287,8 @@ elif selected == "MUSIC":
     for r in releases:
         c1, c2, c3, c4 = st.columns([1, 4, 2, 2])
         with c1:
-            st.markdown(f"<div style='width:60px;height:60px;background:#222;border:1px solid #444;border-radius: 4px;'></div>", unsafe_allow_html=True)
+            # Placeholder for album art
+            st.markdown(f"<div style='width:60px;height:60px;background:#222;border:1px solid #444;border-radius: 4px; display: flex; align-items: center; justify-content: center; font-size: 10px; color: #777;'>LP</div>", unsafe_allow_html=True)
         with c2:
             st.subheader(r['title'])
         with c3:
@@ -325,12 +328,12 @@ elif selected == "HKR":
 elif selected == "EVENTS":
     st.title("UPCOMING DATES // TRANSMISSION LOG")
     
-    # Using simple, high-contrast images from Unsplash to ensure display reliability
+    # Using reliable placeholder images
     events_data = [
-        # Switched to simpler, well-formatted URLs for reliability
-        {"date": "NOV 04", "city": "AMSTERDAM", "venue": "SHELTER", "image": "https://images.unsplash.com/photo-1517457371957-c7385e05a769?auto=format&fit=crop&w=600&h=400"}, 
-        {"date": "NOV 11", "city": "LONDON", "venue": "FOLD", "image": "https://images.unsplash.com/photo-1522851214081-300624e7a83d?auto=format&fit=crop&w=600&h=400"}, 
-        {"date": "NOV 18", "city": "MELBOURNE", "venue": "REVOLVER", "image": "https://images.unsplash.com/photo-1544378103-68d7122822be?auto=format&fit=crop&w=600&h=400"}, 
+        # Placeholders are used for guaranteed rendering
+        {"date": "NOV 04", "city": "AMSTERDAM", "venue": "SHELTER", "image": "https://placehold.co/600x400/141414/00f7ff?text=SHELTER+AMSTERDAM"}, 
+        {"date": "NOV 11", "city": "LONDON", "venue": "FOLD", "image": "https://placehold.co/600x400/141414/00f7ff?text=FOLD+LONDON"}, 
+        {"date": "NOV 18", "city": "MELBOURNE", "venue": "REVOLVER", "image": "https://placehold.co/600x400/141414/00f7ff?text=REVOLVER+MELBOURNE"}, 
     ]
     
     for event in events_data:
@@ -354,11 +357,11 @@ elif selected == "STORE":
 
     c1, c2, c3 = st.columns(3)
     
-    # Merch 1: T-Shirt
+    # Merch 1: T-Shirt - Replacing external background image with a reliable placeholder
     with c1:
         st.markdown(f"""
         <div class="mockup-container">
-            <img src="https://images.unsplash.com/photo-1521572163474-6864f9cf17ab?auto=format&fit=crop&w=600&q=80" class="mockup-bg">
+            <img src="https://placehold.co/600x400/111111/AAAAAA?text=T-SHIRT+MOCKUP" class="mockup-bg">
             <div class="mockup-logo" style="transform: translate(-50%, -50%) scale(0.6);">{TNF_LOGO_SVG}</div>
         </div>
         """, unsafe_allow_html=True)
@@ -367,11 +370,11 @@ elif selected == "STORE":
         if st.button("ADD TO CART €35", key="m1"):
             add_to_cart("TNF Core Tee")
 
-    # Merch 2: Hoodie 
+    # Merch 2: Hoodie - Replacing external background image with a reliable placeholder
     with c2:
         st.markdown(f"""
         <div class="mockup-container">
-            <img src="https://images.unsplash.com/photo-1556821840-3a63f95609a7?auto=format&fit=crop&w=600&q=80" class="mockup-bg">
+            <img src="https://placehold.co/600x400/111111/AAAAAA?text=HOODIE+MOCKUP" class="mockup-bg">
             <div class="mockup-logo" style="transform: translate(-50%, -50%) scale(0.7);">{HKR_LOGO_SVG}</div>
         </div>
         """, unsafe_allow_html=True)
@@ -380,11 +383,11 @@ elif selected == "STORE":
         if st.button("ADD TO CART €65", key="m2"):
             add_to_cart("HKR Hoodie")
 
-    # Merch 3: Slipmats
+    # Merch 3: Slipmats - Replacing external background image with a reliable placeholder
     with c3:
         st.markdown(f"""
         <div class="mockup-container">
-            <img src="https://images.unsplash.com/photo-1603048588665-791ca8aea617?auto=format&fit=crop&w=600&q=80" class="mockup-bg">
+            <img src="https://placehold.co/600x400/111111/AAAAAA?text=SLIPMATS+MOCKUP" class="mockup-bg">
             <div class="mockup-logo" style="transform: translate(-50%, -50%) scale(0.8);">{SLIPMAT_ICON_SVG}</div>
         </div>
         """, unsafe_allow_html=True)
@@ -397,14 +400,14 @@ elif selected == "GALLERY":
     st.title("VISUAL ARCHIVE // HARDWARE PULSE")
     st.caption("RAW VOLTAGE. RAW RHYTHM.")
     
-    # Using simple, high-contrast images from Unsplash to ensure display reliability
+    # Using reliable placeholder images
     gallery_images = [
-        {"url": "https://images.unsplash.com/photo-1511671782779-c97d3d27a1ae?auto=format&fit=crop&w=600&h=400", "cap": "VINYL MIXING IN SESSION"},
-        {"url": "https://images.unsplash.com/photo-1519782442295-814d4e6807f7?auto=format&fit=crop&w=600&h=400", "cap": "CLUB STROBE // MOMENT CAPTURE"},
-        {"url": "https://images.unsplash.com/photo-1515259020959-1e359a72120e?auto=format&fit=crop&w=600&h=400", "cap": "MODULAR CLOSE-UP // REWIRE"},
-        {"url": "https://images.unsplash.com/photo-1519638848443-4dc9792070e1?auto=format&fit=crop&w=600&h=400", "cap": "DARK CROWD // BASEMENT VIBES"},
-        {"url": "https://images.unsplash.com/photo-1514525253161-12c44f783282?auto=format&fit=crop&w=600&h=400", "cap": "DJ SHADOW // MELBOURNE"},
-        {"url": "https://images.unsplash.com/photo-1596706042730-802c638d1599?auto=format&fit=crop&w=600&h=400", "cap": "RETRO MIXING // ANALOGUE ERA"}
+        {"url": "https://placehold.co/600x400/141414/00f7ff?text=VISUAL+ARCHIVE+01", "cap": "VINYL MIXING IN SESSION"},
+        {"url": "https://placehold.co/600x400/141414/00f7ff?text=VISUAL+ARCHIVE+02", "cap": "CLUB STROBE // MOMENT CAPTURE"},
+        {"url": "https://placehold.co/600x400/141414/00f7ff?text=VISUAL+ARCHIVE+03", "cap": "MODULAR CLOSE-UP // REWIRE"},
+        {"url": "https://placehold.co/600x400/141414/00f7ff?text=VISUAL+ARCHIVE+04", "cap": "DARK CROWD // BASEMENT VIBES"},
+        {"url": "https://placehold.co/600x400/141414/00f7ff?text=VISUAL+ARCHIVE+05", "cap": "DJ SHADOW // MELBOURNE"},
+        {"url": "https://placehold.co/600x400/141414/00f7ff?text=VISUAL+ARCHIVE+06", "cap": "RETRO MIXING // ANALOGUE ERA"}
     ]
     
     # Use columns to create the static grid
