@@ -1,3 +1,4 @@
+
 import streamlit as st
 from streamlit_option_menu import option_menu
 import time
@@ -52,8 +53,6 @@ if 'cart' not in st.session_state:
     st.session_state.cart = []
 if 'page_index' not in st.session_state:
     st.session_state.page_index = 0
-# Removed 'enlarged_image' state as per request
-
 
 def set_page(index):
     st.session_state.page_index = index
@@ -98,7 +97,6 @@ st.markdown(f"""
         transition: 0.3s;
         width: 100%;
         border: 2px solid {COLOR_CYAN};
-        text-transform: uppercase;
     }}
     .stButton>button:hover {{
         background: {COLOR_ACCENT};
@@ -106,44 +104,11 @@ st.markdown(f"""
         border: 2px solid {COLOR_ACCENT};
         box-shadow: 0 0 15px {COLOR_ACCENT};
     }}
-    
+
     /* Menu Styling */
     .st-emotion-cache-163lq9m {{ /* Target the option_menu container */
         border-bottom: 3px solid {COLOR_CYAN};
         padding: 0 2rem;
-    }}
-    
-    /* FULL-SCREEN VIDEO FIX */
-    .video-bg {{
-        position: fixed;
-        top: 0;
-        left: 0;
-        width: 100vw;
-        height: 100vh;
-        z-index: -1;
-        overflow: hidden;
-    }}
-    .video-bg iframe {{
-        /* These properties ensure the video covers the entire viewport, maintaining aspect ratio */
-        position: absolute;
-        top: 50%;
-        left: 50%;
-        min-width: 100%;
-        min-height: 100%;
-        width: 100vw;
-        height: 100vh;
-        transform: translate(-50%, -50%);
-        object-fit: cover; /* FIX: Ensures it covers the screen without distortion/drop */
-        opacity: 0.6; /* Darken for readability */
-    }}
-    .video-overlay {{
-        position: fixed;
-        top: 0;
-        left: 0;
-        width: 100vw;
-        height: 100vh;
-        background: rgba(0,0,0,0.85); /* Heavy overlay */
-        z-index: -1;
     }}
     
     /* Mockup Container */
@@ -173,14 +138,6 @@ st.markdown(f"""
         filter: drop-shadow(0 0 10px rgba(0,0,0,0.8));
     }}
     
-    /* Gallery Image Style (Static, not clickable) */
-    .stImage > img {{
-        transition: opacity 0.3s;
-    }}
-    .stImage > img:hover {{
-        opacity: 0.8;
-    }}
-    
 </style>
 """, unsafe_allow_html=True)
 
@@ -198,20 +155,10 @@ st.components.v1.html("""
     document.addEventListener('click', async () => {
         if (Tone.context.state !== 'running') {
             await Tone.start();
-            // Start a simple, non-intrusive kick drum loop
-            const synth = new Tone.MembraneSynth({
-                'pitchDecay': 0.05,
-                'octaves': 10,
-                'envelope': {
-                    'attack': 0.001,
-                    'decay': 0.4,
-                    'sustain': 0.01
-                }
-            }).toDestination();
+            const synth = new Tone.MembraneSynth().toDestination();
             const loop = new Tone.Loop(time => {
-                synth.triggerAttackRelease("C2", "8n", time);
+                synth.triggerAttackRelease("C1", "8n", time);
             }, "4n").start(0);
-            Tone.Transport.bpm.value = 128;
             Tone.Transport.start();
         }
     });
@@ -268,7 +215,7 @@ if selected == "HOME":
 
 elif selected == "MUSIC":
     st.title("DISCOGRAPHY")
-    
+    # Content remains the same as it was functional
     releases = [
         {"title": "System Failure", "label": "House Keeping Rec", "cat": "HKR004"},
         {"title": "Analog Dreams", "label": "Tresor Records", "cat": "TR-291"},
@@ -318,11 +265,11 @@ elif selected == "HKR":
 elif selected == "EVENTS":
     st.title("UPCOMING DATES")
     
-    # Using reliable high-quality Unsplash URLs for events
+    # Improved look for flyers using high-contrast mock images
     events_data = [
-        {"date": "NOV 04", "city": "AMSTERDAM", "venue": "SHELTER", "image": "https://images.unsplash.com/photo-1555513264-a690e542d997?q=80&w=800&auto=format&fit=crop"},
-        {"date": "NOV 11", "city": "LONDON", "venue": "FOLD", "image": "https://images.unsplash.com/photo-1522037576203-516d3f237554?q=80&w=800&auto=format&fit=crop"},
-        {"date": "NOV 18", "city": "MELBOURNE", "venue": "REVOLVER", "image": "https://images.unsplash.com/photo-1514525253161-0f4b3602f01f?q=80&w=800&auto=format&fit=crop"},
+        {"date": "NOV 04", "city": "AMSTERDAM", "venue": "SHELTER", "image": "https://images.unsplash.com/photo-1517457371957-c7385e05a769?q=80&w=800&auto=format&fit=crop"},
+        {"date": "NOV 11", "city": "LONDON", "venue": "FOLD", "image": "https://images.unsplash.com/photo-1543851505-18ff86725350?q=80&w=800&auto=format&fit=crop"},
+        {"date": "NOV 18", "city": "MELBOURNE", "venue": "REVOLVER", "image": "https://images.unsplash.com/photo-1599321355410-0254c0af474a?q=80&w=800&auto=format&fit=crop"},
     ]
     
     for event in events_data:
@@ -386,27 +333,24 @@ elif selected == "STORE":
             add_to_cart("Slipmats")
 
 elif selected == "GALLERY":
-    st.title("VISUAL ARCHIVE // HARDWARE SOUL")
+    st.title("VISUAL ARCHIVE // HARDWARE FOCUS")
     st.caption("RAW VOLTAGE. RAW RHYTHM.")
     
-    # Using reliable high-quality Unsplash URLs for the gallery
+    # Updated to be high-contrast and synth/club focused like Defected's content
     gallery_images = [
-        {"url": "https://images.unsplash.com/photo-1456073104642-cf67d716886e?q=80&w=800&auto=format&fit=crop", "cap": "MODULAR SYNTHESIS"},
-        {"url": "https://images.unsplash.com/photo-1547477123-dc90e2118af2?q=80&w=800&auto=format&fit=crop", "cap": "LIVE PERFORMANCE SETUP"},
-        {"url": "https://images.unsplash.com/photo-1534723455919-4820297f6426?q=80&w=800&auto=format&fit=crop", "cap": "DRUM MACHINE SEQUENCE"},
-        {"url": "https://images.unsplash.com/photo-1563841930606-67e26ce48428?q=80&w=800&auto=format&fit=crop", "cap": "VINYL MIXING"},
-        {"url": "https://images.unsplash.com/photo-1517457371957-c7385e05a769?q=80&w=800&auto=format&fit=crop", "cap": "DANCEFLOOR ENERGY"},
-        {"url": "https://images.unsplash.com/photo-1563841930606-67e26ce48428?q=80&w=800&auto=format&fit=crop", "cap": "STUDIO GEAR CLOSE-UP"}
+        {"url": "https://images.unsplash.com/photo-1506450682137-f4a471413a17?q=80&w=800&auto=format&fit=crop", "cap": "MODULAR SYNTHESIS"},
+        {"url": "https://images.unsplash.com/photo-1510928230230-e837894ff54c?q=80&w=800&auto=format&fit=crop", "cap": "LIVE PERFORMANCE IN BERLIN"},
+        {"url": "https://images.unsplash.com/photo-1534005888251-140a324032d8?q=80&w=800&auto=format&fit=crop", "cap": "DRUM MACHINE SEQUENCE"},
+        {"url": "https://images.unsplash.com/photo-1543851505-18ff86725350?q=80&w=800&auto=format&fit=crop", "cap": "CROWD MOMENTS"},
+        {"url": "https://images.unsplash.com/photo-1571266028243-371695063ad6?q=80&w=800&auto=format&fit=crop", "cap": "VINYL MIXING"},
+        {"url": "https://images.unsplash.com/photo-1563841930606-67e26ce48428?q=80&w=800&auto=format&fit=crop", "cap": "STUDIO SESSION"}
     ]
     
-    # Use columns to create the static grid
     c1, c2, c3 = st.columns(3)
     cols = [c1, c2, c3]
     for i, item in enumerate(gallery_images):
         with cols[i % 3]:
-            # No interactive component for enlargement now
             st.image(item['url'], caption=item['cap'], use_column_width=True)
-
 
 elif selected == "ABOUT":
     # Content remains the same as it was functional
