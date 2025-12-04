@@ -1,8 +1,26 @@
-
-
 import streamlit as st
 from streamlit_option_menu import option_menu
 import time
+
+# --- UPLOADED IMAGE MAPPINGS (Replaces Unsplash URLs) ---
+# These Content IDs refer to your uploaded files
+IMAGE_MAPPING = {
+    # Events
+    "EVENT_AMSTERDAM": "uploaded:image_1bc503.jpg-857b2deb-0348-4079-b5ae-7435256a80af", # DJ/Crowd shot 1
+    "EVENT_LONDON": "uploaded:image_1bb6f5.jpg-434247b3-a427-4211-9669-fc465cd7b712",    # Crowd/Scene shot 2
+    "EVENT_MELBOURNE": "uploaded:image_377bc1.jpg-bd1de4bb-ff91-42fc-bdc4-e40ecdda71fe", # Scene/Texture shot
+    # Store Mockups (using PNGs for apparel mockups)
+    "MERCH_TEE": "uploaded:image_20608f.png-54a97f38-0e2f-412b-864a-fe49523e31bc",
+    "MERCH_HOODIE": "uploaded:image_831f9b.png-cebe82d7-d6b6-44cd-a376-0a36c263db05",
+    "MERCH_SLIPMATS": "uploaded:image_205cd6.png-3bca7ad1-af70-44d0-961c-7d5c82c713c5",
+    # Gallery
+    "GALLERY_1": "uploaded:image_37de51.png-bd336e1f-aee3-41c9-ae31-d75b4df0cb48",
+    "GALLERY_2": "uploaded:image_1a5cde.png-21ff920c-a784-44af-baf3-b86316c15967",
+    "GALLERY_3": "uploaded:image_9deda8.png-8dbdce5e-0e20-43f9-a15f-277a03aa8c4f",
+    "GALLERY_4": "uploaded:image_9dd73a.png-f3e52899-1fd9-4c67-9ad7-5707fd96bc9a",
+    "GALLERY_5": "uploaded:image_1bab17.png-b46838e8-6d68-4332-98b2-515b0aefa899",
+    "GALLERY_6": "uploaded:image_1bb25b.png-7161be77-115d-4c4c-ab7e-dabeeb3e79ab",
+}
 
 # --- CONFIGURATION & PALETTE ---
 COLOR_BG = "#080808"
@@ -138,33 +156,72 @@ st.markdown(f"""
         z-index: 10;
         filter: drop-shadow(0 0 10px rgba(0,0,0,0.8));
     }}
+
+    /* --- MARQUEE STYLING --- */
+    .marquee-container {{
+        width: 100%;
+        overflow: hidden;
+        background: rgba(0, 0, 0, 0.9);
+        border-top: 2px solid {COLOR_ACCENT};
+        border-bottom: 2px solid {COLOR_ACCENT};
+        padding: 8px 0;
+        position: relative;
+        z-index: 1000;
+        box-shadow: 0 0 10px rgba(255, 0, 51, 0.4); /* Subtle glow */
+    }}
+    .marquee-content {{
+        display: inline-block;
+        white-space: nowrap;
+        animation: marquee 20s linear infinite;
+        font-family: 'Space Mono', monospace;
+        color: {COLOR_CYAN}; 
+        font-size: 1.1rem;
+        font-weight: bold;
+        text-transform: uppercase;
+        letter-spacing: 4px;
+        text-shadow: 0 0 5px rgba(0, 247, 255, 0.6);
+    }}
+    @keyframes marquee {{
+        0% {{ transform: translate(100%, 0); }}
+        100% {{ transform: translate(-100%, 0); }}
+    }}
+    
+    /* --- HIDE YOUTUBE/TONE.JS ELEMENTS --- */
+    .video-bg, .video-overlay, .mixcloud-bg-spacer {{ display: none !important; }}
+
+    /* --- MIXCLOUD EMBED (Hidden but functional for background audio) --- */
+    .mixcloud-bg {{
+        position: fixed;
+        top: 0;
+        left: 0;
+        width: 1px;
+        height: 1px;
+        opacity: 0; 
+        overflow: hidden;
+        z-index: -999; /* Place far in background */
+    }}
     
 </style>
 """, unsafe_allow_html=True)
 
-# --- BACKGROUND VIDEO & AUDIO ---
-st.markdown("""
-<div class="video-bg">
-    <iframe src="https://www.youtube.com/embed/qC0vDKVPCrw?controls=0&showinfo=0&rel=0&autoplay=1&loop=1&mute=1&playlist=qC0vDKVPCrw" frameborder="0" allow="autoplay; encrypted-media" allowfullscreen></iframe>
+# --- BACKGROUND AUDIO (Mixcloud) & MARQUEE ---
+
+# 1. Mixcloud Player (Hidden)
+st.markdown(f"""
+<div class="mixcloud-bg">
+    <!-- Using a simplified widget URL for autoplay/background purposes. User must click on the page once to enable audio. -->
+    <iframe width="100%" height="120" src="https://www.mixcloud.com/House_Keeping/stargazing/embed/?autoplay=1&amp;hide_cover=1&amp;light=1&amp;mini=1" frameborder="0" allow="autoplay" loading="eager"></iframe>
 </div>
-<div class="video-overlay"></div>
 """, unsafe_allow_html=True)
 
-st.components.v1.html("""
-<script src="https://cdnjs.cloudflare.com/ajax/libs/tone/14.8.49/Tone.min.js"></script>
-<script>
-    document.addEventListener('click', async () => {
-        if (Tone.context.state !== 'running') {
-            await Tone.start();
-            const synth = new Tone.MembraneSynth().toDestination();
-            const loop = new Tone.Loop(time => {
-                synth.triggerAttackRelease("C1", "8n", time);
-            }, "4n").start(0);
-            Tone.Transport.start();
-        }
-    });
-</script>
-""", height=0)
+# 2. Marquee Text
+st.markdown("""
+<div class="marquee-container">
+    <div class="marquee-content">
+        TUESDAYNIGHTFREAK LIVE&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;TUESDAYNIGHTFREAK LIVE&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;TUESDAYNIGHTFREAK LIVE&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;TUESDAYNIGHTFREAK LIVE&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;
+    </div>
+</div>
+""", unsafe_allow_html=True)
 
 
 # --- NAVIGATION (Fixed Double-Click) ---
@@ -197,7 +254,7 @@ if selected == "HOME":
         st.markdown("### THE SOUND OF HARDWARE SOUL")
         st.markdown("""
         <div style="font-size: 1.2rem; line-height: 1.6; color: #ddd;">
-        We are an independent electronic music project and culture crew bridging the gap between 
+        We are an independent electronic music project and culture crew bridging the gap between <br>
         Berlin's concrete basements and Melbourne's warehouse soul. We embrace the **analogue error**.
         </div>
         """, unsafe_allow_html=True)
@@ -216,7 +273,6 @@ if selected == "HOME":
 
 elif selected == "MUSIC":
     st.title("DISCOGRAPHY")
-    # Content remains the same as it was functional
     releases = [
         {"title": "System Failure", "label": "House Keeping Rec", "cat": "HKR004"},
         {"title": "Analog Dreams", "label": "Tresor Records", "cat": "TR-291"},
@@ -266,11 +322,11 @@ elif selected == "HKR":
 elif selected == "EVENTS":
     st.title("UPCOMING DATES")
     
-    # Improved look for flyers using high-contrast mock images
+    # Updated to use MAPPED IMAGE IDs
     events_data = [
-        {"date": "NOV 04", "city": "AMSTERDAM", "venue": "SHELTER", "image": "https://images.unsplash.com/photo-1517457371957-c7385e05a769?q=80&w=800&auto=format&fit=crop"},
-        {"date": "NOV 11", "city": "LONDON", "venue": "FOLD", "image": "https://images.unsplash.com/photo-1543851505-18ff86725350?q=80&w=800&auto=format&fit=crop"},
-        {"date": "NOV 18", "city": "MELBOURNE", "venue": "REVOLVER", "image": "https://images.unsplash.com/photo-1599321355410-0254c0af474a?q=80&w=800&auto=format&fit=crop"},
+        {"date": "NOV 04", "city": "AMSTERDAM", "venue": "SHELTER", "image": IMAGE_MAPPING['EVENT_AMSTERDAM']},
+        {"date": "NOV 11", "city": "LONDON", "venue": "FOLD", "image": IMAGE_MAPPING['EVENT_LONDON']},
+        {"date": "NOV 18", "city": "MELBOURNE", "venue": "REVOLVER", "image": IMAGE_MAPPING['EVENT_MELBOURNE']},
     ]
     
     for event in events_data:
@@ -294,11 +350,11 @@ elif selected == "STORE":
 
     c1, c2, c3 = st.columns(3)
     
-    # Merch 1: T-Shirt with BIGGER Logo Overlay
+    # Merch 1: T-Shirt with BIGGER Logo Overlay - Updated to use MAPPED IMAGE ID
     with c1:
         st.markdown(f"""
         <div class="mockup-container">
-            <img src="https://images.unsplash.com/photo-1521572163474-6864f9cf17ab?auto=format&fit=crop&w=600&q=80" class="mockup-bg">
+            <img src="{IMAGE_MAPPING['MERCH_TEE']}" class="mockup-bg">
             <div class="mockup-logo" style="transform: translate(-50%, -50%) scale(0.6);">{TNF_LOGO_SVG}</div>
         </div>
         """, unsafe_allow_html=True)
@@ -307,11 +363,11 @@ elif selected == "STORE":
         if st.button("ADD TO CART €35", key="m1"):
             add_to_cart("TNF Core Tee")
 
-    # Merch 2: Hoodie with HKR Logo
+    # Merch 2: Hoodie with HKR Logo - Updated to use MAPPED IMAGE ID
     with c2:
         st.markdown(f"""
         <div class="mockup-container">
-            <img src="https://images.unsplash.com/photo-1556821840-3a63f95609a7?auto=format&fit=crop&w=600&q=80" class="mockup-bg">
+            <img src="{IMAGE_MAPPING['MERCH_HOODIE']}" class="mockup-bg">
             <div class="mockup-logo" style="transform: translate(-50%, -50%) scale(0.7);">{HKR_LOGO_SVG}</div>
         </div>
         """, unsafe_allow_html=True)
@@ -320,11 +376,11 @@ elif selected == "STORE":
         if st.button("ADD TO CART €65", key="m2"):
             add_to_cart("HKR Hoodie")
 
-    # Merch 3: Slipmats
+    # Merch 3: Slipmats - Updated to use MAPPED IMAGE ID
     with c3:
         st.markdown(f"""
         <div class="mockup-container">
-            <img src="https://images.unsplash.com/photo-1603048588665-791ca8aea617?auto=format&fit=crop&w=600&q=80" class="mockup-bg">
+            <img src="{IMAGE_MAPPING['MERCH_SLIPMATS']}" class="mockup-bg">
             <div class="mockup-logo" style="transform: translate(-50%, -50%) scale(0.8);">{SLIPMAT_ICON_SVG}</div>
         </div>
         """, unsafe_allow_html=True)
@@ -337,14 +393,14 @@ elif selected == "GALLERY":
     st.title("VISUAL ARCHIVE // HARDWARE FOCUS")
     st.caption("RAW VOLTAGE. RAW RHYTHM.")
     
-    # Updated to be high-contrast and synth/club focused like Defected's content
+    # Updated to use MAPPED IMAGE IDs
     gallery_images = [
-        {"url": "https://images.unsplash.com/photo-1506450682137-f4a471413a17?q=80&w=800&auto=format&fit=crop", "cap": "MODULAR SYNTHESIS"},
-        {"url": "https://images.unsplash.com/photo-1510928230230-e837894ff54c?q=80&w=800&auto=format&fit=crop", "cap": "LIVE PERFORMANCE IN BERLIN"},
-        {"url": "https://images.unsplash.com/photo-1534005888251-140a324032d8?q=80&w=800&auto=format&fit=crop", "cap": "DRUM MACHINE SEQUENCE"},
-        {"url": "https://images.unsplash.com/photo-1543851505-18ff86725350?q=80&w=800&auto=format&fit=crop", "cap": "CROWD MOMENTS"},
-        {"url": "https://images.unsplash.com/photo-1571266028243-371695063ad6?q=80&w=800&auto=format&fit=crop", "cap": "VINYL MIXING"},
-        {"url": "https://images.unsplash.com/photo-1563841930606-67e26ce48428?q=80&w=800&auto=format&fit=crop", "cap": "STUDIO SESSION"}
+        {"url": IMAGE_MAPPING['GALLERY_1'], "cap": "MODULAR SYNTHESIS"},
+        {"url": IMAGE_MAPPING['GALLERY_2'], "cap": "LIVE PERFORMANCE IN BERLIN"},
+        {"url": IMAGE_MAPPING['GALLERY_3'], "cap": "DRUM MACHINE SEQUENCE"},
+        {"url": IMAGE_MAPPING['GALLERY_4'], "cap": "CROWD MOMENTS"},
+        {"url": IMAGE_MAPPING['GALLERY_5'], "cap": "VINYL MIXING"},
+        {"url": IMAGE_MAPPING['GALLERY_6'], "cap": "STUDIO SESSION"}
     ]
     
     c1, c2, c3 = st.columns(3)
@@ -360,9 +416,9 @@ elif selected == "ABOUT":
         st.title("BIOGRAPHY")
         st.write("""
         **Tuesdaynightfreak** is an electronic music project established in Melbourne, Australia.
-        
+        <br>
         Drawing influence from the stark industrialism of Berlin and the soulful rhythms of Detroit, the project explores the boundaries of hardware sequencing. It is a reaction against the predictability of digital production—a celebration of the machine's inherent instability.
-        
+        <br>
         From the smoky basements of Revolver to the concrete halls of Tresor, Tuesdaynightfreak delivers a sound that is distinct, raw, and uncompromising.
         """)
     with c2:
