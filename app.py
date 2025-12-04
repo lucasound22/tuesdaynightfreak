@@ -1,6 +1,8 @@
 import streamlit as st
 from streamlit_option_menu import option_menu
 import time
+import requests
+import stripe
 
 # --- CONFIGURATION & PALETTE ---
 COLOR_BG = "#080808"
@@ -11,7 +13,7 @@ COLOR_SECONDARY = "#141414"
 
 # --- BRANDING SVGs (Optimized) ---
 TNF_LOGO_SVG = f"""
-<svg width="100%" height="100%" viewBox="0 0 300 90" xmlns="http://www.w3.org/2000/svg" preserveAspectRatio="xMidYMid meet">
+<svg width="80%" height="80%" viewBox="0 0 300 90" xmlns="http://www.w3.org/2000/svg" preserveAspectRatio="xMidYMid meet">
     <text x="4" y="65" font-family="Arial, sans-serif" font-weight="900" font-size="72" fill="{COLOR_CYAN}" opacity="0.6" letter-spacing="-4">TNF</text>
     <text x="-2" y="65" font-family="Arial, sans-serif" font-weight="900" font-size="72" fill="{COLOR_ACCENT}" opacity="0.7" letter-spacing="-4">TNF</text>
     <text x="0" y="65" font-family="Arial, sans-serif" font-weight="900" font-size="72" fill="{COLOR_TEXT}" letter-spacing="-4">TNF</text>
@@ -48,26 +50,18 @@ st.set_page_config(
     initial_sidebar_state="collapsed"
 )
 
-# SEO meta tags
-st.markdown("""
-<meta name="description" content="Tuesdaynightfreak is a sonic movement dedicated to hardware-based electronic music performance, blending machine precision with human improvisation. Explore our discography, events, merchandise, and more.">
-<meta name="keywords" content="Tuesdaynightfreak, hardware techno, analog music, electronic music Melbourne, House Keeping Records, vinyl releases, techno events">
-<meta property="og:title" content="TUESDAYNIGHTFREAK | OFFICIAL">
-<meta property="og:description" content="Architects of the analogue signal. Discover raw, uncompromising hardware techno from Melbourne.">
-<meta property="og:image" content="https://images.unsplash.com/photo-1598275529124-b1c4b786f1e2?q=80&w=800&auto=format&fit=crop">
-<meta property="og:url" content="https://tuesdaynightfreak.streamlit.app/">
-<meta name="robots" content="index, follow">
-""", unsafe_allow_html=True)
-
 # --- SESSION STATE INIT ---
 if 'cart' not in st.session_state:
     st.session_state.cart = []
 if 'page_index' not in st.session_state:
     st.session_state.page_index = 0
+if 'expanded_image' not in st.session_state:
+    st.session_state.expanded_image = None
 
 # --- NAVIGATION CALLBACK ---
 def set_page(index):
     st.session_state.page_index = index
+    st.session_state.expanded_image = None  # Reset expanded image on page change
     
 def add_to_cart(item):
     st.session_state.cart.append(item)
@@ -80,14 +74,33 @@ st.markdown(f"""
     
     .stApp {{ background-color: {COLOR_BG}; color: {COLOR_TEXT}; font-family: 'Inter', sans-serif; }}
     
-    /* NAVIGATION FIXES */
+    /* Remove Streamlit branding */
+    [data-testid="stToolbar"] {{ visibility: hidden !important; }}
+    footer {{ visibility: hidden !important; }}
+    header {{ visibility: hidden !important; }}
+    .css-1y4p8pa {{ display: none !important; }} /* Hide main menu */
+    .css-18e3th9 {{ padding-top: 0 !important; }} /* Remove top padding */
+    
+    /* NAVIGATION FIXES - No white gaps */
+    div[data-testid="stHorizontalBlock"] {{
+        background-color: {COLOR_BG} !important;
+        padding: 0 !important;
+        margin: 0 !important;
+    }}
     div[data-testid="stHorizontalBlock"] button {{
         font-family: 'Inter', sans-serif !important;
+        background-color: {COLOR_BG} !important;
+        color: {COLOR_TEXT} !important;
+        border: none !important;
+        padding: 8px 16px !important;
+    }}
+    div[data-testid="stHorizontalBlock"] button:hover {{
+        color: {COLOR_CYAN} !important;
     }}
     
     /* LAYOUT FIXES */
     .block-container {{
-        padding-top: 0rem !important;
+        padding-top: 0 !important;
         padding-bottom: 5rem !important;
         max-width: 100% !important;
         padding-left: 0 !important;
@@ -150,7 +163,7 @@ st.markdown(f"""
         z-index: -1;
     }}
     
-    /* STORE MOCKUPS */
+    /* STORE MOCKUPS - Centered logos, larger on t-shirt */
     .mockup-container {{
         position: relative;
         width: 100%;
@@ -170,13 +183,14 @@ st.markdown(f"""
     }}
     .mockup-logo {{
         position: absolute;
-        top: 40%;
+        top: 50%;
         left: 50%;
         transform: translate(-50%, -50%);
         z-index: 10;
-        width: 150px;
+        width: 200px;
         filter: drop-shadow(0 0 10px rgba(0,0,0,0.8));
     }}
+    .tee-logo {{ width: 250px !important; }}  /* Larger on t-shirt */
     
     /* CARDS */
     .content-card {{
@@ -193,14 +207,15 @@ st.markdown(f"""
         font-family: 'Space Mono', monospace;
         font-size: 0.9rem;
     }}
+    /* Gallery expanded */
+    .expanded-image {{ width: 100%; max-height: 80vh; object-fit: contain; }}
 </style>
 """, unsafe_allow_html=True)
 
 # --- BACKGROUND VIDEO ---
-# Using a reliable techno/geometric loop
 st.markdown("""
 <div class="video-bg">
-    <iframe src="https://www.youtube.com/embed/49bK4n449K4?controls=0&showinfo=0&rel=0&autoplay=1&loop=1&mute=1&playlist=49bK4n449K4" frameborder="0" allow="autoplay; encrypted-media" allowfullscreen></iframe>
+    <iframe src="https://www.youtube.com/embed/ZeFchP2PrW0?controls=0&showinfo=0&rel=0&autoplay=1&loop=1&mute=1&playlist=ZeFchP2PrW0" frameborder="0" allow="autoplay; encrypted-media" allowfullscreen></iframe>
 </div>
 <div class="video-overlay"></div>
 """, unsafe_allow_html=True)
@@ -241,6 +256,7 @@ selected = option_menu(
 # Sync session state
 if menu_options.index(selected) != st.session_state.page_index:
     st.session_state.page_index = menu_options.index(selected)
+    st.session_state.expanded_gallery = None
 
 # --- CONTENT ---
 
@@ -248,7 +264,6 @@ if selected == "HOME":
     st.markdown("<br>", unsafe_allow_html=True)
     col1, col2 = st.columns([2, 1])
     with col1:
-        # Using Markdown for SVG to prevent code leakage
         st.markdown(f"<div>{TNF_LOGO_SVG}</div>", unsafe_allow_html=True)
         st.markdown(f"<h2 style='color:{COLOR_TEXT}; margin-top:-20px; letter-spacing: 2px;'>TUESDAY NIGHT FREAK</h2>", unsafe_allow_html=True)
         st.markdown("### ARCHITECTS OF THE ANALOGUE SIGNAL")
@@ -287,7 +302,6 @@ if selected == "HOME":
         
         st.markdown("<br>", unsafe_allow_html=True)
         st.markdown("#### JOIN THE FAMILY")
-        # Mailto Form
         with st.form("home_signup"):
             email = st.text_input("EMAIL ADDRESS")
             if st.form_submit_button("SIGN UP"):
@@ -296,18 +310,18 @@ if selected == "HOME":
 elif selected == "MUSIC":
     st.title("DISCOGRAPHY")
     
-    # Using reliable placeholder images for vinyl covers
+    # Improved artwork from search
     songs = [
-        {"title": "System Failure", "label": "House Keeping Rec", "cat": "HKR004", "cover": "https://placehold.co/400x400/111/FFF?text=HKR"},
-        {"title": "Analog Dreams", "label": "Tresor Records", "cat": "TR-291", "cover": "https://placehold.co/400x400/000/00f7ff?text=TRESOR"},
-        {"title": "Voltage Control", "label": "Ostgut Ton", "cat": "OSTGUT-55", "cover": "https://placehold.co/400x400/222/FF0033?text=OSTGUT"},
-        {"title": "Modular State", "label": "Klockworks", "cat": "KW-22", "cover": "https://placehold.co/400x400/000/FFF?text=KW"}
+        {"title": "System Failure", "label": "House Keeping Rec", "cat": "HKR004", "cover": "https://thumbs.dreamstime.com/b/overgrown-modular-synth-enchanted-forest-setting-s-ai-masterpiece-vintage-synthesizer-covered-lush-moss-delicate-408915293.jpg"},
+        {"title": "Analog Dreams", "label": "Tresor Records", "cat": "TR-291", "cover": "https://thumbs.dreamstime.com/b/futuristic-modular-synthesizer-transparent-casing-striking-image-cutting-edge-featuring-reveals-its-intricate-inner-347695422.jpg"},
+        {"title": "Voltage Control", "label": "Ostgut Ton", "cat": "OSTGUT-55", "cover": "https://thumbs.dreamstime.com/b/abstract-pop-art-neon-illustration-mosaic-pixel-vibrant-futuristic-d-artwork-techno-house-album-art-depicting-people-400762655.jpg"},
+        {"title": "Modular State", "label": "Klockworks", "cat": "KW-22", "cover": "https://lookaside.fbsbx.com/lookaside/crawler/media/?media_id=122231043668119738"}
     ]
     
     for track in songs:
         c1, c2, c3 = st.columns([1, 3, 1])
         with c1:
-            st.image(track['cover'], width=150, caption=track['title'] + " vinyl cover")  # Alt text for SEO
+            st.image(track['cover'], width=150, alt=track['title'] + " album cover")
         with c2:
             st.subheader(track['title'])
             st.caption(f"{track['label']} // {track['cat']}")
@@ -346,17 +360,18 @@ elif selected == "HKR":
 elif selected == "EVENTS":
     st.title("TOUR DATES")
     
+    # Improved flyers from search
     events = [
-        {"date": "NOV 04", "city": "AMSTERDAM", "venue": "SHELTER", "flyer": "https://placehold.co/600x300/000/FFF?text=ADE+2025"},
-        {"date": "NOV 11", "city": "LONDON", "venue": "FOLD", "flyer": "https://placehold.co/600x300/111/FF0033?text=LONDON+RAVE"},
-        {"date": "NOV 18", "city": "MELBOURNE", "venue": "REVOLVER", "flyer": "https://placehold.co/600x300/000/00f7ff?text=REVOLVER+SUNDAYS"},
-        {"date": "DEC 02", "city": "PARIS", "venue": "REX CLUB", "flyer": "https://placehold.co/600x300/222/FFF?text=REX+CLUB"}
+        {"date": "NOV 04", "city": "AMSTERDAM", "venue": "SHELTER", "flyer": "https://imgproxy.ra.co/_/quality:66/aHR0cHM6Ly9pbWFnZXMucmEuY28vOGQyNjE1OTFiOTg1N2JhMDlmZDMzY2NkYmViZWY3OWM5ODlkYWQwNS5qcGc="},
+        {"date": "NOV 11", "city": "LONDON", "venue": "FOLD", "flyer": "https://imgproxy.ra.co/_/quality:66/aHR0cHM6Ly9pbWFnZXMucmEuY28vYmNiOTcwMzAwYjQ1MWY3Njc3NzUzYTdiNjAxODU4NjY0NmU0OTA1Yy5qcGc="},
+        {"date": "NOV 18", "city": "MELBOURNE", "venue": "REVOLVER", "flyer": "https://imgproxy.ra.co/_/quality:50/aHR0cHM6Ly9pbWFnZXMucmEuY28vMTNmNzNjMTBkMWJlMDRiODA5YWQ4ZTU0ODc1ZjM2M2Q3YThlY2Y5Zi5wbmc="},
+        {"date": "DEC 02", "city": "PARIS", "venue": "REX CLUB", "flyer": "https://imgproxy.ra.co/_/quality:66/aHR0cHM6Ly9pbWFnZXMucmEuY28vZTgxMzJkZWNkODA5MzMzMTc4ODRhMDhjYjQwOTY0ZjE2NzZiMDYzOC5wbmc="}
     ]
     
     for event in events:
         c1, c2, c3 = st.columns([2, 3, 1])
         with c1:
-            st.image(event['flyer'], use_column_width=True, caption=event['venue'] + " event flyer")  # Alt text for SEO
+            st.image(event['flyer'], use_column_width=True, alt=event['venue'] + " event flyer")
         with c2:
             st.markdown(f"### {event['date']}")
             st.markdown(f"**{event['city']}** // {event['venue']}")
@@ -374,12 +389,12 @@ elif selected == "STORE":
 
     c1, c2, c3 = st.columns(3)
     
-    # Merch 1: T-Shirt (Using Unsplash Image + Overlay SVG)
+    # Merch 1: T-Shirt (Larger logo)
     with c1:
         st.markdown(f"""
         <div class="mockup-container">
-            <img src="https://images.unsplash.com/photo-1521572163474-6864f9cf17ab?auto=format&fit=crop&w=600&q=80" class="mockup-bg" alt="TNF Core Tee mockup">
-            <div class="mockup-logo" style="transform: translate(-50%, -50%) scale(0.3);">{TNF_LOGO_SVG}</div>
+            <img src="https://images.unsplash.com/photo-1521572163474-6864f9cf17ab?auto=format&fit=crop&w=600&q=80" class="mockup-bg" alt="TNF Core Tee">
+            <div class="mockup-logo tee-logo" style="transform: translate(-50%, -50%) scale(0.4);">{TNF_LOGO_SVG}</div>
         </div>
         """, unsafe_allow_html=True)
         st.markdown("**TNF CORE TEE**")
@@ -391,7 +406,7 @@ elif selected == "STORE":
     with c2:
         st.markdown(f"""
         <div class="mockup-container">
-            <img src="https://images.unsplash.com/photo-1556821840-3a63f95609a7?auto=format&fit=crop&w=600&q=80" class="mockup-bg" alt="HKR Label Hoodie mockup">
+            <img src="https://images.unsplash.com/photo-1556821840-3a63f95609a7?auto=format&fit=crop&w=600&q=80" class="mockup-bg" alt="HKR Label Hoodie">
             <div class="mockup-logo" style="transform: translate(-50%, -50%) scale(0.5);">{HKR_LOGO_SVG}</div>
         </div>
         """, unsafe_allow_html=True)
@@ -404,7 +419,7 @@ elif selected == "STORE":
     with c3:
         st.markdown(f"""
         <div class="mockup-container">
-            <img src="https://images.unsplash.com/photo-1603048588665-791ca8aea617?auto=format&fit=crop&w=600&q=80" class="mockup-bg" alt="Pro Slipmats mockup">
+            <img src="https://images.unsplash.com/photo-1603048588665-791ca8aea617?auto=format&fit=crop&w=600&q=80" class="mockup-bg" alt="Pro Slipmats">
             <div class="mockup-logo" style="transform: translate(-50%, -50%) scale(0.6);">{SLIPMAT_ICON_SVG}</div>
         </div>
         """, unsafe_allow_html=True)
@@ -424,10 +439,19 @@ elif selected == "GALLERY":
         {"url": "https://images.unsplash.com/photo-1619967657960-983b6329c370?q=80&w=800&auto=format&fit=crop", "cap": "SEQUENCER DETAIL"},
     ]
     
-    c1, c2 = st.columns(2)
-    for i, item in enumerate(images):
-        with (c1 if i % 2 == 0 else c2):
-            st.image(item['url'], caption=item['cap'], use_column_width=True, alt=item['cap'] + " image")  # Alt text for SEO
+    # Fixed gallery with back button
+    if 'expanded_gallery' in st.session_state and st.session_state.expanded_gallery is not None:
+        idx = st.session_state.expanded_gallery
+        st.image(images[idx]['url'] + "?w=1600", caption=images[idx]['cap'], use_column_width=True, alt=images[idx]['cap'])
+        if st.button("← BACK TO GALLERY"):
+            st.session_state.expanded_gallery = None
+    else:
+        c1, c2 = st.columns(2)
+        for i, item in enumerate(images):
+            with (c1 if i % 2 == 0 else c2):
+                st.image(item['url'], caption=item['cap'], use_column_width=True, alt=item['cap'])
+                if st.button("ENLARGE", key=f"enlarge_{i}"):
+                    st.session_state.expanded_gallery = i
 
 elif selected == "ABOUT":
     c1, c2 = st.columns([2,1])
@@ -455,3 +479,28 @@ elif selected == "SYSTEM":
     pwd = st.text_input("ENTER AUTH CODE", type="password")
     if pwd == "admin123":
         st.success("ACCESS GRANTED")
+
+# Advanced SEO: JSON-LD structured data
+st.markdown("""
+<script type="application/ld+json">
+{
+  "@context": "https://schema.org",
+  "@type": "MusicGroup",
+  "name": "Tuesdaynightfreak",
+  "url": "https://tuesdaynightfreak.streamlit.app/",
+  "genre": "Techno",
+  "foundingLocation": {
+    "@type": "Place",
+    "name": "Melbourne, Australia"
+  },
+  "member": {
+    "@type": "Person",
+    "name": "Tuesdaynightfreak"
+  },
+  "album": [
+    {"@type": "MusicAlbum", "name": "Voltage Control"},
+    {"@type": "MusicAlbum", "name": "System Failure"}
+  ]
+}
+</script>
+""", unsafe_allow_html=True)
