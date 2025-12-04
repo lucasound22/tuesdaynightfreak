@@ -1,8 +1,6 @@
 import streamlit as st
 from streamlit_option_menu import option_menu
 import time
-import requests
-import stripe  # For Stripe integration
 
 # --- CONFIGURATION & PALETTE ---
 COLOR_BG = "#080808"
