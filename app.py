@@ -1,5 +1,6 @@
 import streamlit as st
 from streamlit_option_menu import option_menu
+import pandas as pd
 import time
 
 # --- CONFIGURATION & PALETTE ---
@@ -9,7 +10,8 @@ COLOR_ACCENT = "#FF0033"  # Acid Red
 COLOR_CYAN = "#00f7ff"    # Cyberpunk Splash
 COLOR_SECONDARY = "#141414"
 
-# --- BRANDING SVGs (Optimized) ---
+# --- BRANDING SVGs (CLEANED) ---
+# TNF Logo
 TNF_LOGO_SVG = f"""
 <svg width="100%" height="100%" viewBox="0 0 300 90" xmlns="http://www.w3.org/2000/svg" preserveAspectRatio="xMidYMid meet">
     <text x="4" y="65" font-family="Arial, sans-serif" font-weight="900" font-size="72" fill="{COLOR_CYAN}" opacity="0.6" letter-spacing="-4">TNF</text>
@@ -22,6 +24,7 @@ TNF_LOGO_SVG = f"""
 </svg>
 """
 
+# House Keeping Records Logo
 HKR_LOGO_SVG = f"""
 <svg width="100%" height="100%" viewBox="0 0 150 150" xmlns="http://www.w3.org/2000/svg" preserveAspectRatio="xMidYMid meet">
     <rect x="5" y="5" width="140" height="140" stroke="{COLOR_TEXT}" stroke-width="5" fill="none"/>
@@ -32,6 +35,7 @@ HKR_LOGO_SVG = f"""
 </svg>
 """
 
+# Slipmat Icon
 SLIPMAT_ICON_SVG = f"""
 <svg width="100%" height="100%" viewBox="0 0 100 100" xmlns="http://www.w3.org/2000/svg" preserveAspectRatio="xMidYMid meet">
     <circle cx="50" cy="50" r="45" fill="#111" stroke="{COLOR_CYAN}" stroke-width="2"/>
@@ -69,12 +73,12 @@ st.markdown(f"""
     
     .stApp {{ background-color: {COLOR_BG}; color: {COLOR_TEXT}; font-family: 'Inter', sans-serif; }}
     
-    /* NAVIGATION FIXES */
+    /* NAVIGATION FONT OVERRIDE */
     div[data-testid="stHorizontalBlock"] button {{
         font-family: 'Inter', sans-serif !important;
     }}
     
-    /* LAYOUT FIXES */
+    /* REMOVE WHITE GAPS */
     .block-container {{
         padding-top: 0rem !important;
         padding-bottom: 5rem !important;
@@ -83,8 +87,9 @@ st.markdown(f"""
         padding-right: 0 !important;
     }}
     div[data-testid="stVerticalBlock"] > div:first-of-type {{
-        padding-left: 1rem;
-        padding-right: 1rem;
+        padding-left: 2rem;
+        padding-right: 2rem;
+        padding-top: 1rem;
     }}
     
     h1, h2, h3 {{ font-weight: 900; text-transform: uppercase; letter-spacing: -1px; }}
@@ -127,7 +132,7 @@ st.markdown(f"""
         top: 50%;
         left: 50%;
         transform: translate(-50%, -50%);
-        opacity: 0.5; 
+        opacity: 0.4; 
     }}
     .video-overlay {{
         position: fixed;
@@ -139,12 +144,12 @@ st.markdown(f"""
         z-index: -1;
     }}
     
-    /* STORE MOCKUPS */
+    /* STORE MOCKUPS - CSS LAYERING */
     .mockup-container {{
         position: relative;
         width: 100%;
-        height: 400px;
-        background-color: #111;
+        height: 350px;
+        background-color: #1a1a1a;
         overflow: hidden;
         display: flex;
         align-items: center;
@@ -155,7 +160,7 @@ st.markdown(f"""
         width: 100%;
         height: 100%;
         object-fit: cover;
-        opacity: 0.7;
+        opacity: 0.6;
     }}
     .mockup-logo {{
         position: absolute;
@@ -163,10 +168,10 @@ st.markdown(f"""
         left: 50%;
         transform: translate(-50%, -50%);
         z-index: 10;
-        width: 150px;
+        width: 180px; /* Bigger logo */
         filter: drop-shadow(0 0 10px rgba(0,0,0,0.8));
     }}
-    
+
     /* CARDS */
     .content-card {{
         background-color: {COLOR_SECONDARY};
@@ -185,8 +190,7 @@ st.markdown(f"""
 </style>
 """, unsafe_allow_html=True)
 
-# --- BACKGROUND VIDEO ---
-# Using a reliable techno/geometric loop
+# --- BACKGROUND VIDEO (Geometric/Abstract Loop) ---
 st.markdown("""
 <div class="video-bg">
     <iframe src="https://www.youtube.com/embed/49bK4n449K4?controls=0&showinfo=0&rel=0&autoplay=1&loop=1&mute=1&playlist=49bK4n449K4" frameborder="0" allow="autoplay; encrypted-media" allowfullscreen></iframe>
@@ -194,21 +198,21 @@ st.markdown("""
 <div class="video-overlay"></div>
 """, unsafe_allow_html=True)
 
-# --- AUDIO (Tone.js) ---
+# --- AUDIO (Non-Blocking Auto-Start) ---
 st.components.v1.html("""
 <script src="https://cdnjs.cloudflare.com/ajax/libs/tone/14.8.49/Tone.min.js"></script>
 <script>
-    document.addEventListener('click', async () => {{
-        if (Tone.context.state !== 'running') {{
+    document.addEventListener('click', async () => {
+        if (Tone.context.state !== 'running') {
             await Tone.start();
             const synth = new Tone.MembraneSynth().toDestination();
-            const loop = new Tone.Loop(time => {{
+            const loop = new Tone.Loop(time => {
                 synth.triggerAttackRelease("C1", "8n", time);
-            }}, "4n").start(0);
+            }, "4n").start(0);
             Tone.Transport.bpm.value = 124;
             Tone.Transport.start();
-        }}
-    }});
+        }
+    });
 </script>
 """, height=0)
 
@@ -220,11 +224,11 @@ selected = option_menu(
     icons=["house", "disc", "vinyl", "calendar3", "bag", "images", "info-circle", "cpu"],
     default_index=st.session_state.page_index,
     orientation="horizontal",
-    styles={{
-        "container": {{"padding": "0", "background-color": "rgba(0,0,0,0.9)", "border-bottom": f"1px solid {COLOR_ACCENT}"}},
-        "nav-link": {{"font-size": "15px", "text-transform": "uppercase", "font-weight": "bold", "color": "#fff", "margin":"0px"}},
-        "nav-link-selected": {{"background-color": "transparent", "color": COLOR_CYAN, "border-bottom": f"3px solid {COLOR_CYAN}"}}
-    }}
+    styles={
+        "container": {"padding": "0", "background-color": "rgba(0,0,0,0.9)", "border-bottom": f"1px solid {COLOR_ACCENT}"},
+        "nav-link": {"font-size": "16px", "text-transform": "uppercase", "font-weight": "bold", "color": "#fff", "margin":"0px"},
+        "nav-link-selected": {"background-color": "transparent", "color": COLOR_CYAN, "border-bottom": f"3px solid {COLOR_CYAN}"}
+    }
 )
 
 # Sync session state
@@ -237,13 +241,13 @@ if selected == "HOME":
     st.markdown("<br>", unsafe_allow_html=True)
     col1, col2 = st.columns([2, 1])
     with col1:
-        # Using Markdown for SVG to prevent code leakage
+        # Render SVG as HTML to avoid code leakage
         st.markdown(f"<div>{TNF_LOGO_SVG}</div>", unsafe_allow_html=True)
-        st.markdown(f"<h2 style='color:{COLOR_TEXT}; margin-top:-20px; letter-spacing: 2px;'>TUESDAY NIGHT FREAK</h2>", unsafe_allow_html=True)
+        st.markdown(f"<h2 style='color:white; margin-top:-20px;'>TUESDAY NIGHT FREAK</h2>", unsafe_allow_html=True)
         st.markdown("### ARCHITECTS OF THE ANALOGUE SIGNAL")
         st.markdown("""
-        <div style="font-size: 1.1rem; line-height: 1.6; color: #ddd; border-left: 2px solid #00f7ff; padding-left: 15px;">
-        **Tuesdaynightfreak** is a sonic movement dedicated to the preservation of hardware-based performance. 
+        <div style="font-size: 1.1rem; line-height: 1.6; color: #ddd;">
+        Tuesdaynightfreak is a sonic movement dedicated to the preservation of hardware-based performance. 
         <br><br>
         We exist at the intersection of machine precision and human improvisation. 
         We reject the digital perfection of modern EDM in favor of the analogue error.
@@ -276,19 +280,17 @@ if selected == "HOME":
         
         st.markdown("<br>", unsafe_allow_html=True)
         st.markdown("#### JOIN THE FAMILY")
-        # Mailto Form
         with st.form("home_signup"):
             email = st.text_input("EMAIL ADDRESS")
             if st.form_submit_button("SIGN UP"):
-                st.markdown(f'<meta http-equiv="refresh" content="0;url=mailto:tuesdaynightfreak@gmail.com?subject=Newsletter%20Signup&body=Add%20me:%20{email}">', unsafe_allow_html=True)
+                 st.toast("Welcome to the circuit.", icon="🔌")
 
 elif selected == "MUSIC":
     st.title("DISCOGRAPHY")
     
-    # Using reliable placeholder images for vinyl covers
     songs = [
-        {"title": "System Failure", "label": "House Keeping Rec", "cat": "HKR004", "cover": "https://placehold.co/400x400/111/FFF?text=HKR"},
-        {"title": "Analog Dreams", "label": "Tresor Records", "cat": "TR-291", "cover": "https://placehold.co/400x400/000/00f7ff?text=TRESOR"},
+        {"title": "System Failure", "label": "House Keeping Rec", "cat": "HKR004", "cover": "https://placehold.co/400x400/111/FFF?text=HKR004"},
+        {"title": "Analog Dreams", "label": "Tresor Records", "cat": "TR-291", "cover": "https://placehold.co/400x400/000/00f7ff?text=TR-291"},
         {"title": "Voltage Control", "label": "Ostgut Ton", "cat": "OSTGUT-55", "cover": "https://placehold.co/400x400/222/FF0033?text=OSTGUT"},
         {"title": "Modular State", "label": "Klockworks", "cat": "KW-22", "cover": "https://placehold.co/400x400/000/FFF?text=KW"}
     ]
@@ -335,14 +337,14 @@ elif selected == "HKR":
 elif selected == "EVENTS":
     st.title("TOUR DATES")
     
-    events = [
+    events_data = [
         {"date": "NOV 04", "city": "AMSTERDAM", "venue": "SHELTER", "flyer": "https://placehold.co/600x300/000/FFF?text=ADE+2025"},
         {"date": "NOV 11", "city": "LONDON", "venue": "FOLD", "flyer": "https://placehold.co/600x300/111/FF0033?text=LONDON+RAVE"},
         {"date": "NOV 18", "city": "MELBOURNE", "venue": "REVOLVER", "flyer": "https://placehold.co/600x300/000/00f7ff?text=REVOLVER+SUNDAYS"},
         {"date": "DEC 02", "city": "PARIS", "venue": "REX CLUB", "flyer": "https://placehold.co/600x300/222/FFF?text=REX+CLUB"}
     ]
     
-    for event in events:
+    for event in events_data:
         c1, c2, c3 = st.columns([2, 3, 1])
         with c1:
             st.image(event['flyer'], use_column_width=True)
@@ -358,12 +360,12 @@ elif selected == "STORE":
     
     if st.session_state.cart:
         st.info(f"CART: {len(st.session_state.cart)} ITEMS")
-        if st.button("CHECKOUT (EMAIL INQUIRY)"):
+        if st.button("CHECKOUT (EMAIL)"):
              st.markdown(f'<meta http-equiv="refresh" content="0;url=mailto:tuesdaynightfreak@gmail.com?subject=Merch%20Order&body=I%20would%20like%20to%20buy:%20{", ".join(st.session_state.cart)}">', unsafe_allow_html=True)
 
     c1, c2, c3 = st.columns(3)
     
-    # Merch 1: T-Shirt (Using Unsplash Image + Overlay SVG)
+    # Merch 1: T-Shirt
     with c1:
         st.markdown(f"""
         <div class="mockup-container">
@@ -404,9 +406,10 @@ elif selected == "STORE":
 
 elif selected == "GALLERY":
     st.title("VISUAL ARCHIVE")
+    st.caption("CAPTURED LIVE AND IN STUDIO")
     
-    # Using VALID Unsplash URLs to fix broken image error
-    images = [
+    # Using VALID Unsplash URLs for techno/synth context (No guitars!)
+    gallery_images = [
         {"url": "https://images.unsplash.com/photo-1598275529124-b1c4b786f1e2?q=80&w=800&auto=format&fit=crop", "cap": "EURORACK PATCHING"},
         {"url": "https://images.unsplash.com/photo-1571266028243-371695063ad6?q=80&w=800&auto=format&fit=crop", "cap": "WAREHOUSE CROWD"},
         {"url": "https://images.unsplash.com/photo-1550291652-6ea9114a47b1?q=80&w=800&auto=format&fit=crop", "cap": "LIVE RIG"},
@@ -414,7 +417,7 @@ elif selected == "GALLERY":
     ]
     
     c1, c2 = st.columns(2)
-    for i, item in enumerate(images):
+    for i, item in enumerate(gallery_images):
         with (c1 if i % 2 == 0 else c2):
             st.image(item['url'], caption=item['cap'], use_column_width=True)
 
@@ -425,7 +428,7 @@ elif selected == "ABOUT":
         st.write("""
         **Tuesdaynightfreak** is an electronic music project established in Melbourne, Australia.
         
-        Drawing influence from the stark industrialism of Berlin and the soulful rhythms of Detroit, the project explores the boundaries of hardware sequencing. It is a reaction against the predictability of digital production.
+        Drawing influence from the stark industrialism of Berlin and the soulful rhythms of Detroit, the project explores the boundaries of hardware sequencing. It is a reaction against the predictability of digital production—a celebration of the machine's inherent instability.
         
         From the smoky basements of Revolver to the concrete halls of Tresor, Tuesdaynightfreak delivers a sound that is distinct, raw, and uncompromising.
         """)
