@@ -180,7 +180,7 @@ st.markdown(f"""
 """, unsafe_allow_html=True)
 
 # --- BACKGROUND VIDEO & AUDIO ---
-# Updated CSS now guarantees full-screen coverage
+# The CSS fix for the video is now applied via the style block above.
 st.markdown("""
 <div class="video-bg">
     <iframe src="https://www.youtube.com/embed/qC0vDKVPCrw?controls=0&showinfo=0&rel=0&autoplay=1&loop=1&mute=1&playlist=qC0vDKVPCrw" frameborder="0" allow="autoplay; encrypted-media" allowfullscreen></iframe>
@@ -319,12 +319,11 @@ elif selected == "HKR":
 elif selected == "EVENTS":
     st.title("UPCOMING DATES // TRANSMISSION LOG")
     
-    # Using reliable PICSUM image links for guaranteed display
+    # Updated to highly thematic club/techno images
     events_data = [
-        # Reliable club/crowd images
-        {"date": "NOV 04", "city": "AMSTERDAM", "venue": "SHELTER", "image": "https://picsum.photos/id/1025/600/400"},
-        {"date": "NOV 11", "city": "LONDON", "venue": "FOLD", "image": "https://picsum.photos/id/1018/600/400"},
-        {"date": "NOV 18", "city": "MELBOURNE", "venue": "REVOLVER", "image": "https://picsum.photos/id/201/600/400"},
+        {"date": "NOV 04", "city": "AMSTERDAM", "venue": "SHELTER", "image": "https://images.unsplash.com/photo-1517457371957-c7385e05a769?q=80&w=600&auto=format&fit=crop"}, # Atmospheric Club
+        {"date": "NOV 11", "city": "LONDON", "venue": "FOLD", "image": "https://images.unsplash.com/photo-1522851214081-300624e7a83d?q=80&w=600&auto=format&fit=crop"}, # Dark Venue
+        {"date": "NOV 18", "city": "MELBOURNE", "venue": "REVOLVER", "image": "https://images.unsplash.com/photo-1534447677768-bc412dec4fbe?q=80&w=600&auto=format&fit=crop"}, # DJ Booth View
     ]
     
     for event in events_data:
@@ -348,7 +347,7 @@ elif selected == "STORE":
 
     c1, c2, c3 = st.columns(3)
     
-    # Merch 1: T-Shirt with BIGGER Logo Overlay
+    # Merch 1: T-Shirt with BIGGER Logo Overlay (Image URLs kept as they are themed black apparel)
     with c1:
         st.markdown(f"""
         <div class="mockup-container">
@@ -388,31 +387,29 @@ elif selected == "STORE":
             add_to_cart("Slipmats")
 
 elif selected == "GALLERY":
-    # Updated title and removed 'HARDWARE FOCUS'
     st.title("VISUAL ARCHIVE // HARDWARE PULSE")
     st.caption("RAW VOLTAGE. RAW RHYTHM.")
     
-    # Using reliable PICSUM image links for guaranteed display
+    # Updated to highly thematic modular/club/techno images
     gallery_images = [
-        {"url": "https://picsum.photos/seed/synth1/800/600", "cap": "MODULAR SYNTHESIS // PATCH 01"},
-        {"url": "https://picsum.photos/seed/crowd2/800/600", "cap": "LIVE AT BERLIN // 4AM"},
-        {"url": "https://picsum.photos/seed/machine3/800/600", "cap": "DRUM MACHINE SEQUENCING"},
-        {"url": "https://picsum.photos/seed/vinyl4/800/600", "cap": "VINYL MIXING IN SESSION"},
-        {"url": "https://picsum.photos/seed/acid5/800/600", "cap": "DANCEFLOOR ENERGY // MELBOURNE"},
-        {"url": "https://picsum.photos/seed/gear6/800/600", "cap": "STUDIO GEAR CLOSE-UP // REWIRE"}
+        {"url": "https://images.unsplash.com/photo-1547842603-99b800539665?q=80&w=800&auto=format&fit=crop", "cap": "MODULAR SYNTHESIS // PATCH 01"},
+        {"url": "https://images.unsplash.com/photo-1524368535928-5b5e00ddc765?q=80&w=800&auto=format&fit=crop", "cap": "LIVE AT BERLIN // 4AM"},
+        {"url": "https://images.unsplash.com/photo-1510925232779-11fae39b986e?q=80&w=800&auto=format&fit=crop", "cap": "DRUM MACHINE SEQUENCING"},
+        {"url": "https://images.unsplash.com/photo-1511671782779-c97d3d27a1ae?q=80&w=800&auto=format&fit=crop", "cap": "VINYL MIXING IN SESSION"},
+        {"url": "https://images.unsplash.com/photo-1594950891461-841f3e7b1652?q=80&w=800&auto=format&fit=crop", "cap": "DANCEFLOOR ENERGY // MELBOURNE"},
+        {"url": "https://images.unsplash.com/photo-1458819714733-e5ab3d536722?q=80&w=800&auto=format&fit=crop", "cap": "STUDIO GEAR CLOSE-UP // REWIRE"}
     ]
     
-    # Use columns to create the static grid
+    # Use columns to create the static grid (ensures no navigation back/enlargement)
     c1, c2, c3 = st.columns(3)
     cols = [c1, c2, c3]
     for i, item in enumerate(gallery_images):
         with cols[i % 3]:
-            # Static images as requested
+            # st.image renders the image statically inside the container
             st.image(item['url'], caption=item['cap'], use_column_width=True)
 
 
 elif selected == "ABOUT":
-    # Content remains the same as it was functional
     c1, c2 = st.columns([2,1])
     with c1:
         st.title("BIOGRAPHY // PROJECT OVERVIEW")
