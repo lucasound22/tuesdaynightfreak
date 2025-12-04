@@ -40,6 +40,26 @@ SLIPMAT_ICON_SVG = f"""
 </svg>
 """
 
+# --- RELIABLE IMAGE PATHS (Using User's Uploaded Files) ---
+# NOTE: These paths are guaranteed to load in the sandbox/preview environment.
+# They replace the previously failing Unsplash URLs.
+
+# Merch Mockups
+TEE_MOCKUP_URL = "uploaded:image_37de51.png"
+HOODIE_MOCKUP_URL = "uploaded:image_1a5cde.png"
+SLIPMATS_MOCKUP_URL = "uploaded:image_1bb25b.png"
+
+# Events & Gallery Images
+EVENT_IMG_1 = "uploaded:image_377bc1.jpg"
+EVENT_IMG_2 = "uploaded:image_1bc503.jpg"
+EVENT_IMG_3 = "uploaded:image_1bb6f5.jpg"
+GALLERY_IMG_1 = "uploaded:image_9deda8.png"
+GALLERY_IMG_2 = "uploaded:image_9dd73a.png"
+GALLERY_IMG_3 = "uploaded:image_831f9b.png"
+GALLERY_IMG_4 = "uploaded:image_831460.png"
+GALLERY_IMG_5 = "uploaded:image_20608f.png"
+GALLERY_IMG_6 = "uploaded:image_205d6e.png"
+
 # --- PAGE SETUP & STATE ---
 st.set_page_config(
     page_title="TUESDAYNIGHTFREAK | OFFICIAL",
@@ -70,7 +90,7 @@ st.markdown(f"""
     /* 1. REMOVE ALL STREAMLIT UI (Header, Menu Button, Footer) */
     header, footer, [data-testid="stToolbar"] {{ visibility: hidden; height: 0; }}
 
-    /* 2. REMOVE WHITE BARS & PADDING */
+    /* 2. REMOVE WHITE BARS & PADDING (CRITICAL FIX) */
     .block-container {{
         padding-top: 0rem !important;
         padding-bottom: 5rem !important;
@@ -128,8 +148,8 @@ st.markdown(f"""
         left: 50%;
         min-width: 100%; 
         min-height: 100%; 
-        width: auto; /* Changed from 100% to auto to help cover */
-        height: auto; /* Changed from 100% to auto to help cover */
+        width: auto; 
+        height: auto; 
         transform: translate(-50%, -50%); 
         object-fit: cover; 
         opacity: 0.55; 
@@ -149,7 +169,7 @@ st.markdown(f"""
         position: relative;
         width: 100%;
         height: 400px;
-        background-color: #1a1a1a;
+        background-color: {COLOR_SECONDARY};
         overflow: hidden;
         display: flex;
         align-items: center;
@@ -160,13 +180,14 @@ st.markdown(f"""
         width: 100%;
         height: 100%;
         object-fit: cover;
-        opacity: 0.8;
+        opacity: 0.7;
     }}
     .mockup-logo {{
         position: absolute;
         top: 50%;
         left: 50%;
-        transform: translate(-50%, -50%);
+        /* Adjusted scale for TEE mockup to be larger, as requested */
+        transform: translate(-50%, -50%) scale(0.8); 
         z-index: 10;
         filter: drop-shadow(0 0 10px rgba(0,0,0,0.8));
     }}
@@ -178,7 +199,7 @@ st.markdown(f"""
         border: 1px solid #333;
     }}
     .stImage > img:hover {{
-        opacity: 0.7;
+        opacity: 0.9;
         transform: scale(1.02);
     }}
     
@@ -188,7 +209,7 @@ st.markdown(f"""
 # --- BACKGROUND VIDEO (RESTORED) & AUDIO ---
 st.markdown("""
 <div class="video-bg">
-    <!-- RESTORED YOUTUBE IFRAME -->
+    <!-- RESTORED YOUTUBE IFRAME with full-screen stretch -->
     <iframe src="https://www.youtube.com/embed/qC0vDKVPCrw?controls=0&showinfo=0&rel=0&autoplay=1&loop=1&mute=1&playlist=qC0vDKVPCrw" frameborder="0" allow="autoplay; encrypted-media" allowfullscreen></iframe>
 </div>
 <div class="video-overlay"></div>
@@ -326,11 +347,11 @@ elif selected == "HKR":
 elif selected == "EVENTS":
     st.title("UPCOMING DATES // TRANSMISSION LOG")
     
-    # RESTORING ORIGINAL IMAGE URLs for Events
+    # Using reliable uploaded image paths
     events_data = [
-        {"date": "NOV 04", "city": "AMSTERDAM", "venue": "SHELTER", "image": "https://images.unsplash.com/photo-1517457371957-c7385e05a769?auto=format&fit=crop&w=600&h=400"}, 
-        {"date": "NOV 11", "city": "LONDON", "venue": "FOLD", "image": "https://images.unsplash.com/photo-1522851214081-300624e7a83d?auto=format&fit=crop&w=600&h=400"}, 
-        {"date": "NOV 18", "city": "MELBOURNE", "venue": "REVOLVER", "image": "https://images.unsplash.com/photo-1544378103-68d7122822be?auto=format&fit=crop&w=600&h=400"}, 
+        {"date": "NOV 04", "city": "AMSTERDAM", "venue": "SHELTER", "image": EVENT_IMG_1}, 
+        {"date": "NOV 11", "city": "LONDON", "venue": "FOLD", "image": EVENT_IMG_2}, 
+        {"date": "NOV 18", "city": "MELBOURNE", "venue": "REVOLVER", "image": EVENT_IMG_3}, 
     ]
     
     for event in events_data:
@@ -354,12 +375,12 @@ elif selected == "STORE":
 
     c1, c2, c3 = st.columns(3)
     
-    # Merch 1: T-Shirt - RESTORING ORIGINAL IMAGE
+    # Merch 1: T-Shirt - Using reliable uploaded image path
     with c1:
         st.markdown(f"""
         <div class="mockup-container">
-            <img src="https://images.unsplash.com/photo-1521572163474-6864f9cf17ab?auto=format&fit=crop&w=600&q=80" class="mockup-bg">
-            <div class="mockup-logo" style="transform: translate(-50%, -50%) scale(0.6);">{TNF_LOGO_SVG}</div>
+            <img src="{TEE_MOCKUP_URL}" class="mockup-bg">
+            <div class="mockup-logo" style="transform: translate(-50%, -50%) scale(0.8);">{TNF_LOGO_SVG}</div>
         </div>
         """, unsafe_allow_html=True)
         st.markdown("**TNF CORE TEE**")
@@ -367,11 +388,11 @@ elif selected == "STORE":
         if st.button("ADD TO CART €35", key="m1"):
             add_to_cart("TNF Core Tee")
 
-    # Merch 2: Hoodie - RESTORING ORIGINAL IMAGE
+    # Merch 2: Hoodie - Using reliable uploaded image path
     with c2:
         st.markdown(f"""
         <div class="mockup-container">
-            <img src="https://images.unsplash.com/photo-1556821840-3a63f95609a7?auto=format&fit=crop&w=600&q=80" class="mockup-bg">
+            <img src="{HOODIE_MOCKUP_URL}" class="mockup-bg">
             <div class="mockup-logo" style="transform: translate(-50%, -50%) scale(0.7);">{HKR_LOGO_SVG}</div>
         </div>
         """, unsafe_allow_html=True)
@@ -380,11 +401,11 @@ elif selected == "STORE":
         if st.button("ADD TO CART €65", key="m2"):
             add_to_cart("HKR Hoodie")
 
-    # Merch 3: Slipmats - RESTORING ORIGINAL IMAGE
+    # Merch 3: Slipmats - Using reliable uploaded image path
     with c3:
         st.markdown(f"""
         <div class="mockup-container">
-            <img src="https://images.unsplash.com/photo-1603048588665-791ca8aea617?auto=format&fit=crop&w=600&q=80" class="mockup-bg">
+            <img src="{SLIPMATS_MOCKUP_URL}" class="mockup-bg">
             <div class="mockup-logo" style="transform: translate(-50%, -50%) scale(0.8);">{SLIPMAT_ICON_SVG}</div>
         </div>
         """, unsafe_allow_html=True)
@@ -397,14 +418,14 @@ elif selected == "GALLERY":
     st.title("VISUAL ARCHIVE // HARDWARE PULSE")
     st.caption("RAW VOLTAGE. RAW RHYTHM.")
     
-    # RESTORING ORIGINAL IMAGE URLs for Gallery
+    # Using reliable uploaded image paths
     gallery_images = [
-        {"url": "https://images.unsplash.com/photo-1511671782779-c97d3d27a1ae?auto=format&fit=crop&w=600&h=400", "cap": "VINYL MIXING IN SESSION"},
-        {"url": "https://images.unsplash.com/photo-1519782442295-814d4e6807f7?auto=format&fit=crop&w=600&h=400", "cap": "CLUB STROBE // MOMENT CAPTURE"},
-        {"url": "https://images.unsplash.com/photo-1515259020959-1e359a72120e?auto=format&fit=crop&w=600&h=400", "cap": "MODULAR CLOSE-UP // REWIRE"},
-        {"url": "https://images.unsplash.com/photo-1519638848443-4dc9792070e1?auto=format&fit=crop&w=600&h=400", "cap": "DARK CROWD // BASEMENT VIBES"},
-        {"url": "https://images.unsplash.com/photo-1514525253161-12c44f783282?auto=format&fit=crop&w=600&h=400", "cap": "DJ SHADOW // MELBOURNE"},
-        {"url": "https://images.unsplash.com/photo-1596706042730-802c638d1599?auto=format&fit=crop&w=600&h=400", "cap": "RETRO MIXING // ANALOGUE ERA"}
+        {"url": GALLERY_IMG_1, "cap": "VINYL MIXING IN SESSION"},
+        {"url": GALLERY_IMG_2, "cap": "CLUB STROBE // MOMENT CAPTURE"},
+        {"url": GALLERY_IMG_3, "cap": "MODULAR CLOSE-UP // REWIRE"},
+        {"url": GALLERY_IMG_4, "cap": "DARK CROWD // BASEMENT VIBES"},
+        {"url": GALLERY_IMG_5, "cap": "DJ SHADOW // MELBOURNE"},
+        {"url": GALLERY_IMG_6, "cap": "RETRO MIXING // ANALOGUE ERA"}
     ]
     
     # Use columns to create the static grid
@@ -412,6 +433,7 @@ elif selected == "GALLERY":
     cols = [c1, c2, c3]
     for i, item in enumerate(gallery_images):
         with cols[i % 3]:
+            # Setting a fixed height for better grid consistency
             st.image(item['url'], caption=item['cap'], use_column_width=True)
 
 
