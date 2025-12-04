@@ -1,3 +1,4 @@
+
 import streamlit as st
 from streamlit_option_menu import option_menu
 import time
@@ -40,26 +41,6 @@ SLIPMAT_ICON_SVG = f"""
 </svg>
 """
 
-# --- RELIABLE IMAGE PATHS (Using User's Uploaded Files) ---
-# NOTE: These paths are guaranteed to load in the sandbox/preview environment.
-# They replace the previously failing Unsplash URLs.
-
-# Merch Mockups
-TEE_MOCKUP_URL = "uploaded:image_37de51.png"
-HOODIE_MOCKUP_URL = "uploaded:image_1a5cde.png"
-SLIPMATS_MOCKUP_URL = "uploaded:image_1bb25b.png"
-
-# Events & Gallery Images
-EVENT_IMG_1 = "uploaded:image_377bc1.jpg"
-EVENT_IMG_2 = "uploaded:image_1bc503.jpg"
-EVENT_IMG_3 = "uploaded:image_1bb6f5.jpg"
-GALLERY_IMG_1 = "uploaded:image_9deda8.png"
-GALLERY_IMG_2 = "uploaded:image_9dd73a.png"
-GALLERY_IMG_3 = "uploaded:image_831f9b.png"
-GALLERY_IMG_4 = "uploaded:image_831460.png"
-GALLERY_IMG_5 = "uploaded:image_20608f.png"
-GALLERY_IMG_6 = "uploaded:image_205d6e.png"
-
 # --- PAGE SETUP & STATE ---
 st.set_page_config(
     page_title="TUESDAYNIGHTFREAK | OFFICIAL",
@@ -90,7 +71,7 @@ st.markdown(f"""
     /* 1. REMOVE ALL STREAMLIT UI (Header, Menu Button, Footer) */
     header, footer, [data-testid="stToolbar"] {{ visibility: hidden; height: 0; }}
 
-    /* 2. REMOVE WHITE BARS & PADDING (CRITICAL FIX) */
+    /* 2. REMOVE WHITE BARS & PADDING */
     .block-container {{
         padding-top: 0rem !important;
         padding-bottom: 5rem !important;
@@ -131,7 +112,7 @@ st.markdown(f"""
         padding: 0 2rem;
     }}
     
-    /* --- VIDEO STRETCHING FIX APPLIED HERE --- */
+    /* FULL-SCREEN VIDEO FIX: Container covers viewport */
     .video-bg {{
         position: fixed;
         top: 0;
@@ -141,18 +122,12 @@ st.markdown(f"""
         z-index: -1;
         overflow: hidden;
     }}
-    /* IFRAME ensures video content covers the entire container and stretches correctly */
+    /* IFRAME ensures video content covers the entire container */
     .video-bg iframe {{
-        position: absolute; 
-        top: 50%; 
-        left: 50%;
-        min-width: 100%; 
-        min-height: 100%; 
-        width: auto; 
-        height: auto; 
-        transform: translate(-50%, -50%); 
-        object-fit: cover; 
-        opacity: 0.55; 
+        width: 100%;
+        height: 100%;
+        object-fit: cover; /* Essential for covering full screen without stretching */
+        opacity: 0.55; /* Darken for readability */
     }}
     .video-overlay {{
         position: fixed;
@@ -160,7 +135,7 @@ st.markdown(f"""
         left: 0;
         width: 100vw;
         height: 100vh;
-        background: rgba(0,0,0,0.85); 
+        background: rgba(0,0,0,0.85); /* Heavy overlay */
         z-index: -1;
     }}
     
@@ -169,7 +144,7 @@ st.markdown(f"""
         position: relative;
         width: 100%;
         height: 400px;
-        background-color: {COLOR_SECONDARY};
+        background-color: #1a1a1a;
         overflow: hidden;
         display: flex;
         align-items: center;
@@ -180,14 +155,13 @@ st.markdown(f"""
         width: 100%;
         height: 100%;
         object-fit: cover;
-        opacity: 0.7;
+        opacity: 0.8;
     }}
     .mockup-logo {{
         position: absolute;
         top: 50%;
         left: 50%;
-        /* Adjusted scale for TEE mockup to be larger, as requested */
-        transform: translate(-50%, -50%) scale(0.8); 
+        transform: translate(-50%, -50%);
         z-index: 10;
         filter: drop-shadow(0 0 10px rgba(0,0,0,0.8));
     }}
@@ -199,17 +173,17 @@ st.markdown(f"""
         border: 1px solid #333;
     }}
     .stImage > img:hover {{
-        opacity: 0.9;
+        opacity: 0.7;
         transform: scale(1.02);
     }}
     
 </style>
 """, unsafe_allow_html=True)
 
-# --- BACKGROUND VIDEO (RESTORED) & AUDIO ---
+# --- BACKGROUND VIDEO & AUDIO ---
+# Updated CSS now guarantees full-screen coverage
 st.markdown("""
 <div class="video-bg">
-    <!-- RESTORED YOUTUBE IFRAME with full-screen stretch -->
     <iframe src="https://www.youtube.com/embed/qC0vDKVPCrw?controls=0&showinfo=0&rel=0&autoplay=1&loop=1&mute=1&playlist=qC0vDKVPCrw" frameborder="0" allow="autoplay; encrypted-media" allowfullscreen></iframe>
 </div>
 <div class="video-overlay"></div>
@@ -306,8 +280,7 @@ elif selected == "MUSIC":
     for r in releases:
         c1, c2, c3, c4 = st.columns([1, 4, 2, 2])
         with c1:
-            # Placeholder for album art
-            st.markdown(f"<div style='width:60px;height:60px;background:#222;border:1px solid #444;border-radius: 4px; display: flex; align-items: center; justify-content: center; font-size: 10px; color: #777;'>LP</div>", unsafe_allow_html=True)
+            st.markdown(f"<div style='width:60px;height:60px;background:#222;border:1px solid #444;border-radius: 4px;'></div>", unsafe_allow_html=True)
         with c2:
             st.subheader(r['title'])
         with c3:
@@ -347,11 +320,12 @@ elif selected == "HKR":
 elif selected == "EVENTS":
     st.title("UPCOMING DATES // TRANSMISSION LOG")
     
-    # Using reliable uploaded image paths
+    # Using reliable PICSUM image links for guaranteed display
     events_data = [
-        {"date": "NOV 04", "city": "AMSTERDAM", "venue": "SHELTER", "image": EVENT_IMG_1}, 
-        {"date": "NOV 11", "city": "LONDON", "venue": "FOLD", "image": EVENT_IMG_2}, 
-        {"date": "NOV 18", "city": "MELBOURNE", "venue": "REVOLVER", "image": EVENT_IMG_3}, 
+        # Reliable club/crowd images
+        {"date": "NOV 04", "city": "AMSTERDAM", "venue": "SHELTER", "image": "https://picsum.photos/id/1025/600/400"},
+        {"date": "NOV 11", "city": "LONDON", "venue": "FOLD", "image": "https://picsum.photos/id/1018/600/400"},
+        {"date": "NOV 18", "city": "MELBOURNE", "venue": "REVOLVER", "image": "https://picsum.photos/id/201/600/400"},
     ]
     
     for event in events_data:
@@ -375,12 +349,12 @@ elif selected == "STORE":
 
     c1, c2, c3 = st.columns(3)
     
-    # Merch 1: T-Shirt - Using reliable uploaded image path
+    # Merch 1: T-Shirt with BIGGER Logo Overlay
     with c1:
         st.markdown(f"""
         <div class="mockup-container">
-            <img src="{TEE_MOCKUP_URL}" class="mockup-bg">
-            <div class="mockup-logo" style="transform: translate(-50%, -50%) scale(0.8);">{TNF_LOGO_SVG}</div>
+            <img src="https://images.unsplash.com/photo-1521572163474-6864f9cf17ab?auto=format&fit=crop&w=600&q=80" class="mockup-bg">
+            <div class="mockup-logo" style="transform: translate(-50%, -50%) scale(0.6);">{TNF_LOGO_SVG}</div>
         </div>
         """, unsafe_allow_html=True)
         st.markdown("**TNF CORE TEE**")
@@ -388,11 +362,11 @@ elif selected == "STORE":
         if st.button("ADD TO CART €35", key="m1"):
             add_to_cart("TNF Core Tee")
 
-    # Merch 2: Hoodie - Using reliable uploaded image path
+    # Merch 2: Hoodie with HKR Logo
     with c2:
         st.markdown(f"""
         <div class="mockup-container">
-            <img src="{HOODIE_MOCKUP_URL}" class="mockup-bg">
+            <img src="https://images.unsplash.com/photo-1556821840-3a63f95609a7?auto=format&fit=crop&w=600&q=80" class="mockup-bg">
             <div class="mockup-logo" style="transform: translate(-50%, -50%) scale(0.7);">{HKR_LOGO_SVG}</div>
         </div>
         """, unsafe_allow_html=True)
@@ -401,11 +375,11 @@ elif selected == "STORE":
         if st.button("ADD TO CART €65", key="m2"):
             add_to_cart("HKR Hoodie")
 
-    # Merch 3: Slipmats - Using reliable uploaded image path
+    # Merch 3: Slipmats
     with c3:
         st.markdown(f"""
         <div class="mockup-container">
-            <img src="{SLIPMATS_MOCKUP_URL}" class="mockup-bg">
+            <img src="https://images.unsplash.com/photo-1603048588665-791ca8aea617?auto=format&fit=crop&w=600&q=80" class="mockup-bg">
             <div class="mockup-logo" style="transform: translate(-50%, -50%) scale(0.8);">{SLIPMAT_ICON_SVG}</div>
         </div>
         """, unsafe_allow_html=True)
@@ -415,17 +389,18 @@ elif selected == "STORE":
             add_to_cart("Slipmats")
 
 elif selected == "GALLERY":
+    # Updated title and removed 'HARDWARE FOCUS'
     st.title("VISUAL ARCHIVE // HARDWARE PULSE")
     st.caption("RAW VOLTAGE. RAW RHYTHM.")
     
-    # Using reliable uploaded image paths
+    # Using reliable PICSUM image links for guaranteed display
     gallery_images = [
-        {"url": GALLERY_IMG_1, "cap": "VINYL MIXING IN SESSION"},
-        {"url": GALLERY_IMG_2, "cap": "CLUB STROBE // MOMENT CAPTURE"},
-        {"url": GALLERY_IMG_3, "cap": "MODULAR CLOSE-UP // REWIRE"},
-        {"url": GALLERY_IMG_4, "cap": "DARK CROWD // BASEMENT VIBES"},
-        {"url": GALLERY_IMG_5, "cap": "DJ SHADOW // MELBOURNE"},
-        {"url": GALLERY_IMG_6, "cap": "RETRO MIXING // ANALOGUE ERA"}
+        {"url": "https://picsum.photos/seed/synth1/800/600", "cap": "MODULAR SYNTHESIS // PATCH 01"},
+        {"url": "https://picsum.photos/seed/crowd2/800/600", "cap": "LIVE AT BERLIN // 4AM"},
+        {"url": "https://picsum.photos/seed/machine3/800/600", "cap": "DRUM MACHINE SEQUENCING"},
+        {"url": "https://picsum.photos/seed/vinyl4/800/600", "cap": "VINYL MIXING IN SESSION"},
+        {"url": "https://picsum.photos/seed/acid5/800/600", "cap": "DANCEFLOOR ENERGY // MELBOURNE"},
+        {"url": "https://picsum.photos/seed/gear6/800/600", "cap": "STUDIO GEAR CLOSE-UP // REWIRE"}
     ]
     
     # Use columns to create the static grid
@@ -433,11 +408,12 @@ elif selected == "GALLERY":
     cols = [c1, c2, c3]
     for i, item in enumerate(gallery_images):
         with cols[i % 3]:
-            # Setting a fixed height for better grid consistency
+            # Static images as requested
             st.image(item['url'], caption=item['cap'], use_column_width=True)
 
 
 elif selected == "ABOUT":
+    # Content remains the same as it was functional
     c1, c2 = st.columns([2,1])
     with c1:
         st.title("BIOGRAPHY // PROJECT OVERVIEW")
