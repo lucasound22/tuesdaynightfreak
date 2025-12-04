@@ -1,6 +1,5 @@
 import streamlit as st
 from streamlit_option_menu import option_menu
-import pandas as pd
 import time
 
 # --- CONFIGURATION & PALETTE ---
@@ -10,7 +9,7 @@ COLOR_ACCENT = "#FF0033"  # Acid Red
 COLOR_CYAN = "#00f7ff"    # Cyberpunk Splash
 COLOR_SECONDARY = "#141414"
 
-# --- BRANDING SVGs (CLEANED) ---
+# --- BRANDING SVGs (SCALABLE & CENTERED) ---
 # TNF Logo
 TNF_LOGO_SVG = f"""
 <svg width="100%" height="100%" viewBox="0 0 300 90" xmlns="http://www.w3.org/2000/svg" preserveAspectRatio="xMidYMid meet">
@@ -57,11 +56,19 @@ if 'cart' not in st.session_state:
     st.session_state.cart = []
 if 'page_index' not in st.session_state:
     st.session_state.page_index = 0
+# Using a dedicated key for the menu selection to prevent sync issues
+if 'menu_selection' not in st.session_state:
+    st.session_state.menu_selection = "HOME"
 
 # --- NAVIGATION CALLBACK ---
+# This function fixes the "double click" issue by updating the state directly
 def set_page(index):
     st.session_state.page_index = index
-    
+    # Map index to menu option string
+    options = ["HOME", "MUSIC", "HKR", "EVENTS", "STORE", "GALLERY", "ABOUT", "SYSTEM"]
+    if 0 <= index < len(options):
+        st.session_state.menu_selection = options[index]
+
 def add_to_cart(item):
     st.session_state.cart.append(item)
     st.toast(f"Added {item} to cart!", icon="🛒")
@@ -73,12 +80,7 @@ st.markdown(f"""
     
     .stApp {{ background-color: {COLOR_BG}; color: {COLOR_TEXT}; font-family: 'Inter', sans-serif; }}
     
-    /* NAVIGATION FONT OVERRIDE */
-    div[data-testid="stHorizontalBlock"] button {{
-        font-family: 'Inter', sans-serif !important;
-    }}
-    
-    /* REMOVE WHITE GAPS */
+    /* REMOVE WHITE GAPS around content */
     .block-container {{
         padding-top: 0rem !important;
         padding-bottom: 5rem !important;
@@ -86,16 +88,22 @@ st.markdown(f"""
         padding-left: 0 !important;
         padding-right: 0 !important;
     }}
+    /* Add padding back to the main content area only */
     div[data-testid="stVerticalBlock"] > div:first-of-type {{
+        padding-top: 1rem;
         padding-left: 2rem;
         padding-right: 2rem;
-        padding-top: 1rem;
+    }}
+    
+    /* Navigation Menu Font Override */
+    div[data-testid="stHorizontalBlock"] button {{
+        font-family: 'Inter', sans-serif !important;
     }}
     
     h1, h2, h3 {{ font-weight: 900; text-transform: uppercase; letter-spacing: -1px; }}
     h4, h5 {{ font-family: 'Space Mono', monospace; color: {COLOR_CYAN}; text-transform: uppercase; letter-spacing: 1px; }}
     
-    /* BUTTONS */
+    /* Buttons */
     .stButton>button {{
         background: {COLOR_CYAN}; 
         color: #000; 
@@ -107,13 +115,13 @@ st.markdown(f"""
         transition: 0.3s;
         width: 100%;
     }}
-    .stButton>button:hover {{
+    .stButton>button:hover, .stLinkButton>a:hover {{
         background: {COLOR_ACCENT};
         color: #fff;
         box-shadow: 0 0 15px {COLOR_ACCENT};
     }}
-    
-    /* VIDEO BACKGROUND */
+
+    /* Video Background - Full Screen & Behind Everything */
     .video-bg {{
         position: fixed;
         top: 0;
@@ -132,7 +140,7 @@ st.markdown(f"""
         top: 50%;
         left: 50%;
         transform: translate(-50%, -50%);
-        opacity: 0.4; 
+        opacity: 0.4; /* Darker opacity for readability */
     }}
     .video-overlay {{
         position: fixed;
@@ -140,11 +148,11 @@ st.markdown(f"""
         left: 0;
         width: 100vw;
         height: 100vh;
-        background: rgba(0,0,0,0.85);
+        background: rgba(0,0,0,0.85); /* Heavy overlay */
         z-index: -1;
     }}
     
-    /* STORE MOCKUPS - CSS LAYERING */
+    /* Mockup Container */
     .mockup-container {{
         position: relative;
         width: 100%;
@@ -160,19 +168,20 @@ st.markdown(f"""
         width: 100%;
         height: 100%;
         object-fit: cover;
-        opacity: 0.6;
+        opacity: 0.8;
     }}
     .mockup-logo {{
         position: absolute;
-        top: 40%;
-        left: 50%;
+        top: 50%; /* Perfectly centered vertically */
+        left: 50%; /* Perfectly centered horizontally */
         transform: translate(-50%, -50%);
         z-index: 10;
-        width: 180px; /* Bigger logo */
         filter: drop-shadow(0 0 10px rgba(0,0,0,0.8));
+        width: 120px; /* Adjusted size for better fit */
+        height: auto;
     }}
 
-    /* CARDS */
+    /* Cards */
     .content-card {{
         background-color: {COLOR_SECONDARY};
         padding: 25px;
@@ -180,17 +189,12 @@ st.markdown(f"""
         margin-bottom: 20px;
         border: 1px solid #222;
     }}
-    .news-item {{
-        padding: 15px 0;
-        border-bottom: 1px solid #333;
-        color: #ADD8E6;
-        font-family: 'Space Mono', monospace;
-        font-size: 0.9rem;
-    }}
+    
 </style>
 """, unsafe_allow_html=True)
 
-# --- BACKGROUND VIDEO (Geometric/Abstract Loop) ---
+# --- BACKGROUND VIDEO & AUDIO ---
+# Using a reliable abstract geometric loop
 st.markdown("""
 <div class="video-bg">
     <iframe src="https://www.youtube.com/embed/49bK4n449K4?controls=0&showinfo=0&rel=0&autoplay=1&loop=1&mute=1&playlist=49bK4n449K4" frameborder="0" allow="autoplay; encrypted-media" allowfullscreen></iframe>
@@ -198,7 +202,7 @@ st.markdown("""
 <div class="video-overlay"></div>
 """, unsafe_allow_html=True)
 
-# --- AUDIO (Non-Blocking Auto-Start) ---
+# Audio Autostart
 st.components.v1.html("""
 <script src="https://cdnjs.cloudflare.com/ajax/libs/tone/14.8.49/Tone.min.js"></script>
 <script>
@@ -209,31 +213,41 @@ st.components.v1.html("""
             const loop = new Tone.Loop(time => {
                 synth.triggerAttackRelease("C1", "8n", time);
             }, "4n").start(0);
-            Tone.Transport.bpm.value = 124;
+            Tone.Transport.bpm.value = 125;
             Tone.Transport.start();
         }
     });
 </script>
 """, height=0)
 
+
 # --- NAVIGATION ---
 menu_options = ["HOME", "MUSIC", "HKR", "EVENTS", "STORE", "GALLERY", "ABOUT", "SYSTEM"]
+
+# Explicitly set styles to remove padding
+menu_styles = {
+    "container": {"padding": "0", "background-color": COLOR_BG, "border-bottom": "1px solid #333"},
+    "nav-link": {"font-size": "14px", "text-transform": "uppercase", "font-weight": "bold", "color": "#fff", "margin":"0px"},
+    "nav-link-selected": {"background-color": "transparent", "color": COLOR_CYAN, "border-bottom": f"2px solid {COLOR_CYAN}"}
+}
+
+# Ensure session state matches selection if updated elsewhere
+default_index = st.session_state.page_index
+
 selected = option_menu(
     menu_title=None,
     options=menu_options,
     icons=["house", "disc", "vinyl", "calendar3", "bag", "images", "info-circle", "cpu"],
-    default_index=st.session_state.page_index,
+    default_index=default_index,
     orientation="horizontal",
-    styles={
-        "container": {"padding": "0", "background-color": "rgba(0,0,0,0.9)", "border-bottom": f"1px solid {COLOR_ACCENT}"},
-        "nav-link": {"font-size": "16px", "text-transform": "uppercase", "font-weight": "bold", "color": "#fff", "margin":"0px"},
-        "nav-link-selected": {"background-color": "transparent", "color": COLOR_CYAN, "border-bottom": f"3px solid {COLOR_CYAN}"}
-    }
+    styles=menu_styles,
+    key="main_menu" # Key is important for state stability
 )
 
-# Sync session state
-if menu_options.index(selected) != st.session_state.page_index:
-    st.session_state.page_index = menu_options.index(selected)
+# Update state based on menu selection
+if selected != menu_options[st.session_state.page_index]:
+   st.session_state.page_index = menu_options.index(selected)
+   st.rerun()
 
 # --- CONTENT ---
 
@@ -241,16 +255,15 @@ if selected == "HOME":
     st.markdown("<br>", unsafe_allow_html=True)
     col1, col2 = st.columns([2, 1])
     with col1:
-        # Render SVG as HTML to avoid code leakage
-        st.markdown(f"<div>{TNF_LOGO_SVG}</div>", unsafe_allow_html=True)
-        st.markdown(f"<h2 style='color:white; margin-top:-20px;'>TUESDAY NIGHT FREAK</h2>", unsafe_allow_html=True)
-        st.markdown("### ARCHITECTS OF THE ANALOGUE SIGNAL")
+        # Smaller logo on Home Page
+        st.markdown(f"<div style='width: 200px;'>{TNF_LOGO_SVG}</div>", unsafe_allow_html=True)
+        st.markdown("<h2 style='color:white; margin-top:-10px;'>TUESDAY NIGHT FREAK</h2>", unsafe_allow_html=True)
+        st.markdown("### DEFINING THE FUTURE OF ANALOGUE HOUSE")
         st.markdown("""
         <div style="font-size: 1.1rem; line-height: 1.6; color: #ddd;">
-        Tuesdaynightfreak is a sonic movement dedicated to the preservation of hardware-based performance. 
+        Established in the underground, Tuesdaynightfreak is a global electronic music project dedicated to the preservation and evolution of hardware-based performance. 
         <br><br>
-        We exist at the intersection of machine precision and human improvisation. 
-        We reject the digital perfection of modern EDM in favor of the analogue error.
+        We exist at the intersection of machine precision and human improvisation. No laptops, no sync buttons—just raw voltage and rhythm. 
         </div>
         """, unsafe_allow_html=True)
         
@@ -264,17 +277,13 @@ if selected == "HOME":
     with col2:
         st.markdown("### LATEST NEWS")
         st.markdown("""
-        <div class="news-item">
+        <div style="padding: 15px 0; border-bottom: 1px solid #333; color: #ADD8E6;">
             <strong>NEW EP 'VOLTAGE CONTROL'</strong><br>
             Available now on all streaming platforms and limited 12" vinyl.
         </div>
-        <div class="news-item">
+        <div style="padding: 15px 0; border-bottom: 1px solid #333; color: #ADD8E6;">
             <strong>EUROPEAN TOUR CONFIRMED</strong><br>
             Winter 2025 dates announced for London, Berlin, and Amsterdam.
-        </div>
-        <div class="news-item">
-            <strong>HKR LABEL NIGHT</strong><br>
-            Join us at Panorama Bar for the official label showcase.
         </div>
         """, unsafe_allow_html=True)
         
@@ -283,19 +292,20 @@ if selected == "HOME":
         with st.form("home_signup"):
             email = st.text_input("EMAIL ADDRESS")
             if st.form_submit_button("SIGN UP"):
-                 st.toast("Welcome to the circuit.", icon="🔌")
+                 st.markdown(f'<meta http-equiv="refresh" content="0;url=mailto:tuesdaynightfreak@gmail.com?subject=Newsletter%20Signup&body=Sign%20me%20up!%20Email:%20{email}">', unsafe_allow_html=True)
 
 elif selected == "MUSIC":
     st.title("DISCOGRAPHY")
     
-    songs = [
+    # Mock Data
+    songs_data = [
         {"title": "System Failure", "label": "House Keeping Rec", "cat": "HKR004", "cover": "https://placehold.co/400x400/111/FFF?text=HKR004"},
         {"title": "Analog Dreams", "label": "Tresor Records", "cat": "TR-291", "cover": "https://placehold.co/400x400/000/00f7ff?text=TR-291"},
         {"title": "Voltage Control", "label": "Ostgut Ton", "cat": "OSTGUT-55", "cover": "https://placehold.co/400x400/222/FF0033?text=OSTGUT"},
-        {"title": "Modular State", "label": "Klockworks", "cat": "KW-22", "cover": "https://placehold.co/400x400/000/FFF?text=KW"}
+        {"title": "Modular State", "label": "Klockworks", "cat": "KW-22", "cover": "https://placehold.co/400x400/000/FFF?text=KW-22"}
     ]
     
-    for track in songs:
+    for track in songs_data:
         c1, c2, c3 = st.columns([1, 3, 1])
         with c1:
             st.image(track['cover'], width=150)
@@ -310,26 +320,28 @@ elif selected == "MUSIC":
 elif selected == "HKR":
     c1, c2 = st.columns([1, 3])
     with c1:
-        st.markdown(HKR_LOGO_SVG, unsafe_allow_html=True)
+        # Smaller logo for HKR page
+        st.markdown(f"<div style='width: 150px;'>{HKR_LOGO_SVG}</div>", unsafe_allow_html=True)
     with c2:
         st.title("HOUSE KEEPING RECORDS")
         st.markdown("#### EST. 2023 // DEEP HOUSE & TECHNO // VINYL ONLY")
-        st.write("House Keeping Records is a sanctuary for authentic deep house and raw techno. Dedicated to the craft of vinyl and the culture of the underground.")
+        st.write("House Keeping Records is a sanctuary for authentic deep house and raw techno. We are dedicated to the craft of vinyl and the culture of the underground. Quality over quantity, always.")
     
     st.divider()
     st.subheader("CATALOGUE")
     
     hkr_releases = [
-        {"cat": "HKR005", "artist": "VARIOUS", "title": "RHYTHM GENERATOR EP"},
-        {"cat": "HKR004", "artist": "TUESDAYNIGHTFREAK", "title": "MODULAR LOOP 01"},
-        {"cat": "HKR003", "artist": "ACID JUNKIE", "title": "GRID SEQUENCER"}
+        {"cat": "HKR005", "artist": "VARIOUS", "title": "RHYTHM GENERATOR EP", "cover": "https://placehold.co/400x400/000/FFF?text=HKR005"},
+        {"cat": "HKR004", "artist": "TUESDAYNIGHTFREAK", "title": "MODULAR LOOP 01", "cover": "https://placehold.co/400x400/111/00f7ff?text=HKR004"},
+        {"cat": "HKR003", "artist": "ACID JUNKIE", "title": "GRID SEQUENCER", "cover": "https://placehold.co/400x400/222/FF0033?text=HKR003"}
     ]
     
     for item in hkr_releases:
         c1, c2, c3 = st.columns([1, 3, 1])
         with c1:
-            st.markdown(f"**{item['cat']}**")
+            st.image(item['cover'], width=120)
         with c2:
+            st.markdown(f"**{item['cat']}**")
             st.markdown(f"**{item['artist']}** — {item['title']}")
         with c3:
             st.button("PURCHASE VINYL", key=item['cat'])
@@ -352,6 +364,7 @@ elif selected == "EVENTS":
             st.markdown(f"### {event['date']}")
             st.markdown(f"**{event['city']}** // {event['venue']}")
         with c3:
+            # Use st.link_button for reliable navigation or mock action
             st.button("TICKETS", key=event['city'])
         st.divider()
 
@@ -365,12 +378,12 @@ elif selected == "STORE":
 
     c1, c2, c3 = st.columns(3)
     
-    # Merch 1: T-Shirt
+    # Merch 1: T-Shirt (Better Centering)
     with c1:
         st.markdown(f"""
         <div class="mockup-container">
             <img src="https://images.unsplash.com/photo-1521572163474-6864f9cf17ab?auto=format&fit=crop&w=600&q=80" class="mockup-bg">
-            <div class="mockup-logo" style="transform: translate(-50%, -50%) scale(0.3);">{TNF_LOGO_SVG}</div>
+            <div class="mockup-logo" style="transform: translate(-50%, -50%) scale(0.4); top: 40%;">{TNF_LOGO_SVG}</div>
         </div>
         """, unsafe_allow_html=True)
         st.markdown("**TNF CORE TEE**")
@@ -378,12 +391,12 @@ elif selected == "STORE":
         if st.button("ADD TO CART €35", key="m1"):
             add_to_cart("TNF Core Tee")
 
-    # Merch 2: Hoodie
+    # Merch 2: Hoodie (Better Centering)
     with c2:
         st.markdown(f"""
         <div class="mockup-container">
             <img src="https://images.unsplash.com/photo-1556821840-3a63f95609a7?auto=format&fit=crop&w=600&q=80" class="mockup-bg">
-            <div class="mockup-logo" style="transform: translate(-50%, -50%) scale(0.5);">{HKR_LOGO_SVG}</div>
+            <div class="mockup-logo" style="transform: translate(-50%, -50%) scale(0.6); top: 40%;">{HKR_LOGO_SVG}</div>
         </div>
         """, unsafe_allow_html=True)
         st.markdown("**HKR LABEL HOODIE**")
@@ -391,12 +404,12 @@ elif selected == "STORE":
         if st.button("ADD TO CART €65", key="m2"):
             add_to_cart("HKR Hoodie")
 
-    # Merch 3: Slipmats
+    # Merch 3: Slipmats (Better Centering)
     with c3:
         st.markdown(f"""
         <div class="mockup-container">
             <img src="https://images.unsplash.com/photo-1603048588665-791ca8aea617?auto=format&fit=crop&w=600&q=80" class="mockup-bg">
-            <div class="mockup-logo" style="transform: translate(-50%, -50%) scale(0.6);">{SLIPMAT_ICON_SVG}</div>
+            <div class="mockup-logo" style="transform: translate(-50%, -50%) scale(0.8);">{SLIPMAT_ICON_SVG}</div>
         </div>
         """, unsafe_allow_html=True)
         st.markdown("**PRO SLIPMATS**")
@@ -408,12 +421,14 @@ elif selected == "GALLERY":
     st.title("VISUAL ARCHIVE")
     st.caption("CAPTURED LIVE AND IN STUDIO")
     
-    # Using VALID Unsplash URLs for techno/synth context (No guitars!)
+    # Replaced all internal image references with robust Unsplash URLs
     gallery_images = [
         {"url": "https://images.unsplash.com/photo-1598275529124-b1c4b786f1e2?q=80&w=800&auto=format&fit=crop", "cap": "EURORACK PATCHING"},
         {"url": "https://images.unsplash.com/photo-1571266028243-371695063ad6?q=80&w=800&auto=format&fit=crop", "cap": "WAREHOUSE CROWD"},
         {"url": "https://images.unsplash.com/photo-1550291652-6ea9114a47b1?q=80&w=800&auto=format&fit=crop", "cap": "LIVE RIG"},
         {"url": "https://images.unsplash.com/photo-1619967657960-983b6329c370?q=80&w=800&auto=format&fit=crop", "cap": "SEQUENCER DETAIL"},
+        {"url": "https://images.unsplash.com/photo-1514525253440-b393452e8d26?q=80&w=800&auto=format&fit=crop", "cap": "CLUB ATMOSPHERE"},
+        {"url": "https://images.unsplash.com/photo-1563841930606-67e26ce48428?q=80&w=800&auto=format&fit=crop", "cap": "VINYL SELECTION"}
     ]
     
     c1, c2 = st.columns(2)
