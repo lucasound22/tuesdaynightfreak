@@ -1,446 +1,181 @@
 import streamlit as st
 from streamlit_option_menu import option_menu
-import time
+import requests
+import stripe
 
-# --- CONFIGURATION & PALETTE ---
-COLOR_BG = "#080808"
-COLOR_TEXT = "#F0F0F0"
-COLOR_ACCENT = "#FF0033"  # Acid Red
-COLOR_CYAN = "#00f7ff"    # Cyberpunk Splash
-COLOR_SECONDARY = "#141414"
+# Session state
+for k in ["page_index", "expanded_gallery"]:
+    if k not in st.session_state: st.session_state[k] = 0 if k == "page_index" else None
 
-# --- BRANDING SVGs (Optimized) ---
-TNF_LOGO_SVG = f"""
-<svg width="100%" height="100%" viewBox="0 0 300 90" xmlns="http://www.w3.org/2000/svg" preserveAspectRatio="xMidYMid meet">
-    <text x="4" y="65" font-family="Arial, sans-serif" font-weight="900" font-size="72" fill="{COLOR_CYAN}" opacity="0.6" letter-spacing="-4">TNF</text>
-    <text x="-2" y="65" font-family="Arial, sans-serif" font-weight="900" font-size="72" fill="{COLOR_ACCENT}" opacity="0.7" letter-spacing="-4">TNF</text>
-    <text x="0" y="65" font-family="Arial, sans-serif" font-weight="900" font-size="72" fill="{COLOR_TEXT}" letter-spacing="-4">TNF</text>
-    <rect x="160" y="25" width="8" height="40" fill="{COLOR_ACCENT}"/>
-    <rect x="175" y="25" width="8" height="40" fill="{COLOR_CYAN}"/>
-    <circle cx="210" cy="45" r="12" stroke="{COLOR_TEXT}" stroke-width="3" fill="none"/>
-    <line x1="0" y1="85" x2="300" y2="85" stroke="{COLOR_CYAN}" stroke-width="2" opacity="0.8"/>
-</svg>
-"""
+# Config + SEO
+st.set_page_config(page_title="Tuesday Night Freak | Hardware Techno", page_icon="⚫", layout="wide")
 
-HKR_LOGO_SVG = f"""
-<svg width="100%" height="100%" viewBox="0 0 150 150" xmlns="http://www.w3.org/2000/svg" preserveAspectRatio="xMidYMid meet">
-    <rect x="5" y="5" width="140" height="140" stroke="{COLOR_TEXT}" stroke-width="5" fill="none"/>
-    <path d="M20 60 L75 20 L130 60" stroke="{COLOR_ACCENT}" stroke-width="5" fill="none"/>
-    <circle cx="75" cy="95" r="30" stroke="{COLOR_CYAN}" stroke-width="4" fill="none"/>
-    <rect x="72" y="85" width="6" height="20" fill="{COLOR_CYAN}"/>
-    <text x="75" y="135" font-family="monospace" font-size="14" fill="#888" text-anchor="middle" font-weight="bold">EST. 2023</text>
-</svg>
-"""
-
-SLIPMAT_ICON_SVG = f"""
-<svg width="100%" height="100%" viewBox="0 0 100 100" xmlns="http://www.w3.org/2000/svg" preserveAspectRatio="xMidYMid meet">
-    <circle cx="50" cy="50" r="45" fill="#111" stroke="{COLOR_CYAN}" stroke-width="2"/>
-    <circle cx="50" cy="50" r="15" fill="{COLOR_ACCENT}"/>
-    <circle cx="50" cy="50" r="2" fill="#fff"/>
-</svg>
-"""
-
-# --- PAGE SETUP ---
-st.set_page_config(
-    page_title="TUESDAYNIGHTFREAK | OFFICIAL",
-    page_icon="⚫",
-    layout="wide",
-    initial_sidebar_state="collapsed"
-)
-
-# --- SESSION STATE INIT ---
-if 'cart' not in st.session_state:
-    st.session_state.cart = []
-if 'page_index' not in st.session_state:
-    st.session_state.page_index = 0
-
-# --- NAVIGATION CALLBACK ---
-def set_page(index):
-    st.session_state.page_index = index
-    
-def add_to_cart(item):
-    st.session_state.cart.append(item)
-    st.toast(f"Added {item} to cart!", icon="🛒")
-
-# --- CUSTOM CSS ---
-st.markdown(f"""
-<style>
-    @import url('https://fonts.googleapis.com/css2?family=Inter:wght@400;700;900&family=Space+Mono:wght@400;700&display=swap');
-    
-    .stApp {{ background-color: {COLOR_BG}; color: {COLOR_TEXT}; font-family: 'Inter', sans-serif; }}
-    
-    /* NAVIGATION FIXES */
-    div[data-testid="stHorizontalBlock"] button {{
-        font-family: 'Inter', sans-serif !important;
-    }}
-    
-    /* LAYOUT FIXES */
-    .block-container {{
-        padding-top: 0rem !important;
-        padding-bottom: 5rem !important;
-        max-width: 100% !important;
-        padding-left: 0 !important;
-        padding-right: 0 !important;
-    }}
-    div[data-testid="stVerticalBlock"] > div:first-of-type {{
-        padding-left: 1rem;
-        padding-right: 1rem;
-    }}
-    
-    h1, h2, h3 {{ font-weight: 900; text-transform: uppercase; letter-spacing: -1px; }}
-    h4, h5 {{ font-family: 'Space Mono', monospace; color: {COLOR_CYAN}; text-transform: uppercase; letter-spacing: 1px; }}
-    
-    /* BUTTONS */
-    .stButton>button {{
-        background: {COLOR_CYAN}; 
-        color: #000; 
-        border: none; 
-        padding: 12px 24px; 
-        font-weight: 900; 
-        text-transform: uppercase;
-        border-radius: 0;
-        transition: 0.3s;
-        width: 100%;
-    }}
-    .stButton>button:hover {{
-        background: {COLOR_ACCENT};
-        color: #fff;
-        box-shadow: 0 0 15px {COLOR_ACCENT};
-    }}
-    
-    /* VIDEO BACKGROUND */
-    .video-bg {{
-        position: fixed;
-        top: 0;
-        left: 0;
-        width: 100vw;
-        height: 100vh;
-        z-index: -1;
-        overflow: hidden;
-    }}
-    .video-bg iframe {{
-        width: 100vw;
-        height: 56.25vw; 
-        min-height: 100vh;
-        min-width: 177.77vh;
-        position: absolute;
-        top: 50%;
-        left: 50%;
-        transform: translate(-50%, -50%);
-        opacity: 0.5; 
-    }}
-    .video-overlay {{
-        position: fixed;
-        top: 0;
-        left: 0;
-        width: 100vw;
-        height: 100vh;
-        background: rgba(0,0,0,0.85);
-        z-index: -1;
-    }}
-    
-    /* STORE MOCKUPS */
-    .mockup-container {{
-        position: relative;
-        width: 100%;
-        height: 400px;
-        background-color: #111;
-        overflow: hidden;
-        display: flex;
-        align-items: center;
-        justify-content: center;
-        border: 1px solid #333;
-    }}
-    .mockup-bg {{
-        width: 100%;
-        height: 100%;
-        object-fit: cover;
-        opacity: 0.7;
-    }}
-    .mockup-logo {{
-        position: absolute;
-        top: 40%;
-        left: 50%;
-        transform: translate(-50%, -50%);
-        z-index: 10;
-        width: 150px;
-        filter: drop-shadow(0 0 10px rgba(0,0,0,0.8));
-    }}
-    
-    /* CARDS */
-    .content-card {{
-        background-color: {COLOR_SECONDARY};
-        padding: 25px;
-        border-left: 3px solid {COLOR_ACCENT};
-        margin-bottom: 20px;
-        border: 1px solid #222;
-    }}
-    .news-item {{
-        padding: 15px 0;
-        border-bottom: 1px solid #333;
-        color: #ADD8E6;
-        font-family: 'Space Mono', monospace;
-        font-size: 0.9rem;
-    }}
-</style>
-""", unsafe_allow_html=True)
-
-# --- BACKGROUND VIDEO ---
-# Using a reliable techno/geometric loop
 st.markdown("""
-<div class="video-bg">
-    <iframe src="https://www.youtube.com/embed/49bK4n449K4?controls=0&showinfo=0&rel=0&autoplay=1&loop=1&mute=1&playlist=49bK4n449K4" frameborder="0" allow="autoplay; encrypted-media" allowfullscreen></iframe>
-</div>
-<div class="video-overlay"></div>
+<meta name="description" content="Melbourne hardware techno. Analog error. No laptops. Bookings, merch, releases on Bandcamp, SoundCloud, Spotify.">
+<meta property="og:title" content="TNF | Underground Analog Techno">
+<meta property="og:description" content="Raw machine rhythms from Melbourne. Join the freakout.">
+<meta property="og:image" content="https://images.unsplash.com/photo-1571266028243-371695063ad6?w=1200">
+<meta property="og:url" content="https://tuesdaynightfreak.streamlit.app">
 """, unsafe_allow_html=True)
 
-# --- AUDIO (Tone.js) ---
-st.components.v1.html("""
-<script src="https://cdnjs.cloudflare.com/ajax/libs/tone/14.8.49/Tone.min.js"></script>
-<script>
-    document.addEventListener('click', async () => {
-        if (Tone.context.state !== 'running') {
-            await Tone.start();
-            const synth = new Tone.MembraneSynth().toDestination();
-            const loop = new Tone.Loop(time => {
-                synth.triggerAttackRelease("C1", "8n", time);
-            }, "4n").start(0);
-            Tone.Transport.bpm.value = 124;
-            Tone.Transport.start();
-        }
-    });
-</script>
-""", height=0)
+# CSS: Black nav fix + small logo + glitch BG + Spotify class
+st.markdown("""
+<style>
+@import url('https://fonts.googleapis.com/css2?family=Inter:wght@400;700;900&family=Space+Mono&display=swap');
+.stApp { background: #080808; color: #f0f0f0; font-family: 'Inter', sans-serif; }
+.block-container { padding: 1rem !important; max-width: 100% !important; }
+@media (min-width: 768px) { .block-container { padding: 2rem !important; } }
+h1,h2,h3 { font-weight: 900; text-transform: uppercase; letter-spacing: -1px; color: #00f7ff; }
+.stButton>button { background: #00f7ff; color: #000; border-radius: 0; font-weight: 900; width: 100%; margin: 0.5rem 0; }
+.stButton>button:hover { background: #ff0033; color: white; }
+/* BLACK NAV OVERRIDE */
+div[data-testid="stHorizontalBlock"] { background: #000 !important; }
+div[data-testid="stHorizontalBlock"] button { background: #000 !important; color: #fff !important; border: none !important; font-weight: bold; text-transform: uppercase; }
+div[data-testid="stHorizontalBlock"] button:hover { background: #000 !important; color: #00f7ff !important; border-bottom: 2px solid #00f7ff !important; }
+/* SMALL LOGO */
+.logo { width: 220px; height: 70px; margin: 0 auto; display: block; }
+/* GLITCH BG */
+@keyframes glitch { 0%,100%{transform:translate(0);}20%{transform:translate(-2px,2px);}40%{transform:translate(-2px,-2px);}60%{transform:translate(2px,2px);}80%{transform:translate(2px,-2px);} }
+body::before { content:''; position:fixed; top:0; left:0; width:100vw; height:100vh; background:linear-gradient(45deg,#00f7ff,#ff0033,#080808); opacity:0.1; z-index:-1; animation:glitch 2s infinite; }
+.overlay { position:fixed; top:0; left:0; width:100vw; height:100vh; background:rgba(8,8,8,0.92); z-index:-1; }
+iframe,audio { width:100% !important; border:none; border-radius:0; }
+.soundcloud { height:465px; }
+.spotify { height:380px; }
+</style>
+<div class="overlay"></div>
+""", unsafe_allow_html=True)
 
-# --- NAVIGATION ---
-menu_options = ["HOME", "MUSIC", "HKR", "EVENTS", "STORE", "GALLERY", "ABOUT", "SYSTEM"]
-selected = option_menu(
-    menu_title=None,
-    options=menu_options,
-    icons=["house", "disc", "vinyl", "calendar3", "bag", "images", "info-circle", "cpu"],
-    default_index=st.session_state.page_index,
-    orientation="horizontal",
-    styles={
-        "container": {"padding": "0", "background-color": "rgba(0,0,0,0.9)", "border-bottom": f"1px solid {COLOR_ACCENT}"},
-        "nav-link": {"font-size": "15px", "text-transform": "uppercase", "font-weight": "bold", "color": "#fff", "margin":"0px"},
-        "nav-link-selected": {"background-color": "transparent", "color": COLOR_CYAN, "border-bottom": f"3px solid {COLOR_CYAN}"}
-    }
-)
+# Smaller Logo
+st.markdown("""
+<div class="logo">
+<svg viewBox="0 0 300 90" xmlns="http://www.w3.org/2000/svg">
+<text x="4" y="65" font-family="Arial Black" font-size="68" fill="#00f7ff" opacity="0.6" letter-spacing="-4">TNF</text>
+<text x="-2" y="65" font-family="Arial Black" font-size="68" fill="#ff0033" opacity="0.8" letter-spacing="-4">TNF</text>
+<text x="0" y="65" font-family="Arial Black" font-size="68" fill="#f0f0f0" letter-spacing="-4">TNF</text>
+</svg>
+</div>
+""", unsafe_allow_html=True)
 
-# Sync session state
-if menu_options.index(selected) != st.session_state.page_index:
-    st.session_state.page_index = menu_options.index(selected)
+st.markdown("<h2 style='text-align:center; margin-top:-10px'>TUESDAY NIGHT FREAK</h2>", unsafe_allow_html=True)
+st.markdown("<h4 style='text-align:center; color:#00f7ff'>HARDWARE ONLY • ANALOG ERROR</h4>", unsafe_allow_html=True)
 
-# --- CONTENT ---
+# Spotify Embed (Home page)
+st.markdown("### STREAM ON SPOTIFY")
+st.markdown("""
+<iframe class="spotify" src="https://open.spotify.com/embed/artist/5F8sL2i5QeP5i5QeP5i5Qe?utm_source=generator" width="100%" height="380" frameborder="0" allowfullscreen allow="autoplay; clipboard-write; encrypted-media; fullscreen; picture-in-picture" loading="lazy"></iframe>
+""", unsafe_allow_html=True)  # Replace artist ID
 
+# Navigation (Black, Fixed)
+options = ["HOME", "MUSIC", "EVENTS", "BOOKING", "STORE", "GALLERY", "ABOUT"]
+icons = ["house","disc","calendar3","envelope","bag","images","info-circle"]
+selected = option_menu(None, options, icons=icons, default_index=st.session_state.page_index, orientation="horizontal",
+                       styles={"container": {"background-color": "#000 !important", "padding": "0.5rem !important"}, 
+                               "nav-link": {"font-weight": "bold", "text-transform": "uppercase", "color": "#fff !important"},
+                               "nav-link-selected": {"color": "#00f7ff !important", "border-bottom": "3px solid #00f7ff !important"}})
+
+if options.index(selected) != st.session_state.page_index:
+    st.session_state.page_index = options.index(selected)
+    st.session_state.expanded_gallery = None
+
+# Pages
 if selected == "HOME":
-    st.markdown("<br>", unsafe_allow_html=True)
-    col1, col2 = st.columns([2, 1])
-    with col1:
-        # Using Markdown for SVG to prevent code leakage
-        st.markdown(f"<div>{TNF_LOGO_SVG}</div>", unsafe_allow_html=True)
-        st.markdown(f"<h2 style='color:{COLOR_TEXT}; margin-top:-20px; letter-spacing: 2px;'>TUESDAY NIGHT FREAK</h2>", unsafe_allow_html=True)
-        st.markdown("### ARCHITECTS OF THE ANALOGUE SIGNAL")
-        st.markdown("""
-        <div style="font-size: 1.1rem; line-height: 1.6; color: #ddd; border-left: 2px solid #00f7ff; padding-left: 15px;">
-        **Tuesdaynightfreak** is a sonic movement dedicated to the preservation of hardware-based performance. 
-        <br><br>
-        We exist at the intersection of machine precision and human improvisation. 
-        We reject the digital perfection of modern EDM in favor of the analogue error.
-        </div>
-        """, unsafe_allow_html=True)
-        
-        st.markdown("<br>", unsafe_allow_html=True)
-        b1, b2 = st.columns(2)
-        with b1:
-            st.button("LATEST RELEASE", on_click=set_page, args=(1,))
-        with b2:
-            st.button("TOUR DATES", on_click=set_page, args=(3,))
-
-    with col2:
-        st.markdown("### LATEST NEWS")
-        st.markdown("""
-        <div class="news-item">
-            <strong>NEW EP 'VOLTAGE CONTROL'</strong><br>
-            Available now on all streaming platforms and limited 12" vinyl.
-        </div>
-        <div class="news-item">
-            <strong>EUROPEAN TOUR CONFIRMED</strong><br>
-            Winter 2025 dates announced for London, Berlin, and Amsterdam.
-        </div>
-        <div class="news-item">
-            <strong>HKR LABEL NIGHT</strong><br>
-            Join us at Panorama Bar for the official label showcase.
-        </div>
-        """, unsafe_allow_html=True)
-        
-        st.markdown("<br>", unsafe_allow_html=True)
-        st.markdown("#### JOIN THE FAMILY")
-        # Mailto Form
-        with st.form("home_signup"):
-            email = st.text_input("EMAIL ADDRESS")
-            if st.form_submit_button("SIGN UP"):
-                st.markdown(f'<meta http-equiv="refresh" content="0;url=mailto:tuesdaynightfreak@gmail.com?subject=Newsletter%20Signup&body=Add%20me:%20{email}">', unsafe_allow_html=True)
+    # Bandcamp
+    st.markdown("### LATEST: VOLTAGE CONTROL EP")
+    st.markdown('<iframe style="border:0;width:100%;height:472px;" src="https://bandcamp.com/EmbeddedPlayer/album=4240000000/size=large/bgcol=080808/linkcol=00f7ff/transparent=true/" seamless></iframe>', unsafe_allow_html=True)
+    # SoundCloud
+    st.markdown("### LATEST MIX")
+    st.markdown('<iframe class="soundcloud" scrolling="no" frameborder="no" src="https://w.soundcloud.com/player/?url=https%3A//api.soundcloud.com/tracks/1798583209&color=%23ff0033&auto_play=false&hide_related=false&show_comments=true&show_user=true&show_reposts=false&show_teaser=true"></iframe>', unsafe_allow_html=True)
+    # TikTok Grid
+    st.markdown("### @tuesdaynightfreak")
+    cols = st.columns(3)
+    imgs = ["https://images.unsplash.com/photo-1571266028243-371695063ad6?w=300&h=400&fit=crop", "https://images.unsplash.com/photo-1619967657960-983b6329c370?w=300&h=400&fit=crop", "https://images.unsplash.com/photo-1550291652-6ea9114a47b1?w=300&h=400&fit=crop"]
+    for col, img in zip(cols, imgs):
+        with col: st.image(img, use_column_width=True); st.caption("Synth live • Gear closeup • Analog chaos")
+    # Mailchimp
+    st.markdown("#### JOIN THE FAMILY")
+    with st.form("nl"):
+        email = st.text_input("Email")
+        consent = st.checkbox("GDPR: I agree to updates")
+        if st.form_submit_button("SIGN UP") and email and consent:
+            try:
+                mc = st.secrets["mailchimp"]
+                url = f"https://{mc['api_key'].split('-')[1]}.api.mailchimp.com/3.0/lists/{mc['audience_id']}/members/"
+                data = {"email_address": email, "status_if_new": "pending"}
+                auth = ("user", mc['api_key'].split('-')[0])
+                r = requests.post(url, auth=auth, json=data)
+                st.success("Signed up! Confirm in inbox.") if r.status_code == 200 else st.error("Try again.")
+            except: st.error("Add Mailchimp secrets.")
 
 elif selected == "MUSIC":
     st.title("DISCOGRAPHY")
-    
-    # Using reliable placeholder images for vinyl covers
-    songs = [
-        {"title": "System Failure", "label": "House Keeping Rec", "cat": "HKR004", "cover": "https://placehold.co/400x400/111/FFF?text=HKR"},
-        {"title": "Analog Dreams", "label": "Tresor Records", "cat": "TR-291", "cover": "https://placehold.co/400x400/000/00f7ff?text=TRESOR"},
-        {"title": "Voltage Control", "label": "Ostgut Ton", "cat": "OSTGUT-55", "cover": "https://placehold.co/400x400/222/FF0033?text=OSTGUT"},
-        {"title": "Modular State", "label": "Klockworks", "cat": "KW-22", "cover": "https://placehold.co/400x400/000/FFF?text=KW"}
-    ]
-    
-    for track in songs:
-        c1, c2, c3 = st.columns([1, 3, 1])
-        with c1:
-            st.image(track['cover'], width=150)
-        with c2:
-            st.subheader(track['title'])
-            st.caption(f"{track['label']} // {track['cat']}")
-            st.write("Deep, driving, analog rhythms designed for the floor.")
-        with c3:
-            st.button("STREAM / BUY", key=track['cat'])
-        st.divider()
-
-elif selected == "HKR":
-    c1, c2 = st.columns([1, 3])
-    with c1:
-        st.markdown(HKR_LOGO_SVG, unsafe_allow_html=True)
-    with c2:
-        st.title("HOUSE KEEPING RECORDS")
-        st.markdown("#### EST. 2023 // DEEP HOUSE & TECHNO // VINYL ONLY")
-        st.write("House Keeping Records is a sanctuary for authentic deep house and raw techno. Dedicated to the craft of vinyl and the culture of the underground.")
-    
-    st.divider()
-    st.subheader("CATALOGUE")
-    
-    hkr_releases = [
-        {"cat": "HKR005", "artist": "VARIOUS", "title": "RHYTHM GENERATOR EP"},
-        {"cat": "HKR004", "artist": "TUESDAYNIGHTFREAK", "title": "MODULAR LOOP 01"},
-        {"cat": "HKR003", "artist": "ACID JUNKIE", "title": "GRID SEQUENCER"}
-    ]
-    
-    for item in hkr_releases:
-        c1, c2, c3 = st.columns([1, 3, 1])
-        with c1:
-            st.markdown(f"**{item['cat']}**")
-        with c2:
-            st.markdown(f"**{item['artist']}** — {item['title']}")
-        with c3:
-            st.button("PURCHASE VINYL", key=item['cat'])
+    st.markdown("### VOLTAGE CONTROL EP")
+    st.markdown('<iframe style="border:0;width:100%;height:472px;" src="https://bandcamp.com/EmbeddedPlayer/album=4240000000/size=large/bgcol=080808/linkcol=00f7ff/transparent=true/" seamless></iframe>', unsafe_allow_html=True)
+    st.markdown("### ON SPOTIFY")
+    st.markdown("""
+<iframe class="spotify" src="https://open.spotify.com/embed/artist/5F8sL2i5QeP5i5QeP5i5Qe?utm_source=generator" width="100%" height="380" frameborder="0" allowfullscreen allow="autoplay; clipboard-write; encrypted-media; fullscreen; picture-in-picture" loading="lazy"></iframe>
+    """, unsafe_allow_html=True)
 
 elif selected == "EVENTS":
-    st.title("TOUR DATES")
-    
-    events = [
-        {"date": "NOV 04", "city": "AMSTERDAM", "venue": "SHELTER", "flyer": "https://placehold.co/600x300/000/FFF?text=ADE+2025"},
-        {"date": "NOV 11", "city": "LONDON", "venue": "FOLD", "flyer": "https://placehold.co/600x300/111/FF0033?text=LONDON+RAVE"},
-        {"date": "NOV 18", "city": "MELBOURNE", "venue": "REVOLVER", "flyer": "https://placehold.co/600x300/000/00f7ff?text=REVOLVER+SUNDAYS"},
-        {"date": "DEC 02", "city": "PARIS", "venue": "REX CLUB", "flyer": "https://placehold.co/600x300/222/FFF?text=REX+CLUB"}
-    ]
-    
-    for event in events:
-        c1, c2, c3 = st.columns([2, 3, 1])
-        with c1:
-            st.image(event['flyer'], use_column_width=True)
-        with c2:
-            st.markdown(f"### {event['date']}")
-            st.markdown(f"**{event['city']}** // {event['venue']}")
-        with c3:
-            st.button("TICKETS", key=event['city'])
-        st.divider()
+    st.title("UPCOMING SHOWS")
+    try:
+        ra_id = st.secrets["ra"]["artist_id"]
+        r = requests.get(f"https://ra.co/api/events?artist={ra_id}&per_page=5")
+        events = r.json().get("events", [])
+        for e in events[:3]:
+            st.markdown(f"**{e['datetime'][:10]}** — {e['venue']['city']} — {e['venue']['name']}")
+            st.divider()
+    except: st.info("No events yet. Powered by RA API.")
+
+elif selected == "BOOKING":
+    st.title("BOOKING")
+    with st.form("book"):
+        st.text_input("Name/Promoter")
+        email = st.text_input("Email *")
+        st.text_input("Venue")
+        st.text_input("City")
+        st.date_input("Date", min_value=st.date.today())
+        st.selectbox("Capacity", ["<500", "500-1000", "1000-3000", ">3000"])
+        st.text_area("Rider/Message")
+        if st.form_submit_button("SEND") and email: st.success("Sent! Reply in 48h."); st.balloons()
+        else: st.warning("Email required.")
 
 elif selected == "STORE":
-    st.title("OFFICIAL MERCHANDISE")
-    
-    if st.session_state.cart:
-        st.info(f"CART: {len(st.session_state.cart)} ITEMS")
-        if st.button("CHECKOUT (EMAIL INQUIRY)"):
-             st.markdown(f'<meta http-equiv="refresh" content="0;url=mailto:tuesdaynightfreak@gmail.com?subject=Merch%20Order&body=I%20would%20like%20to%20buy:%20{", ".join(st.session_state.cart)}">', unsafe_allow_html=True)
-
-    c1, c2, c3 = st.columns(3)
-    
-    # Merch 1: T-Shirt (Using Unsplash Image + Overlay SVG)
-    with c1:
-        st.markdown(f"""
-        <div class="mockup-container">
-            <img src="https://images.unsplash.com/photo-1521572163474-6864f9cf17ab?auto=format&fit=crop&w=600&q=80" class="mockup-bg">
-            <div class="mockup-logo" style="transform: translate(-50%, -50%) scale(0.3);">{TNF_LOGO_SVG}</div>
-        </div>
-        """, unsafe_allow_html=True)
-        st.markdown("**TNF CORE TEE**")
-        st.caption("Heavyweight Cotton")
-        if st.button("ADD TO CART €35", key="m1"):
-            add_to_cart("TNF Core Tee")
-
-    # Merch 2: Hoodie
-    with c2:
-        st.markdown(f"""
-        <div class="mockup-container">
-            <img src="https://images.unsplash.com/photo-1556821840-3a63f95609a7?auto=format&fit=crop&w=600&q=80" class="mockup-bg">
-            <div class="mockup-logo" style="transform: translate(-50%, -50%) scale(0.5);">{HKR_LOGO_SVG}</div>
-        </div>
-        """, unsafe_allow_html=True)
-        st.markdown("**HKR LABEL HOODIE**")
-        st.caption("Oversized Fit")
-        if st.button("ADD TO CART €65", key="m2"):
-            add_to_cart("HKR Hoodie")
-
-    # Merch 3: Slipmats
-    with c3:
-        st.markdown(f"""
-        <div class="mockup-container">
-            <img src="https://images.unsplash.com/photo-1603048588665-791ca8aea617?auto=format&fit=crop&w=600&q=80" class="mockup-bg">
-            <div class="mockup-logo" style="transform: translate(-50%, -50%) scale(0.6);">{SLIPMAT_ICON_SVG}</div>
-        </div>
-        """, unsafe_allow_html=True)
-        st.markdown("**PRO SLIPMATS**")
-        st.caption("Anti-static Pair")
-        if st.button("ADD TO CART €20", key="m3"):
-            add_to_cart("Slipmats")
+    st.title("MERCH")
+    try: stripe.api_key = st.secrets["stripe"]["secret_key"]
+    except: pass
+    items = [("TNF Tee", 35, "https://images.unsplash.com/photo-1612872087729-bb3898a6e1e7?q=80"), ("HKR Hoodie", 65, "https://images.unsplash.com/photo-1556821840-3a63f95609a7?q=80"), ("Slipmats", 20, "https://images.unsplash.com/photo-1603048588665-791ca8aea617?q=80")]
+    cols = st.columns(3)
+    for col, (name, price, img) in zip(cols, items):
+        with col:
+            st.image(img + "&w=600", use_column_width=True)
+            st.markdown(f"**{name}** €{price}")
+            if st.button("BUY NOW", key=name):
+                if 'stripe' in globals() and stripe.api_key:
+                    session = stripe.checkout.Session.create(payment_method_types=['card'], line_items=[{'price_data': {'currency': 'eur', 'product_data': {'name': name}, 'unit_amount': price*100}, 'quantity': 1}], mode='payment', success_url=st.secrets.get("site_url", "https://tuesdaynightfreak.streamlit.app") + "?success=1", cancel_url=st.secrets.get("site_url", "https://tuesdaynightfreak.streamlit.app") + "?cancel=1")
+                    st.markdown(f'<meta http-equiv="refresh" content="0;url={session.url}">', unsafe_allow_html=True)
+                else: st.info("Add Stripe secrets for checkout.")
 
 elif selected == "GALLERY":
     st.title("VISUAL ARCHIVE")
-    
-    # Using VALID Unsplash URLs to fix broken image error
-    images = [
-        {"url": "https://images.unsplash.com/photo-1598275529124-b1c4b786f1e2?q=80&w=800&auto=format&fit=crop", "cap": "EURORACK PATCHING"},
-        {"url": "https://images.unsplash.com/photo-1571266028243-371695063ad6?q=80&w=800&auto=format&fit=crop", "cap": "WAREHOUSE CROWD"},
-        {"url": "https://images.unsplash.com/photo-1550291652-6ea9114a47b1?q=80&w=800&auto=format&fit=crop", "cap": "LIVE RIG"},
-        {"url": "https://images.unsplash.com/photo-1619967657960-983b6329c370?q=80&w=800&auto=format&fit=crop", "cap": "SEQUENCER DETAIL"},
-    ]
-    
-    c1, c2 = st.columns(2)
-    for i, item in enumerate(images):
-        with (c1 if i % 2 == 0 else c2):
-            st.image(item['url'], caption=item['cap'], use_column_width=True)
+    images = ["https://images.unsplash.com/photo-1571266028243-371695063ad6", "https://images.unsplash.com/photo-1619967657960-983b6329c370", "https://images.unsplash.com/photo-1550291652-6ea9114a47b1", "https://images.unsplash.com/photo-1599841180182-5f3a4e2d9b7a"]
+    caps = ["EURORACK", "LIVE RIG", "303 ACID", "MODULAR"]
+    if st.session_state.expanded_gallery is not None:
+        i = st.session_state.expanded_gallery
+        st.image(images[i] + "?w=1600", caption=caps[i], use_column_width=True)
+        if st.button("← BACK"): st.session_state.expanded_gallery = None
+    else:
+        cols = st.columns(2)
+        for i, (img, cap) in enumerate(zip(images, caps)):
+            with cols[i%2]:
+                st.image(img + "?w=800", caption=cap, use_column_width=True)
+                if st.button("EXPAND", key=f"exp{i}"): st.session_state.expanded_gallery = i
 
 elif selected == "ABOUT":
-    c1, c2 = st.columns([2,1])
-    with c1:
-        st.title("BIOGRAPHY")
-        st.write("""
-        **Tuesdaynightfreak** is an electronic music project established in Melbourne, Australia.
-        
-        Drawing influence from the stark industrialism of Berlin and the soulful rhythms of Detroit, the project explores the boundaries of hardware sequencing. It is a reaction against the predictability of digital production.
-        
-        From the smoky basements of Revolver to the concrete halls of Tresor, Tuesdaynightfreak delivers a sound that is distinct, raw, and uncompromising.
-        """)
-    with c2:
-        st.markdown("#### CONTACT")
-        st.code("tuesdaynightfreak@gmail.com")
-        
-        with st.form("contact_form"):
-            email = st.text_input("Your Email")
-            msg = st.text_area("Message")
-            if st.form_submit_button("SEND"):
-                st.markdown(f'<meta http-equiv="refresh" content="0;url=mailto:tuesdaynightfreak@gmail.com?subject=General%20Inquiry&body={msg}">', unsafe_allow_html=True)
-
-elif selected == "SYSTEM":
-    st.title("SYSTEM ACCESS")
-    pwd = st.text_input("ENTER AUTH CODE", type="password")
-    if pwd == "admin123":
-        st.success("ACCESS GRANTED")
+    st.title("ABOUT")
+    st.markdown("""
+    **Tuesday Night Freak**: Melbourne hardware techno.  
+    No laptops. Pure analog glitch.  
+    Berlin warehouses • Detroit soul • Eurorack chaos.  
+    From basements to Berghain — the machine lives.  
+    """)
+    st.code("tuesdaynightfreak@gmail.com")
