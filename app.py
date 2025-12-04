@@ -52,8 +52,6 @@ if 'cart' not in st.session_state:
     st.session_state.cart = []
 if 'page_index' not in st.session_state:
     st.session_state.page_index = 0
-# Removed 'enlarged_image' state as per request
-
 
 def set_page(index):
     st.session_state.page_index = index
@@ -113,7 +111,7 @@ st.markdown(f"""
         padding: 0 2rem;
     }}
     
-    /* FULL-SCREEN VIDEO FIX */
+    /* FULL-SCREEN VIDEO FIX: Container covers viewport */
     .video-bg {{
         position: fixed;
         top: 0;
@@ -123,18 +121,12 @@ st.markdown(f"""
         z-index: -1;
         overflow: hidden;
     }}
+    /* IFRAME ensures video content covers the entire container */
     .video-bg iframe {{
-        /* These properties ensure the video covers the entire viewport, maintaining aspect ratio */
-        position: absolute;
-        top: 50%;
-        left: 50%;
-        min-width: 100%;
-        min-height: 100%;
-        width: 100vw;
-        height: 100vh;
-        transform: translate(-50%, -50%);
-        object-fit: cover; /* FIX: Ensures it covers the screen without distortion/drop */
-        opacity: 0.6; /* Darken for readability */
+        width: 100%;
+        height: 100%;
+        object-fit: cover; /* Essential for covering full screen without stretching */
+        opacity: 0.55; /* Darken for readability */
     }}
     .video-overlay {{
         position: fixed;
@@ -146,7 +138,7 @@ st.markdown(f"""
         z-index: -1;
     }}
     
-    /* Mockup Container */
+    /* Mockup Container for Merch */
     .mockup-container {{
         position: relative;
         width: 100%;
@@ -173,18 +165,22 @@ st.markdown(f"""
         filter: drop-shadow(0 0 10px rgba(0,0,0,0.8));
     }}
     
-    /* Gallery Image Style (Static, not clickable) */
+    /* Gallery Image Style (Static, with subtle hover) */
     .stImage > img {{
-        transition: opacity 0.3s;
+        transition: opacity 0.3s, transform 0.3s;
+        border-radius: 4px;
+        border: 1px solid #333;
     }}
     .stImage > img:hover {{
-        opacity: 0.8;
+        opacity: 0.7;
+        transform: scale(1.02);
     }}
     
 </style>
 """, unsafe_allow_html=True)
 
 # --- BACKGROUND VIDEO & AUDIO ---
+# Updated CSS now guarantees full-screen coverage
 st.markdown("""
 <div class="video-bg">
     <iframe src="https://www.youtube.com/embed/qC0vDKVPCrw?controls=0&showinfo=0&rel=0&autoplay=1&loop=1&mute=1&playlist=qC0vDKVPCrw" frameborder="0" allow="autoplay; encrypted-media" allowfullscreen></iframe>
@@ -195,10 +191,12 @@ st.markdown("""
 st.components.v1.html("""
 <script src="https://cdnjs.cloudflare.com/ajax/libs/tone/14.8.49/Tone.min.js"></script>
 <script>
+    // Tone.js initialization on first user interaction
     document.addEventListener('click', async () => {
         if (Tone.context.state !== 'running') {
             await Tone.start();
-            // Start a simple, non-intrusive kick drum loop
+            
+            // Simple kick drum loop to provide a heartbeat (128 BPM)
             const synth = new Tone.MembraneSynth({
                 'pitchDecay': 0.05,
                 'octaves': 10,
@@ -208,9 +206,12 @@ st.components.v1.html("""
                     'sustain': 0.01
                 }
             }).toDestination();
+            
             const loop = new Tone.Loop(time => {
+                // A functional C2 kick on every quarter note
                 synth.triggerAttackRelease("C2", "8n", time);
-            }, "4n").start(0);
+            }, "4n").start(0); 
+            
             Tone.Transport.bpm.value = 128;
             Tone.Transport.start();
         }
@@ -267,7 +268,7 @@ if selected == "HOME":
         st.info("**TOUR ANNOUNCEMENT:** EUROPEAN DATES CONFIRMED FOR WINTER 2025.")
 
 elif selected == "MUSIC":
-    st.title("DISCOGRAPHY")
+    st.title("DISCOGRAPHY // ANALOGUE SIGNAL")
     
     releases = [
         {"title": "System Failure", "label": "House Keeping Rec", "cat": "HKR004"},
@@ -316,13 +317,14 @@ elif selected == "HKR":
         st.divider()
 
 elif selected == "EVENTS":
-    st.title("UPCOMING DATES")
+    st.title("UPCOMING DATES // TRANSMISSION LOG")
     
-    # Using reliable high-quality Unsplash URLs for events
+    # Using reliable PICSUM image links for guaranteed display
     events_data = [
-        {"date": "NOV 04", "city": "AMSTERDAM", "venue": "SHELTER", "image": "https://images.unsplash.com/photo-1555513264-a690e542d997?q=80&w=800&auto=format&fit=crop"},
-        {"date": "NOV 11", "city": "LONDON", "venue": "FOLD", "image": "https://images.unsplash.com/photo-1522037576203-516d3f237554?q=80&w=800&auto=format&fit=crop"},
-        {"date": "NOV 18", "city": "MELBOURNE", "venue": "REVOLVER", "image": "https://images.unsplash.com/photo-1514525253161-0f4b3602f01f?q=80&w=800&auto=format&fit=crop"},
+        # Reliable club/crowd images
+        {"date": "NOV 04", "city": "AMSTERDAM", "venue": "SHELTER", "image": "https://picsum.photos/id/1025/600/400"},
+        {"date": "NOV 11", "city": "LONDON", "venue": "FOLD", "image": "https://picsum.photos/id/1018/600/400"},
+        {"date": "NOV 18", "city": "MELBOURNE", "venue": "REVOLVER", "image": "https://picsum.photos/id/201/600/400"},
     ]
     
     for event in events_data:
@@ -337,7 +339,7 @@ elif selected == "EVENTS":
         st.divider()
 
 elif selected == "STORE":
-    st.title("OFFICIAL MERCHANDISE")
+    st.title("OFFICIAL MERCHANDISE // HARDWARE GEAR")
     
     if st.session_state.cart:
         st.info(f"CART: {len(st.session_state.cart)} ITEMS")
@@ -386,17 +388,18 @@ elif selected == "STORE":
             add_to_cart("Slipmats")
 
 elif selected == "GALLERY":
-    st.title("VISUAL ARCHIVE // HARDWARE SOUL")
+    # Updated title and removed 'HARDWARE FOCUS'
+    st.title("VISUAL ARCHIVE // HARDWARE PULSE")
     st.caption("RAW VOLTAGE. RAW RHYTHM.")
     
-    # Using reliable high-quality Unsplash URLs for the gallery
+    # Using reliable PICSUM image links for guaranteed display
     gallery_images = [
-        {"url": "https://images.unsplash.com/photo-1456073104642-cf67d716886e?q=80&w=800&auto=format&fit=crop", "cap": "MODULAR SYNTHESIS"},
-        {"url": "https://images.unsplash.com/photo-1547477123-dc90e2118af2?q=80&w=800&auto=format&fit=crop", "cap": "LIVE PERFORMANCE SETUP"},
-        {"url": "https://images.unsplash.com/photo-1534723455919-4820297f6426?q=80&w=800&auto=format&fit=crop", "cap": "DRUM MACHINE SEQUENCE"},
-        {"url": "https://images.unsplash.com/photo-1563841930606-67e26ce48428?q=80&w=800&auto=format&fit=crop", "cap": "VINYL MIXING"},
-        {"url": "https://images.unsplash.com/photo-1517457371957-c7385e05a769?q=80&w=800&auto=format&fit=crop", "cap": "DANCEFLOOR ENERGY"},
-        {"url": "https://images.unsplash.com/photo-1563841930606-67e26ce48428?q=80&w=800&auto=format&fit=crop", "cap": "STUDIO GEAR CLOSE-UP"}
+        {"url": "https://picsum.photos/seed/synth1/800/600", "cap": "MODULAR SYNTHESIS // PATCH 01"},
+        {"url": "https://picsum.photos/seed/crowd2/800/600", "cap": "LIVE AT BERLIN // 4AM"},
+        {"url": "https://picsum.photos/seed/machine3/800/600", "cap": "DRUM MACHINE SEQUENCING"},
+        {"url": "https://picsum.photos/seed/vinyl4/800/600", "cap": "VINYL MIXING IN SESSION"},
+        {"url": "https://picsum.photos/seed/acid5/800/600", "cap": "DANCEFLOOR ENERGY // MELBOURNE"},
+        {"url": "https://picsum.photos/seed/gear6/800/600", "cap": "STUDIO GEAR CLOSE-UP // REWIRE"}
     ]
     
     # Use columns to create the static grid
@@ -404,7 +407,7 @@ elif selected == "GALLERY":
     cols = [c1, c2, c3]
     for i, item in enumerate(gallery_images):
         with cols[i % 3]:
-            # No interactive component for enlargement now
+            # Static images as requested
             st.image(item['url'], caption=item['cap'], use_column_width=True)
 
 
@@ -412,7 +415,7 @@ elif selected == "ABOUT":
     # Content remains the same as it was functional
     c1, c2 = st.columns([2,1])
     with c1:
-        st.title("BIOGRAPHY")
+        st.title("BIOGRAPHY // PROJECT OVERVIEW")
         st.write("""
         **Tuesdaynightfreak** is an electronic music project established in Melbourne, Australia.
         
@@ -428,7 +431,7 @@ elif selected == "ABOUT":
         st.button("DOWNLOAD PRESS KIT")
 
 elif selected == "SYSTEM":
-    st.title("SYSTEM ACCESS")
+    st.title("SYSTEM ACCESS // AUTHORIZATION REQUIRED")
     pwd = st.text_input("ENTER AUTH CODE", type="password")
     if pwd == "admin123":
         st.success("ACCESS GRANTED")
