@@ -121,12 +121,18 @@ st.markdown(f"""
         z-index: -1;
         overflow: hidden;
     }}
-    /* IFRAME ensures video content covers the entire container */
+    /* IFRAME ensures video content covers the entire container and is visible */
     .video-bg iframe {{
-        width: 100%;
+        position: absolute; /* Added: Absolute positioning */
+        top: 50%; /* Added: Center horizontally/vertically */
+        left: 50%;
+        min-width: 100%; /* Ensure coverage */
+        min-height: 100%; /* Ensure coverage */
+        width: 100%; 
         height: 100%;
-        object-fit: cover; /* Essential for covering full screen without stretching */
-        opacity: 0.55; /* Darken for readability */
+        transform: translate(-50%, -50%); /* Center trick */
+        object-fit: cover; 
+        opacity: 0.55; 
     }}
     .video-overlay {{
         position: fixed;
@@ -134,7 +140,7 @@ st.markdown(f"""
         left: 0;
         width: 100vw;
         height: 100vh;
-        background: rgba(0,0,0,0.85); /* Heavy overlay */
+        background: rgba(0,0,0,0.85); 
         z-index: -1;
     }}
     
@@ -180,7 +186,7 @@ st.markdown(f"""
 """, unsafe_allow_html=True)
 
 # --- BACKGROUND VIDEO & AUDIO ---
-# The CSS fix for the video is now applied via the style block above.
+# Using minimal, robust YouTube embed code
 st.markdown("""
 <div class="video-bg">
     <iframe src="https://www.youtube.com/embed/qC0vDKVPCrw?controls=0&showinfo=0&rel=0&autoplay=1&loop=1&mute=1&playlist=qC0vDKVPCrw" frameborder="0" allow="autoplay; encrypted-media" allowfullscreen></iframe>
@@ -319,11 +325,12 @@ elif selected == "HKR":
 elif selected == "EVENTS":
     st.title("UPCOMING DATES // TRANSMISSION LOG")
     
-    # Updated to highly thematic club/techno images
+    # Using simple, high-contrast images from Unsplash to ensure display reliability
     events_data = [
-        {"date": "NOV 04", "city": "AMSTERDAM", "venue": "SHELTER", "image": "https://images.unsplash.com/photo-1517457371957-c7385e05a769?q=80&w=600&auto=format&fit=crop"}, # Atmospheric Club
-        {"date": "NOV 11", "city": "LONDON", "venue": "FOLD", "image": "https://images.unsplash.com/photo-1522851214081-300624e7a83d?q=80&w=600&auto=format&fit=crop"}, # Dark Venue
-        {"date": "NOV 18", "city": "MELBOURNE", "venue": "REVOLVER", "image": "https://images.unsplash.com/photo-1534447677768-bc412dec4fbe?q=80&w=600&auto=format&fit=crop"}, # DJ Booth View
+        # Switched to simpler, well-formatted URLs for reliability
+        {"date": "NOV 04", "city": "AMSTERDAM", "venue": "SHELTER", "image": "https://images.unsplash.com/photo-1517457371957-c7385e05a769?auto=format&fit=crop&w=600&h=400"}, 
+        {"date": "NOV 11", "city": "LONDON", "venue": "FOLD", "image": "https://images.unsplash.com/photo-1522851214081-300624e7a83d?auto=format&fit=crop&w=600&h=400"}, 
+        {"date": "NOV 18", "city": "MELBOURNE", "venue": "REVOLVER", "image": "https://images.unsplash.com/photo-1544378103-68d7122822be?auto=format&fit=crop&w=600&h=400"}, 
     ]
     
     for event in events_data:
@@ -347,7 +354,7 @@ elif selected == "STORE":
 
     c1, c2, c3 = st.columns(3)
     
-    # Merch 1: T-Shirt with BIGGER Logo Overlay (Image URLs kept as they are themed black apparel)
+    # Merch 1: T-Shirt
     with c1:
         st.markdown(f"""
         <div class="mockup-container">
@@ -360,7 +367,7 @@ elif selected == "STORE":
         if st.button("ADD TO CART €35", key="m1"):
             add_to_cart("TNF Core Tee")
 
-    # Merch 2: Hoodie with HKR Logo
+    # Merch 2: Hoodie 
     with c2:
         st.markdown(f"""
         <div class="mockup-container">
@@ -390,22 +397,21 @@ elif selected == "GALLERY":
     st.title("VISUAL ARCHIVE // HARDWARE PULSE")
     st.caption("RAW VOLTAGE. RAW RHYTHM.")
     
-    # Updated to highly thematic modular/club/techno images
+    # Using simple, high-contrast images from Unsplash to ensure display reliability
     gallery_images = [
-        {"url": "https://images.unsplash.com/photo-1547842603-99b800539665?q=80&w=800&auto=format&fit=crop", "cap": "MODULAR SYNTHESIS // PATCH 01"},
-        {"url": "https://images.unsplash.com/photo-1524368535928-5b5e00ddc765?q=80&w=800&auto=format&fit=crop", "cap": "LIVE AT BERLIN // 4AM"},
-        {"url": "https://images.unsplash.com/photo-1510925232779-11fae39b986e?q=80&w=800&auto=format&fit=crop", "cap": "DRUM MACHINE SEQUENCING"},
-        {"url": "https://images.unsplash.com/photo-1511671782779-c97d3d27a1ae?q=80&w=800&auto=format&fit=crop", "cap": "VINYL MIXING IN SESSION"},
-        {"url": "https://images.unsplash.com/photo-1594950891461-841f3e7b1652?q=80&w=800&auto=format&fit=crop", "cap": "DANCEFLOOR ENERGY // MELBOURNE"},
-        {"url": "https://images.unsplash.com/photo-1458819714733-e5ab3d536722?q=80&w=800&auto=format&fit=crop", "cap": "STUDIO GEAR CLOSE-UP // REWIRE"}
+        {"url": "https://images.unsplash.com/photo-1511671782779-c97d3d27a1ae?auto=format&fit=crop&w=600&h=400", "cap": "VINYL MIXING IN SESSION"},
+        {"url": "https://images.unsplash.com/photo-1519782442295-814d4e6807f7?auto=format&fit=crop&w=600&h=400", "cap": "CLUB STROBE // MOMENT CAPTURE"},
+        {"url": "https://images.unsplash.com/photo-1515259020959-1e359a72120e?auto=format&fit=crop&w=600&h=400", "cap": "MODULAR CLOSE-UP // REWIRE"},
+        {"url": "https://images.unsplash.com/photo-1519638848443-4dc9792070e1?auto=format&fit=crop&w=600&h=400", "cap": "DARK CROWD // BASEMENT VIBES"},
+        {"url": "https://images.unsplash.com/photo-1514525253161-12c44f783282?auto=format&fit=crop&w=600&h=400", "cap": "DJ SHADOW // MELBOURNE"},
+        {"url": "https://images.unsplash.com/photo-1596706042730-802c638d1599?auto=format&fit=crop&w=600&h=400", "cap": "RETRO MIXING // ANALOGUE ERA"}
     ]
     
-    # Use columns to create the static grid (ensures no navigation back/enlargement)
+    # Use columns to create the static grid
     c1, c2, c3 = st.columns(3)
     cols = [c1, c2, c3]
     for i, item in enumerate(gallery_images):
         with cols[i % 3]:
-            # st.image renders the image statically inside the container
             st.image(item['url'], caption=item['cap'], use_column_width=True)
 
 
