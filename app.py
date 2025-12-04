@@ -2,24 +2,25 @@ import streamlit as st
 from streamlit_option_menu import option_menu
 import time
 
-# --- UPLOADED IMAGE MAPPINGS (Replaces Unsplash URLs) ---
-# These Content IDs refer to your uploaded files
+# --- UPLOADED IMAGE MAPPINGS (Using file names as stable references) ---
+# NOTE: Streamlit's st.image() expects the raw filename string when files are uploaded
+# directly through the interface, not the complex Content IDs used by the internal system.
 IMAGE_MAPPING = {
-    # Events
-    "EVENT_AMSTERDAM": "uploaded:image_1bc503.jpg-857b2deb-0348-4079-b5ae-7435256a80af", # DJ/Crowd shot 1
-    "EVENT_LONDON": "uploaded:image_1bb6f5.jpg-434247b3-a427-4211-9669-fc465cd7b712",    # Crowd/Scene shot 2
-    "EVENT_MELBOURNE": "uploaded:image_377bc1.jpg-bd1de4bb-ff91-42fc-bdc4-e40ecdda71fe", # Scene/Texture shot
-    # Store Mockups (using PNGs for apparel mockups)
-    "MERCH_TEE": "uploaded:image_20608f.png-54a97f38-0e2f-412b-864a-fe49523e31bc",
-    "MERCH_HOODIE": "uploaded:image_831f9b.png-cebe82d7-d6b6-44cd-a376-0a36c263db05",
-    "MERCH_SLIPMATS": "uploaded:image_205cd6.png-3bca7ad1-af70-44d0-961c-7d5c82c713c5",
+    # Events (Using the original filenames for clarity)
+    "EVENT_AMSTERDAM": "image_1bc503.jpg",
+    "EVENT_LONDON": "image_1bb6f5.jpg",
+    "EVENT_MELBOURNE": "image_377bc1.jpg", 
+    # Store Mockups
+    "MERCH_TEE": "image_20608f.png",
+    "MERCH_HOODIE": "image_831f9b.png",
+    "MERCH_SLIPMATS": "image_205cd6.png",
     # Gallery
-    "GALLERY_1": "uploaded:image_37de51.png-bd336e1f-aee3-41c9-ae31-d75b4df0cb48",
-    "GALLERY_2": "uploaded:image_1a5cde.png-21ff920c-a784-44af-baf3-b86316c15967",
-    "GALLERY_3": "uploaded:image_9deda8.png-8dbdce5e-0e20-43f9-a15f-277a03aa8c4f",
-    "GALLERY_4": "uploaded:image_9dd73a.png-f3e52899-1fd9-4c67-9ad7-5707fd96bc9a",
-    "GALLERY_5": "uploaded:image_1bab17.png-b46838e8-6d68-4332-98b2-515b0aefa899",
-    "GALLERY_6": "uploaded:image_1bb25b.png-7161be77-115d-4c4c-ab7e-dabeeb3e79ab",
+    "GALLERY_1": "image_37de51.png", 
+    "GALLERY_2": "image_1a5cde.png", 
+    "GALLERY_3": "image_9deda8.png", 
+    "GALLERY_4": "image_9dd73a.png",
+    "GALLERY_5": "image_1bab17.png", 
+    "GALLERY_6": "image_1bb25b.png",
 }
 
 # --- CONFIGURATION & PALETTE ---
@@ -55,8 +56,7 @@ HKR_LOGO_SVG = f"""
 SLIPMAT_ICON_SVG = f"""
 <svg width="100" height="100" viewBox="0 0 100 100" xmlns="http://www.w3.org/2000/svg">
     <circle cx="50" cy="50" r="45" fill="#111" stroke="{COLOR_CYAN}" stroke-width="2"/>
-    <circle cx="50" cy="50" r="15" fill="{COLOR_ACCENT}"/>
-    <circle cx="50" cy="50" r="2" fill="#fff"/>
+    <circle cx="50" cy="50" r="15" fill="{COLOR_ACCENT}"/><circle cx="50" cy="50" r="2" fill="#fff"/>
 </svg>
 """
 
@@ -157,7 +157,39 @@ st.markdown(f"""
         filter: drop-shadow(0 0 10px rgba(0,0,0,0.8));
     }}
 
-    /* --- MARQUEE STYLING --- */
+    /* --- BACKGROUND VIDEO (Restored) --- */
+    .video-bg {{
+        position: fixed;
+        top: 0;
+        left: 0;
+        width: 100%;
+        height: 100%;
+        overflow: hidden;
+        z-index: -100;
+        pointer-events: none;
+    }}
+    .video-bg iframe {{
+        width: 100vw;
+        height: 56.25vw; /* 16:9 ratio */
+        min-height: 100vh;
+        min-width: 177.77vh; /* 16:9 ratio */
+        position: absolute;
+        top: 50%;
+        left: 50%;
+        transform: translate(-50%, -50%);
+    }}
+    .video-overlay {{
+        position: fixed;
+        top: 0;
+        left: 0;
+        width: 100%;
+        height: 100%;
+        background: rgba(0, 0, 0, 0.7); /* Dark overlay */
+        z-index: -99;
+        pointer-events: none;
+    }}
+    
+    /* --- MARQUEE STYLING (Restored) --- */
     .marquee-container {{
         width: 100%;
         overflow: hidden;
@@ -167,7 +199,7 @@ st.markdown(f"""
         padding: 8px 0;
         position: relative;
         z-index: 1000;
-        box-shadow: 0 0 10px rgba(255, 0, 51, 0.4); /* Subtle glow */
+        box-shadow: 0 0 10px rgba(255, 0, 51, 0.4); 
     }}
     .marquee-content {{
         display: inline-block;
@@ -180,45 +212,47 @@ st.markdown(f"""
         text-transform: uppercase;
         letter-spacing: 4px;
         text-shadow: 0 0 5px rgba(0, 247, 255, 0.6);
+        /* Add spaces around the text for smooth looping appearance */
+        padding-left: 100%;
     }}
     @keyframes marquee {{
-        0% {{ transform: translate(100%, 0); }}
-        100% {{ transform: translate(-100%, 0); }}
-    }}
-    
-    /* --- HIDE YOUTUBE/TONE.JS ELEMENTS --- */
-    .video-bg, .video-overlay, .mixcloud-bg-spacer {{ display: none !important; }}
-
-    /* --- MIXCLOUD EMBED (Hidden but functional for background audio) --- */
-    .mixcloud-bg {{
-        position: fixed;
-        top: 0;
-        left: 0;
-        width: 1px;
-        height: 1px;
-        opacity: 0; 
-        overflow: hidden;
-        z-index: -999; /* Place far in background */
+        0% {{ transform: translateX(0%); }}
+        100% {{ transform: translateX(-100%); }}
     }}
     
 </style>
 """, unsafe_allow_html=True)
 
-# --- BACKGROUND AUDIO (Mixcloud) & MARQUEE ---
-
-# 1. Mixcloud Player (Hidden)
-st.markdown(f"""
-<div class="mixcloud-bg">
-    <!-- Using a simplified widget URL for autoplay/background purposes. User must click on the page once to enable audio. -->
-    <iframe width="100%" height="120" src="https://www.mixcloud.com/House_Keeping/stargazing/embed/?autoplay=1&amp;hide_cover=1&amp;light=1&amp;mini=1" frameborder="0" allow="autoplay" loading="eager"></iframe>
+# --- BACKGROUND VIDEO & MARQUEE ---
+# Restored the background video embed using a mute/loop parameter to comply with autoplay policies
+st.markdown("""
+<div class="video-bg">
+    <iframe src="https://www.youtube.com/embed/qC0vDKVPCrw?controls=0&showinfo=0&rel=0&autoplay=1&loop=1&mute=1&playlist=qC0vDKVPCrw" frameborder="0" allow="autoplay; encrypted-media" allowfullscreen></iframe>
 </div>
+<div class="video-overlay"></div>
 """, unsafe_allow_html=True)
 
-# 2. Marquee Text
-st.markdown("""
+# Tone.js for optional click-to-start bass pulse (optional, but keeps the original code working)
+st.components.v1.html("""
+<script src="https://cdnjs.cloudflare.com/ajax/libs/tone/14.8.49/Tone.min.js"></script>
+<script>
+    document.addEventListener('click', async () => {
+        if (Tone.context.state !== 'running') {
+            await Tone.start();
+            // Optional: Start a hidden Mixcloud embed if it fails to autoplay
+            // (Note: Mixcloud itself often requires a user click, so a direct embed is safer)
+            // The Mixcloud player is now handled as an explicit embed on the HOME page.
+        }
+    });
+</script>
+""", height=0)
+
+
+# 2. Marquee Text (Placed before navigation for visibility)
+st.markdown(f"""
 <div class="marquee-container">
     <div class="marquee-content">
-        TUESDAYNIGHTFREAK LIVE&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;TUESDAYNIGHTFREAK LIVE&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;TUESDAYNIGHTFREAK LIVE&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;TUESDAYNIGHTFREAK LIVE&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;
+        TUESDAYNIGHTFREAK LIVE&nbsp;&nbsp;&nbsp;SYSTEM ONLINE&nbsp;&nbsp;&nbsp;TUESDAYNIGHTFREAK LIVE&nbsp;&nbsp;&nbsp;HKR ACTIVE&nbsp;&nbsp;&nbsp;
     </div>
 </div>
 """, unsafe_allow_html=True)
@@ -270,6 +304,20 @@ if selected == "HOME":
         st.markdown("#### SYSTEM UPDATES")
         st.info("**NEW RELEASE:** 'VOLTAGE CONTROL' EP OUT NOW VIA OSTGUT TON.")
         st.info("**TOUR ANNOUNCEMENT:** EUROPEAN DATES CONFIRMED FOR WINTER 2025.")
+    
+    st.divider()
+
+    # --- Mixcloud Player (Explicitly at the bottom of HOME) ---
+    st.subheader("LIVE AUDIO FEED // STARGAZING MIX")
+    # Using the mixcloud embed code for visibility and control
+    mixcloud_url = "https://www.mixcloud.com/House_Keeping/stargazing/"
+    embed_html = f"""
+    <div style="border: 2px solid {COLOR_CYAN}; padding: 10px; background: {COLOR_SECONDARY}; border-radius: 4px;">
+        <iframe width="100%" height="120" src="https://www.mixcloud.com/widget/iframe/?feed=/{mixcloud_url.split('/')[-2]}/{mixcloud_url.split('/')[-1]}/&hide_cover=1&light=1&mini=1" frameborder="0"></iframe>
+        <p style="color: #999; font-size: 0.8rem; text-align: right; margin-top: 5px;">Playing: {mixcloud_url.split('/')[-1].replace('-', ' ').title()}</p>
+    </div>
+    """
+    st.markdown(embed_html, unsafe_allow_html=True)
 
 elif selected == "MUSIC":
     st.title("DISCOGRAPHY")
@@ -322,16 +370,17 @@ elif selected == "HKR":
 elif selected == "EVENTS":
     st.title("UPCOMING DATES")
     
-    # Updated to use MAPPED IMAGE IDs
+    # Corrected image references using the MAPPING dictionary
     events_data = [
-        {"date": "NOV 04", "city": "AMSTERDAM", "venue": "SHELTER", "image": IMAGE_MAPPING['EVENT_AMSTERDAM']},
-        {"date": "NOV 11", "city": "LONDON", "venue": "FOLD", "image": IMAGE_MAPPING['EVENT_LONDON']},
-        {"date": "NOV 18", "city": "MELBOURNE", "venue": "REVOLVER", "image": IMAGE_MAPPING['EVENT_MELBOURNE']},
+        {"date": "NOV 04", "city": "AMSTERDAM", "venue": "SHELTER", "image": IMAGE_MAPPING["EVENT_AMSTERDAM"]},
+        {"date": "NOV 11", "city": "LONDON", "venue": "FOLD", "image": IMAGE_MAPPING["EVENT_LONDON"]},
+        {"date": "NOV 18", "city": "MELBOURNE", "venue": "REVOLVER", "image": IMAGE_MAPPING["EVENT_MELBOURNE"]},
     ]
     
     for event in events_data:
         c1, c2, c3 = st.columns([2, 3, 1])
         with c1:
+            # st.image handles local files (uploaded files) correctly if passed the filename string
             st.image(event['image'], caption=f"{event['city']} - {event['venue']}", use_column_width=True)
         with c2:
             st.markdown(f"### {event['date']}")
@@ -350,7 +399,7 @@ elif selected == "STORE":
 
     c1, c2, c3 = st.columns(3)
     
-    # Merch 1: T-Shirt with BIGGER Logo Overlay - Updated to use MAPPED IMAGE ID
+    # Merch 1: T-Shirt with BIGGER Logo Overlay - Corrected image reference
     with c1:
         st.markdown(f"""
         <div class="mockup-container">
@@ -363,7 +412,7 @@ elif selected == "STORE":
         if st.button("ADD TO CART €35", key="m1"):
             add_to_cart("TNF Core Tee")
 
-    # Merch 2: Hoodie with HKR Logo - Updated to use MAPPED IMAGE ID
+    # Merch 2: Hoodie with HKR Logo - Corrected image reference
     with c2:
         st.markdown(f"""
         <div class="mockup-container">
@@ -376,7 +425,7 @@ elif selected == "STORE":
         if st.button("ADD TO CART €65", key="m2"):
             add_to_cart("HKR Hoodie")
 
-    # Merch 3: Slipmats - Updated to use MAPPED IMAGE ID
+    # Merch 3: Slipmats - Corrected image reference
     with c3:
         st.markdown(f"""
         <div class="mockup-container">
@@ -393,7 +442,7 @@ elif selected == "GALLERY":
     st.title("VISUAL ARCHIVE // HARDWARE FOCUS")
     st.caption("RAW VOLTAGE. RAW RHYTHM.")
     
-    # Updated to use MAPPED IMAGE IDs
+    # Corrected image references using the MAPPING dictionary
     gallery_images = [
         {"url": IMAGE_MAPPING['GALLERY_1'], "cap": "MODULAR SYNTHESIS"},
         {"url": IMAGE_MAPPING['GALLERY_2'], "cap": "LIVE PERFORMANCE IN BERLIN"},
@@ -407,6 +456,7 @@ elif selected == "GALLERY":
     cols = [c1, c2, c3]
     for i, item in enumerate(gallery_images):
         with cols[i % 3]:
+            # st.image handles local files (uploaded files) correctly if passed the filename string
             st.image(item['url'], caption=item['cap'], use_column_width=True)
 
 elif selected == "ABOUT":
