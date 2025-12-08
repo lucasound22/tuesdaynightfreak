@@ -35,6 +35,7 @@ if 'site_content' not in st.session_state:
 
 # 2. MIXCLOUD SETTINGS
 if 'mixcloud_url' not in st.session_state:
+    # Default is a placeholder; Admin will overwrite this
     st.session_state.mixcloud_url = "https://www.mixcloud.com/widget/iframe/?hide_cover=1&mini=1&light=0&feed=%2Fcarlcox%2Fcarl-cox-global-722%2F"
 
 # 3. GALLERY DATA
@@ -48,6 +49,14 @@ if 'gallery_data' not in st.session_state:
         {"type": "image", "src": "https://images.unsplash.com/photo-1563841930606-67e26ce48428?q=80&w=800&auto=format&fit=crop", "cap": "STUDIO"}
     ]
 
+# 4. EVENTS DATA (NEW)
+if 'events_data' not in st.session_state:
+    st.session_state.events_data = [
+        {"date":"NOV 04","city":"AMSTERDAM","venue":"SHELTER"},
+        {"date":"NOV 11","city":"LONDON","venue":"FOLD"},
+        {"date":"NOV 18","city":"MELBOURNE","venue":"REVOLVER"}
+    ]
+
 def set_page(index):
     st.session_state.page_index = index
 
@@ -55,12 +64,13 @@ def add_to_cart(item):
     st.session_state.cart.append(item)
     st.toast(f"Added {item} to cart!", icon="🛒")
 
-# --- BRANDING SVGs (Keeping these separate for clarity) ---
+# --- BRANDING SVGs ---
 TNF_LOGO_SVG = f"""<svg width="300" height="90" viewBox="0 0 300 90" xmlns="http://www.w3.org/2000/svg"><text x="4" y="65" font-family="Arial" font-weight="900" font-size="72" fill="{COLOR_CYAN}" opacity="0.6" letter-spacing="-4">TNF</text><text x="-2" y="65" font-family="Arial" font-weight="900" font-size="72" fill="{COLOR_ACCENT}" opacity="0.7" letter-spacing="-4">TNF</text><text x="0" y="65" font-family="Arial" font-weight="900" font-size="72" fill="{COLOR_TEXT}" letter-spacing="-4">TNF</text><rect x="160" y="25" width="8" height="40" fill="{COLOR_ACCENT}"/><rect x="175" y="25" width="8" height="40" fill="{COLOR_CYAN}"/></svg>"""
 HKR_LOGO_SVG = f"""<svg width="150" height="150" viewBox="0 0 150 150" xmlns="http://www.w3.org/2000/svg"><rect x="5" y="5" width="140" height="140" stroke="{COLOR_TEXT}" stroke-width="5" fill="none"/><path d="M20 60 L75 20 L130 60" stroke="{COLOR_ACCENT}" stroke-width="5" fill="none"/><circle cx="75" cy="95" r="30" stroke="{COLOR_CYAN}" stroke-width="4" fill="none"/></svg>"""
 SLIPMAT_ICON_SVG = f"""<svg width="100" height="100" viewBox="0 0 100 100" xmlns="http://www.w3.org/2000/svg"><circle cx="50" cy="50" r="45" fill="#111" stroke="{COLOR_CYAN}" stroke-width="2"/><circle cx="50" cy="50" r="15" fill="{COLOR_ACCENT}"/></svg>"""
 
-# --- CUSTOM CSS ---
+
+# --- CUSTOM CSS (FIXING VISIBILITY) ---
 st.markdown(f"""
 <style>
     @import url('https://fonts.googleapis.com/css2?family=Inter:wght@400;700;900&family=Space+Mono:wght@400;700&display=swap');
@@ -100,7 +110,7 @@ st.markdown(f"""
         box-shadow: 0 0 15px {COLOR_ACCENT};
     }}
 
-    /* ADMIN PANEL STYLING (Fixed visibility) */
+    /* ADMIN PANEL STYLING */
     .admin-box {{
         background-color: #1a1a1a;
         padding: 20px;
@@ -116,10 +126,26 @@ st.markdown(f"""
         border: 1px solid #444 !important;
     }}
     
-    /* NAVIGATION */
+    /* NAVIGATION FIXES (Main Menu Visibility) */
     .st-emotion-cache-163lq9m {{ border-bottom: 3px solid {COLOR_CYAN}; padding: 0 2rem; }}
+    .st-emotion-cache-163lq9m a {{ color: {COLOR_TEXT}; }} /* Non-selected menu text color */
+    .st-emotion-cache-163lq9m .st-emotion-cache-1n76hnz {{ color: {COLOR_CYAN}; }} /* Selected menu item */
 
-    /* Video Background (Crucial for retaining previous functionality) */
+    /* ADMIN TABS FIXES (Tab Label Visibility) */
+    [data-testid="stTabs"] button {{
+        color: {COLOR_TEXT}; /* Unselected tab text color */
+        background-color: #1a1a1a;
+        border-bottom: 3px solid #333;
+        margin-right: 5px;
+        transition: 0.3s;
+    }}
+    [data-testid="stTabs"] button[aria-selected="true"] {{
+        color: {COLOR_CYAN}; /* Selected tab text color */
+        border-bottom-color: {COLOR_CYAN};
+        background-color: {COLOR_BG};
+    }}
+    
+    /* Video Background (Restoring video functionality) */
     .video-bg {{
         position: fixed;
         top: 0;
@@ -139,6 +165,7 @@ st.markdown(f"""
         left: 50%;
         transform: translate(-50%, -50%);
         pointer-events: none;
+        opacity: 0.3; /* Added opacity to ensure text is visible */
     }}
     .video-overlay {{
         position: fixed;
@@ -146,7 +173,7 @@ st.markdown(f"""
         left: 0;
         width: 100%;
         height: 100%;
-        background: rgba(0, 0, 0, 0.7); /* Dark overlay for contrast */
+        background: rgba(0, 0, 0, 0.7); 
         z-index: -1;
     }}
     
@@ -154,6 +181,7 @@ st.markdown(f"""
 """, unsafe_allow_html=True)
 
 # --- BACKGROUND MEDIA (Video + Hidden Audio Tone) ---
+# Ensure this block is high up to render the background properly
 st.markdown("""
 <div class="video-bg">
     <iframe src="https://www.youtube.com/embed/qC0vDKVPCrw?controls=0&showinfo=0&rel=0&autoplay=1&loop=1&mute=1&playlist=qC0vDKVPCrw" frameborder="0" allow="autoplay; encrypted-media" allowfullscreen></iframe>
@@ -167,6 +195,7 @@ st.components.v1.html("""
     document.addEventListener('click', async () => {
         if (Tone.context.state !== 'running') {
             await Tone.start();
+            // Simple synth for an initial sound cue
             const synth = new Tone.MembraneSynth().toDestination();
             const loop = new Tone.Loop(time => {
                 synth.triggerAttackRelease("C1", "8n", time);
@@ -186,7 +215,11 @@ selected = option_menu(
     icons=["house", "disc", "vinyl", "calendar3", "bag", "images", "info-circle", "cpu"],
     default_index=st.session_state.page_index,
     orientation="horizontal",
-    styles={"container": {"background-color": "rgba(0,0,0,0.8)"}, "nav-link-selected": {"color": COLOR_CYAN, "border-bottom": f"3px solid {COLOR_CYAN}"}}
+    styles={
+        "container": {"background-color": "rgba(0,0,0,0.8)", "padding": "0!important"}, 
+        "nav-link-selected": {"color": COLOR_CYAN, "border-bottom": f"3px solid {COLOR_CYAN}"},
+        "nav-link": {"color": COLOR_TEXT} # Explicitly setting color for non-selected links
+    }
 )
 
 # Sync state
@@ -244,12 +277,16 @@ elif selected == "HKR":
 
 elif selected == "EVENTS":
     st.title("UPCOMING DATES")
-    events = [{"d":"NOV 04","c":"AMSTERDAM","v":"SHELTER"},{"d":"NOV 11","c":"LONDON","v":"FOLD"},{"d":"NOV 18","c":"MELBOURNE","v":"REVOLVER"}]
+    
+    events = st.session_state.events_data
+    if not events:
+        st.info("No events scheduled at this time. Check back soon!")
+    
     for e in events:
         c1, c2, c3 = st.columns([1, 3, 1])
-        with c1: st.markdown(f"### {e['d']}")
-        with c2: st.markdown(f"**{e['c']}** // {e['v']}"); st.caption("Techno / House")
-        with c3: st.button("TICKETS", key=e['c'])
+        with c1: st.markdown(f"### {e['date']}")
+        with c2: st.markdown(f"**{e['city']}** // {e['venue']}"); st.caption("Techno / House")
+        with c3: st.button("TICKETS", key=e['city'] + e['date'])
         st.divider()
 
 elif selected == "STORE":
@@ -314,12 +351,13 @@ elif selected == "SYSTEM":
         st.markdown("---")
         
         # --- ADMIN DASHBOARD ---
-        tab1, tab2, tab3 = st.tabs(["📝 MANAGE SITE TEXT (CMS)", "🖼️ MANAGE GALLERY", "☁️ MANAGE MIXCLOUD"])
+        tab1, tab2, tab3, tab4 = st.tabs(["📝 SITE COPY", "🖼️ GALLERY", "📅 EVENTS", "☁️ MIXCLOUD"])
         
-        # --- TAB 1: CONTENT MANAGER ---
+        # --- TAB 1: CONTENT MANAGER (SITE COPY) ---
         with tab1:
             st.markdown('<div class="admin-box">', unsafe_allow_html=True)
-            st.subheader("HOME PAGE CONTENT")
+            st.subheader("HOME PAGE TEXT")
+            st.caption("The Home Page copy is editable here.")
             new_headline = st.text_input("Headline (H3)", st.session_state.site_content['home_headline'])
             new_body = st.text_area("Body Text", st.session_state.site_content['home_body'], height=100)
             
@@ -327,7 +365,7 @@ elif selected == "SYSTEM":
             new_up1 = c_up1.text_input("System Update 1 (Info Box)", st.session_state.site_content['system_update_1'])
             new_up2 = c_up2.text_input("System Update 2 (Info Box)", st.session_state.site_content['system_update_2'])
             
-            st.subheader("ABOUT PAGE CONTENT")
+            st.subheader("ABOUT PAGE TEXT")
             new_bio = st.text_area("Biography Text", st.session_state.site_content['about_bio'], height=150)
             
             if st.button("💾 SAVE ALL TEXT CHANGES"):
@@ -350,30 +388,30 @@ elif selected == "SYSTEM":
             st.markdown("#### ADD NEW ITEM")
             col_add1, col_add2 = st.columns(2)
             with col_add1:
-                new_img_file = st.file_uploader("Upload Image (JPG/PNG)", type=['jpg','png','jpeg'])
-                new_vid_url = st.text_input("OR Video URL (YouTube/MP4)")
+                new_img_url = st.text_input("Image URL (Paste URL)")
+                new_vid_url = st.text_input("Video URL (YouTube/MP4)")
             with col_add2:
                 new_cap = st.text_input("Caption (e.g. 'Studio Session 2025')")
                 if st.button("⚡ ADD TO GALLERY", type="primary"):
-                    if new_img_file:
-                        st.session_state.gallery_data.insert(0, {"type": "image", "src": new_img_file, "cap": new_cap})
-                        st.toast("Image Uploaded")
+                    if new_img_url:
+                        st.session_state.gallery_data.insert(0, {"type": "image", "src": new_img_url, "cap": new_cap})
+                        st.toast("Image Linked")
                         st.rerun()
                     elif new_vid_url:
                         st.session_state.gallery_data.insert(0, {"type": "video", "src": new_vid_url, "cap": new_cap})
                         st.toast("Video Linked")
                         st.rerun()
                     else:
-                        st.error("Please provide either an image file or a video URL.")
+                        st.error("Please provide either an image or a video URL.")
 
             st.divider()
             
             # Management Grid (Thumbnails + Delete)
-            st.markdown("#### CURRENT ITEMS")
+            st.markdown("#### CURRENT ITEMS (4 Column Grid for Management)")
             
-            mgr_cols = st.columns(5)
+            mgr_cols = st.columns(4)
             for i, item in enumerate(st.session_state.gallery_data):
-                with mgr_cols[i % 5]:
+                with mgr_cols[i % 4]:
                     st.markdown(f"<div style='border:1px solid #333; padding:5px; background:#000;'>", unsafe_allow_html=True)
                     if item['type'] == 'image':
                         st.image(item['src'], use_column_width=True)
@@ -389,21 +427,54 @@ elif selected == "SYSTEM":
             
             st.markdown('</div>', unsafe_allow_html=True)
             
-        # --- TAB 3: MIXCLOUD MANAGER ---
+        # --- TAB 3: EVENTS MANAGER (NEW) ---
         with tab3:
             st.markdown('<div class="admin-box">', unsafe_allow_html=True)
+            st.subheader("ADD NEW EVENT")
+            col_e1, col_e2, col_e3 = st.columns(3)
+            new_date = col_e1.text_input("Date (e.g. SEP 05)")
+            new_city = col_e2.text_input("City (e.g. BERLIN)")
+            new_venue = col_e3.text_input("Venue (e.g. TRESOR)")
+            
+            if st.button("➕ ADD EVENT TO SCHEDULE", type="primary"):
+                if new_date and new_city and new_venue:
+                    st.session_state.events_data.insert(0, {"date": new_date, "city": new_city, "venue": new_venue})
+                    st.toast("Event Added!")
+                    st.rerun()
+                else:
+                    st.error("Please fill in all event details.")
+            
+            st.divider()
+            st.subheader("CURRENT EVENTS")
+            
+            for i, event in enumerate(st.session_state.events_data):
+                col_i, col_d, col_v, col_del = st.columns([0.5, 1, 3, 1])
+                col_i.write(f"**{i+1}.**")
+                col_d.write(f"**{event['date']}**")
+                col_v.write(f"{event['city']} // {event['venue']}")
+                if col_del.button("REMOVE", key=f"event_del_{i}"):
+                    st.session_state.events_data.pop(i)
+                    st.rerun()
+            
+            st.markdown('</div>', unsafe_allow_html=True)
+
+        # --- TAB 4: MIXCLOUD MANAGER ---
+        with tab4:
+            st.markdown('<div class="admin-box">', unsafe_allow_html=True)
             st.subheader("UPDATE LATEST MIX")
-            st.info("To find the correct URL: Go to Mixcloud -> Share -> Embed Player -> Copy the URL inside the **src='...'** part of the code.")
+            # Clear instruction for Mixcloud Fix
+            st.warning("FIX: You must paste the **Embed SRC URL**. Find it here: Go to Mixcloud -> Share -> Embed Player -> Copy the **URL inside the src='...'** part of the code.")
             
             curr_mix = st.text_input("Mixcloud Embed SRC URL", st.session_state.mixcloud_url)
             
             if st.button("🎵 UPDATE MIX PLAYER", type="primary"):
                 st.session_state.mixcloud_url = curr_mix
                 st.toast("Mixcloud Player Updated! Check the MUSIC tab.", icon="✅")
-                st.rerun()
+                # Removed rerun here to allow the preview to update without immediately reloading the whole page
                 
             st.markdown("---")
-            st.markdown("#### CURRENT MIX PREVIEW (Will update on the MUSIC page)")
+            st.markdown("#### CURRENT MIX PREVIEW")
+            # Preview uses the current input value, fixing the preview error
             st.markdown(f"""<iframe width="100%" height="120" src="{curr_mix}" frameborder="0" ></iframe>""", unsafe_allow_html=True)
 
             st.markdown('</div>', unsafe_allow_html=True)
