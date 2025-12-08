@@ -9,7 +9,7 @@ COLOR_ACCENT = "#FF0033"  # Acid Red
 COLOR_CYAN = "#00f7ff"    # Cyberpunk Splash
 COLOR_SECONDARY = "#141414"
 
-# --- BRANDING SVGs (SCALABLE & CENTERED) ---
+# --- BRANDING SVGs ---
 TNF_LOGO_SVG = f"""
 <svg width="300" height="90" viewBox="0 0 300 90" xmlns="http://www.w3.org/2000/svg">
     <text x="4" y="65" font-family="Arial, sans-serif" font-weight="900" font-size="72" fill="{COLOR_CYAN}" opacity="0.6" letter-spacing="-4">TNF</text>
@@ -52,7 +52,7 @@ st.set_page_config(
 if 'page_index' not in st.session_state: st.session_state.page_index = 0
 if 'cart' not in st.session_state: st.session_state.cart = []
 if 'mixcloud_url' not in st.session_state: 
-    # Default URL includes autoplay=1
+    # Mixcloud URL setup for autoplay (may still require user click due to browser policies)
     st.session_state.mixcloud_url = "https://www.mixcloud.com/widget/iframe/?hide_cover=1&mini=1&light=0&feed=%2Fcarlcox%2Fcarl-cox-global-722%2F&autoplay=1"
 
 # 1. SITE COPY
@@ -81,7 +81,7 @@ if 'hkr_data' not in st.session_state:
         {"cat": "HKR003", "artist": "ACID JUNKIE", "title": "GRID SEQUENCER"}
     ]
 
-# 4. EVENTS
+# 4. EVENTS (FIXED: Added 'image_url' to default structure)
 if 'events_data' not in st.session_state:
     st.session_state.events_data = [
         {"date": "NOV 04", "city": "AMSTERDAM", "venue": "SHELTER", "image_url": "https://images.unsplash.com/photo-1517457371957-c7385e05a769?q=80&w=800&auto=format&fit=crop"},
@@ -89,7 +89,7 @@ if 'events_data' not in st.session_state:
         {"date": "NOV 18", "city": "MELBOURNE", "venue": "REVOLVER", "image_url": "https://images.unsplash.com/photo-1599321355410-0254c0af474a?q=80&w=800&auto=format&fit=crop"},
     ]
 
-# 5. GALLERY (using the fixed data from the original code)
+# 5. GALLERY (FIXED: Standardized key to 'url')
 if 'gallery_data' not in st.session_state:
     st.session_state.gallery_data = [
         {"url": "https://images.unsplash.com/photo-1506450682137-f4a471413a17?q=80&w=800&auto=format&fit=crop", "cap": "MODULAR SYNTHESIS"},
@@ -219,7 +219,7 @@ st.markdown(f"""
     .mockup-container {{
         position: relative;
         width: 100%;
-        height: 350px; /* Reduced height slightly */
+        height: 350px; 
         background-color: #1a1a1a;
         overflow: hidden;
         display: flex;
@@ -245,6 +245,7 @@ st.markdown(f"""
 """, unsafe_allow_html=True)
 
 # --- BACKGROUND VIDEO & AUDIO (FIXED POSITIONING) ---
+# FIX: The video is placed here to ensure it's loaded as the background layer.
 st.markdown("""
 <div class="video-bg">
     <iframe src="https://www.youtube.com/embed/qC0vDKVPCrw?controls=0&showinfo=0&rel=0&autoplay=1&loop=1&mute=1&playlist=qC0vDKVPCrw" frameborder="0" allow="autoplay; encrypted-media" allowfullscreen></iframe>
@@ -259,6 +260,7 @@ st.components.v1.html("""
     document.addEventListener('click', async () => {
         if (Tone.context.state !== 'running') {
             await Tone.start();
+            // Start silent synth cue
             const synth = new Tone.MembraneSynth().toDestination();
             const loop = new Tone.Loop(time => {
                 synth.triggerAttackRelease("C1", "8n", time);
@@ -362,6 +364,7 @@ elif selected == "EVENTS":
     for event in st.session_state.events_data:
         c1, c2, c3 = st.columns([2, 3, 1])
         with c1:
+            # FIX: Using 'image_url' key
             st.image(event['image_url'], caption=f"{event['city']} - {event['venue']}", use_column_width=True)
         with c2:
             st.markdown(f"### {event['date']}")
@@ -378,7 +381,8 @@ elif selected == "STORE":
         st.info(f"🛒 CART: {len(st.session_state.cart)} ITEMS: {', '.join(st.session_state.cart)}")
         if st.button("CHECKOUT (EMAIL ORDER)", type="primary"):
             # Simple mailto link for checkout
-            st.markdown(f'<meta http-equiv="refresh" content="0;url=mailto:tuesdaynightfreak@gmail.com?subject=Merch%20Order&body=I%20would%20like%20to%20buy:%20{", ".join(st.session_state.cart)}.%0A%0ATotal%20Price:%20{sum(item["price"] for item in st.session_state.merch_data if item["name"] in st.session_state.cart)}%0A%0APlease%20send%20payment%20details%20and%20shipping%20information.">', unsafe_allow_html=True)
+            cart_items = ", ".join(st.session_state.cart)
+            st.markdown(f'<meta http-equiv="refresh" content="0;url=mailto:tuesdaynightfreak@gmail.com?subject=Merch%20Order&body=I%20would%20like%20to%20buy:%20{cart_items}%0A%0APlease%20send%20payment%20details%20and%20shipping%20information.">', unsafe_allow_html=True)
     
     cols = st.columns(3)
     
@@ -396,9 +400,7 @@ elif selected == "STORE":
             st.markdown(f"**{item['name']}**")
             st.caption(item['desc'])
             
-            # The add_to_cart function needs the item name to store in the cart
             if st.button(f"ADD TO CART €{item['price']}", key=f"m_btn_{i}"):
-                # Add item name and price to cart (simplified for display)
                 st.session_state.cart.append(item['name'])
                 st.toast(f"Added {item['name']} to cart!", icon="🛒")
 
@@ -409,24 +411,48 @@ elif selected == "GALLERY":
     cols = st.columns(3)
     for i, item in enumerate(st.session_state.gallery_data):
         with cols[i % 3]:
+            # FIX: Using 'url' key
             st.image(item['url'], caption=item['cap'], use_column_width=True)
             st.markdown("<br>", unsafe_allow_html=True)
 
 elif selected == "ABOUT":
+    st.title("BIOGRAPHY & CONTACT")
+    
     c1, c2 = st.columns([2,1])
     with c1:
-        st.title("BIOGRAPHY")
+        st.subheader("PROJECT BIO")
         st.write(st.session_state.site_content['about_bio'])
-    with c2:
-        st.markdown("#### CONTACT")
-        st.code("mgmt@tuesdaynightfreak.com")
-        st.markdown("#### DEMOS")
-        st.code("demos@housekeeping-rec.com")
+        st.markdown("<br>")
         st.button("DOWNLOAD PRESS KIT")
+    with c2:
+        st.subheader("CONTACT US")
+        
+        # Professional Email Form
+        with st.form("contact_form"):
+            st.markdown("##### SEND A DIRECT MESSAGE")
+            sender_name = st.text_input("Your Name", key="contact_name")
+            sender_email = st.text_input("Your Email", key="contact_email")
+            message_type = st.selectbox("Message Type", ["Management/Booking", "Demo Submission", "General Inquiry"], key="contact_type")
+            message = st.text_area("Your Message", height=150, key="contact_message")
+            
+            submit_button = st.form_submit_button("SEND TRANSMISSION", type="primary")
 
-# ---------------------------------------------
-## 💻 SYSTEM ACCESS (ADMIN)
-# ---------------------------------------------
+            if submit_button:
+                if sender_name and sender_email and message:
+                    # Construct mailto link
+                    subject = f"[{message_type.upper()}] Message from {sender_name}"
+                    body = f"Name: {sender_name}\nEmail: {sender_email}\n\nMessage:\n{message}"
+                    mailto_link = f"mailto:tuesdaynightfreak@gmail.com?subject={subject}&body={body}"
+                    
+                    st.success("Message compiled! Click the link below to send via your email client.")
+                    st.markdown(f'[Click here to open email client]({mailto_link})', unsafe_allow_html=True)
+                    st.caption("We aim to respond within 48 hours.")
+                else:
+                    st.error("Please fill in your Name, Email, and Message.")
+        
+        st.markdown("#### DIRECT EMAILS")
+        st.code("tuesdaynightfreak@gmail.com (Management & Demos)")
+
 
 elif selected == "SYSTEM":
     st.title("SYSTEM ACCESS")
@@ -437,36 +463,54 @@ elif selected == "SYSTEM":
         st.markdown("---")
         
         # --- ADMIN DASHBOARD ---
-        tab1, tab2, tab3, tab4, tab5 = st.tabs(["📝 SITE COPY", "🖼️ GALLERY", "📅 EVENTS", "👕 MERCH", "🎧 HKR RELEASES"])
+        tab1, tab2, tab3, tab4, tab5, tab6 = st.tabs(["📝 SITE COPY", "🎵 MIXCLOUD", "🖼️ GALLERY", "📅 EVENTS", "👕 MERCH", "🎧 HKR RELEASES"])
         
         # --- TAB 1: SITE COPY ---
         with tab1:
             st.markdown('<div class="admin-box">', unsafe_allow_html=True)
             st.subheader("HOME PAGE TEXT")
-            st.session_state.site_content['home_headline'] = st.text_input("Headline", st.session_state.site_content['home_headline'])
-            st.session_state.site_content['home_body'] = st.text_area("Body Text", st.session_state.site_content['home_body'], height=100)
+            st.session_state.site_content['home_headline'] = st.text_input("Headline", st.session_state.site_content['home_headline'], key="admin_home_headline")
+            st.session_state.site_content['home_body'] = st.text_area("Body Text", st.session_state.site_content['home_body'], height=100, key="admin_home_body")
             
             c_up1, c_up2 = st.columns(2)
-            st.session_state.site_content['system_update_1'] = c_up1.text_input("System Update 1", st.session_state.site_content['system_update_1'])
-            st.session_state.site_content['system_update_2'] = c_up2.text_input("System Update 2", st.session_state.site_content['system_update_2'])
+            st.session_state.site_content['system_update_1'] = c_up1.text_input("System Update 1", st.session_state.site_content['system_update_1'], key="admin_up1")
+            st.session_state.site_content['system_update_2'] = c_up2.text_input("System Update 2", st.session_state.site_content['system_update_2'], key="admin_up2")
             
             st.subheader("ABOUT PAGE TEXT")
-            st.session_state.site_content['about_bio'] = st.text_area("Biography Text", st.session_state.site_content['about_bio'], height=150)
+            st.session_state.site_content['about_bio'] = st.text_area("Biography Text", st.session_state.site_content['about_bio'], height=150, key="admin_bio")
             
             if st.button("💾 SAVE ALL TEXT CHANGES", key="save_text", type="primary"):
                 st.toast("Content Updated Successfully!", icon="💾")
                 st.rerun() 
             st.markdown('</div>', unsafe_allow_html=True)
-        
-        # --- TAB 2: GALLERY MANAGER ---
+            
+        # --- TAB 2: MIXCLOUD MANAGER ---
         with tab2:
             st.markdown('<div class="admin-box">', unsafe_allow_html=True)
+            st.subheader("UPDATE LATEST MIX")
+            st.warning("You must paste the **Embed SRC URL**. Find it here: Go to Mixcloud -> Share -> Embed Player -> Copy the **URL inside the src='...'** part of the code.")
+            
+            curr_mix = st.text_input("Mixcloud Embed SRC URL", st.session_state.mixcloud_url, key="admin_mixcloud_url")
+            
+            if st.button("🎵 UPDATE MIX PLAYER", key="update_mix_player", type="primary"):
+                st.session_state.mixcloud_url = curr_mix
+                st.toast("Mixcloud Player Updated! Check the MUSIC tab.", icon="✅")
+                
+            st.markdown("---")
+            st.markdown("#### CURRENT MIX PREVIEW")
+            st.markdown(f"""<iframe width="100%" height="120" src="{curr_mix}" frameborder="0" ></iframe>""", unsafe_allow_html=True)
+            st.markdown('</div>', unsafe_allow_html=True)
+
+        # --- TAB 3: GALLERY MANAGER ---
+        with tab3:
+            st.markdown('<div class="admin-box">', unsafe_allow_html=True)
             st.subheader("ADD NEW IMAGE/VIDEO")
-            new_url = st.text_input("Image/Video URL (e.g., Unsplash link, YouTube link)")
-            new_cap = st.text_input("Caption")
+            new_url = st.text_input("Image/Video URL (e.g., Unsplash link, YouTube link)", key="admin_new_url")
+            new_cap = st.text_input("Caption", key="admin_new_cap")
             
             if st.button("⚡ ADD TO GALLERY", key="add_gallery", type="primary"):
                 if new_url and new_cap:
+                    # FIX: Ensuring key is 'url'
                     st.session_state.gallery_data.insert(0, {"url": new_url, "cap": new_cap})
                     st.toast("Item Added!")
                     st.rerun()
@@ -484,15 +528,15 @@ elif selected == "SYSTEM":
                     st.rerun()
             st.markdown('</div>', unsafe_allow_html=True)
 
-        # --- TAB 3: EVENTS MANAGER ---
-        with tab3:
+        # --- TAB 4: EVENTS MANAGER ---
+        with tab4:
             st.markdown('<div class="admin-box">', unsafe_allow_html=True)
             st.subheader("ADD NEW EVENT")
             col_e1, col_e2, col_e3 = st.columns(3)
-            new_date = col_e1.text_input("Date (e.g. SEP 05)", key="new_date")
-            new_city = col_e2.text_input("City (e.g. BERLIN)", key="new_city")
-            new_venue = col_e3.text_input("Venue (e.g. TRESOR)", key="new_venue")
-            new_image = st.text_input("Image URL (Flyer/Venue Photo)", key="new_event_img")
+            new_date = col_e1.text_input("Date (e.g. SEP 05)", key="admin_new_date")
+            new_city = col_e2.text_input("City (e.g. BERLIN)", key="admin_new_city")
+            new_venue = col_e3.text_input("Venue (e.g. TRESOR)", key="admin_new_venue")
+            new_image = st.text_input("Image URL (Flyer/Venue Photo)", key="admin_new_event_img")
             
             if st.button("➕ ADD EVENT", key="add_event", type="primary"):
                 if new_date and new_city and new_venue and new_image:
@@ -515,15 +559,15 @@ elif selected == "SYSTEM":
                     st.rerun()
             st.markdown('</div>', unsafe_allow_html=True)
 
-        # --- TAB 4: MERCH MANAGER ---
-        with tab4:
+        # --- TAB 5: MERCH MANAGER ---
+        with tab5:
             st.markdown('<div class="admin-box">', unsafe_allow_html=True)
             st.subheader("ADD NEW MERCH ITEM")
             col_m1, col_m2 = st.columns(2)
-            new_m_name = col_m1.text_input("Item Name", key="new_m_name")
-            new_m_price = col_m2.number_input("Price (€)", min_value=1, key="new_m_price")
-            new_m_desc = st.text_input("Description", key="new_m_desc")
-            new_m_img = st.text_input("Product Image URL", key="new_m_img")
+            new_m_name = col_m1.text_input("Item Name", key="admin_new_m_name")
+            new_m_price = col_m2.number_input("Price (€)", min_value=1, key="admin_new_m_price")
+            new_m_desc = st.text_input("Description", key="admin_new_m_desc")
+            new_m_img = st.text_input("Product Image URL", key="admin_new_m_img")
             
             if st.button("➕ ADD MERCH", key="add_merch", type="primary"):
                 if new_m_name and new_m_price and new_m_img:
@@ -548,14 +592,14 @@ elif selected == "SYSTEM":
                     st.rerun()
             st.markdown('</div>', unsafe_allow_html=True)
             
-        # --- TAB 5: HKR RELEASES MANAGER ---
-        with tab5:
+        # --- TAB 6: HKR RELEASES MANAGER ---
+        with tab6:
             st.markdown('<div class="admin-box">', unsafe_allow_html=True)
             st.subheader("ADD NEW HKR RELEASE")
             col_h1, col_h2 = st.columns(2)
-            new_h_cat = col_h1.text_input("Catalogue Number (e.g. HKR006)", key="new_h_cat")
-            new_h_artist = col_h2.text_input("Artist", key="new_h_artist")
-            new_h_title = st.text_input("Release Title", key="new_h_title")
+            new_h_cat = col_h1.text_input("Catalogue Number (e.g. HKR006)", key="admin_new_h_cat")
+            new_h_artist = col_h2.text_input("Artist", key="admin_new_h_artist")
+            new_h_title = st.text_input("Release Title", key="admin_new_h_title")
             
             if st.button("➕ ADD HKR RELEASE", key="add_hkr", type="primary"):
                 if new_h_cat and new_h_artist and new_h_title:
