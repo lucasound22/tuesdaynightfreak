@@ -1,6 +1,3 @@
-
-
-
 import streamlit as st
 from streamlit_option_menu import option_menu
 import time
@@ -51,10 +48,27 @@ st.set_page_config(
     initial_sidebar_state="collapsed"
 )
 
+# --- INITIALIZE STATE (ENHANCED FOR ADMIN MGMT) ---
 if 'cart' not in st.session_state:
     st.session_state.cart = []
 if 'page_index' not in st.session_state:
     st.session_state.page_index = 0
+
+# Store Mixcloud URL in session state so Admin can change it
+if 'mixcloud_link' not in st.session_state:
+    # Default mix (Carl Cox for example, or replace with your own)
+    st.session_state.mixcloud_link = "https://www.mixcloud.com/widget/iframe/?hide_cover=1&mini=1&light=0&feed=%2Fcarlcox%2Fcarl-cox-global-722%2F"
+
+# Store Gallery Images in session state so Admin can manage them
+if 'gallery_data' not in st.session_state:
+    st.session_state.gallery_data = [
+        {"type": "image", "src": "https://images.unsplash.com/photo-1506450682137-f4a471413a17?q=80&w=800&auto=format&fit=crop", "cap": "MODULAR SYNTHESIS"},
+        {"type": "image", "src": "https://images.unsplash.com/photo-1510928230230-e837894ff54c?q=80&w=800&auto=format&fit=crop", "cap": "LIVE PERFORMANCE IN BERLIN"},
+        {"type": "image", "src": "https://images.unsplash.com/photo-1534005888251-140a324032d8?q=80&w=800&auto=format&fit=crop", "cap": "DRUM MACHINE SEQUENCE"},
+        {"type": "image", "src": "https://images.unsplash.com/photo-1543851505-18ff86725350?q=80&w=800&auto=format&fit=crop", "cap": "CROWD MOMENTS"},
+        {"type": "image", "src": "https://images.unsplash.com/photo-1571266028243-371695063ad6?q=80&w=800&auto=format&fit=crop", "cap": "VINYL MIXING"},
+        {"type": "image", "src": "https://images.unsplash.com/photo-1563841930606-67e26ce48428?q=80&w=800&auto=format&fit=crop", "cap": "STUDIO SESSION"}
+    ]
 
 def set_page(index):
     st.session_state.page_index = index
@@ -216,8 +230,16 @@ if selected == "HOME":
         st.info("**TOUR ANNOUNCEMENT:** EUROPEAN DATES CONFIRMED FOR WINTER 2025.")
 
 elif selected == "MUSIC":
-    st.title("DISCOGRAPHY")
-    # Content remains the same as it was functional
+    st.title("MUSIC & MIXES")
+    
+    # --- MIXCLOUD PLAYER ---
+    st.markdown("### LATEST MIX")
+    st.markdown(f"""
+    <iframe width="100%" height="120" src="{st.session_state.mixcloud_link}" frameborder="0" ></iframe>
+    """, unsafe_allow_html=True)
+    st.divider()
+
+    st.subheader("DISCOGRAPHY")
     releases = [
         {"title": "System Failure", "label": "House Keeping Rec", "cat": "HKR004"},
         {"title": "Analog Dreams", "label": "Tresor Records", "cat": "TR-291"},
@@ -335,24 +357,27 @@ elif selected == "STORE":
             add_to_cart("Slipmats")
 
 elif selected == "GALLERY":
-    st.title("VISUAL ARCHIVE // HARDWARE FOCUS")
+    st.title("VISUAL ARCHIVE")
     st.caption("RAW VOLTAGE. RAW RHYTHM.")
     
-    # Updated to be high-contrast and synth/club focused like Defected's content
-    gallery_images = [
-        {"url": "https://images.unsplash.com/photo-1506450682137-f4a471413a17?q=80&w=800&auto=format&fit=crop", "cap": "MODULAR SYNTHESIS"},
-        {"url": "https://images.unsplash.com/photo-1510928230230-e837894ff54c?q=80&w=800&auto=format&fit=crop", "cap": "LIVE PERFORMANCE IN BERLIN"},
-        {"url": "https://images.unsplash.com/photo-1534005888251-140a324032d8?q=80&w=800&auto=format&fit=crop", "cap": "DRUM MACHINE SEQUENCE"},
-        {"url": "https://images.unsplash.com/photo-1543851505-18ff86725350?q=80&w=800&auto=format&fit=crop", "cap": "CROWD MOMENTS"},
-        {"url": "https://images.unsplash.com/photo-1571266028243-371695063ad6?q=80&w=800&auto=format&fit=crop", "cap": "VINYL MIXING"},
-        {"url": "https://images.unsplash.com/photo-1563841930606-67e26ce48428?q=80&w=800&auto=format&fit=crop", "cap": "STUDIO SESSION"}
-    ]
+    # Uses session state so changes in ADMIN reflect here immediately
+    gallery_items = st.session_state.gallery_data
     
     c1, c2, c3 = st.columns(3)
     cols = [c1, c2, c3]
-    for i, item in enumerate(gallery_images):
+    
+    for i, item in enumerate(gallery_items):
         with cols[i % 3]:
-            st.image(item['url'], caption=item['cap'], use_column_width=True)
+            # Check if it's an uploaded file object or a URL string
+            is_upload = not isinstance(item['src'], str)
+            
+            if item['type'] == 'video':
+                st.video(item['src'])
+                if item.get('cap'): st.caption(item['cap'])
+            else:
+                st.image(item['src'], caption=item['cap'], use_column_width=True)
+            
+            st.markdown("<br>", unsafe_allow_html=True)
 
 elif selected == "ABOUT":
     # Content remains the same as it was functional
@@ -376,5 +401,73 @@ elif selected == "ABOUT":
 elif selected == "SYSTEM":
     st.title("SYSTEM ACCESS")
     pwd = st.text_input("ENTER AUTH CODE", type="password")
+    
     if pwd == "admin123":
         st.success("ACCESS GRANTED")
+        st.markdown("---")
+        
+        # --- ADMIN TABS ---
+        admin_tab1, admin_tab2 = st.tabs(["MANAGE GALLERY", "MANAGE MIXCLOUD"])
+        
+        # --- TAB 1: GALLERY MANAGEMENT ---
+        with admin_tab1:
+            st.subheader("UPLOAD / ADD MEDIA")
+            
+            with st.form("gallery_upload", clear_on_submit=True):
+                col_a, col_b = st.columns(2)
+                with col_a:
+                    uploaded_file = st.file_uploader("Upload Image", type=['jpg', 'png', 'jpeg'])
+                    video_url = st.text_input("Or Video URL (YouTube/MP4)")
+                with col_b:
+                    caption_txt = st.text_input("Caption (Optional)")
+                    
+                submitted = st.form_submit_button("ADD TO GALLERY")
+                
+                if submitted:
+                    if uploaded_file is not None:
+                        # Add uploaded image
+                        st.session_state.gallery_data.insert(0, {
+                            "type": "image", 
+                            "src": uploaded_file, 
+                            "cap": caption_txt
+                        })
+                        st.success("Image Uploaded Successfully!")
+                        st.rerun()
+                    elif video_url:
+                        # Add video link
+                        st.session_state.gallery_data.insert(0, {
+                            "type": "video", 
+                            "src": video_url, 
+                            "cap": caption_txt
+                        })
+                        st.success("Video Added Successfully!")
+                        st.rerun()
+            
+            st.markdown("### CURRENT GALLERY ITEMS")
+            # List items with delete option
+            for i, item in enumerate(st.session_state.gallery_data):
+                gc1, gc2, gc3 = st.columns([1, 4, 1])
+                with gc1:
+                    st.markdown(f"**#{i+1}**")
+                with gc2:
+                    if item['type'] == 'image':
+                        st.write(f"Image: {item.get('cap', 'No Caption')}")
+                    else:
+                        st.write(f"Video: {item.get('src')}")
+                with gc3:
+                    if st.button("DELETE", key=f"del_{i}"):
+                        st.session_state.gallery_data.pop(i)
+                        st.rerun()
+                st.divider()
+
+        # --- TAB 2: MIXCLOUD MANAGEMENT ---
+        with admin_tab2:
+            st.subheader("MIXCLOUD PLAYER CONFIG")
+            st.info("Paste the Embed URL from Mixcloud. (Go to Mixcloud -> Share -> Embed Player -> Copy the src URL inside the iframe code)")
+            
+            current_link = st.session_state.mixcloud_link
+            new_link = st.text_input("Mixcloud Embed URL", value=current_link)
+            
+            if st.button("UPDATE PLAYER"):
+                st.session_state.mixcloud_link = new_link
+                st.success("Player updated! Check the MUSIC tab.")
